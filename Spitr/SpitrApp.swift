@@ -2,16 +2,23 @@
 //  SpitrApp.swift
 //  Spitr
 //
-//  Created by Jarek Gustak on 18.06.26.
+//  Menu-bar-only app (LSUIElement). The icon reflects recording state; the
+//  dropdown hosts status, hotkey hint and permission setup.
 //
 
 import SwiftUI
 
 @main
 struct SpitrApp: App {
+    @StateObject private var controller = RecordingController()
+
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra {
+            MenuContentView(controller: controller)
+                .task { controller.activate() }
+        } label: {
+            Image(systemName: controller.menuBarSymbol)
         }
+        .menuBarExtraStyle(.window)
     }
 }
