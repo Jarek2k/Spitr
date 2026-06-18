@@ -10,6 +10,9 @@
 import Foundation
 import AppKit
 import Combine
+import os
+
+private let log = Logger(subsystem: "com.jarek.Spitr", category: "recording")
 
 @MainActor
 final class RecordingController: ObservableObject {
@@ -97,6 +100,7 @@ final class RecordingController: ObservableObject {
         guard state == .recording else { return }
         let buffer = audio.stop()
         state = .transcribing
+        log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
 
         Task {
             do {
@@ -108,9 +112,13 @@ final class RecordingController: ObservableObject {
                 let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
                     insertion.insert(trimmed)
+                    log.info("inserted transcript (\(trimmed.count) chars)")
+                } else {
+                    log.warning("empty transcript, nothing inserted")
                 }
                 state = .idle
             } catch {
+                log.error("transcription failed: \(error.localizedDescription, privacy: .public)")
                 state = .error(error.localizedDescription)
                 scheduleIdleReset()
             }
