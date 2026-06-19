@@ -37,9 +37,17 @@ struct TextReplacementService: TextReplacing {
         rules.reduce(text) { partial, rule in
             let pattern = rule.pattern.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !pattern.isEmpty else { return partial }
-            let escaped = NSRegularExpression.escapedPattern(for: pattern)
+
+            // Only anchor with a word boundary on a side that ends in a word
+            // character. Otherwise terms like "c++" or ".net" — where the edge is
+            // punctuation — would never match (\b sits between two non-word chars).
+            let core = NSRegularExpression.escapedPattern(for: pattern)
+            let lead = pattern.first.map(Self.isWordCharacter) ?? false
+            let trail = pattern.last.map(Self.isWordCharacter) ?? false
+            let anchored = (lead ? "\\b" : "") + core + (trail ? "\\b" : "")
+
             guard let regex = try? NSRegularExpression(
-                pattern: "\\b\(escaped)\\b",
+                pattern: anchored,
                 options: [.caseInsensitive]
             ) else { return partial }
 
@@ -49,5 +57,9 @@ struct TextReplacementService: TextReplacing {
                 in: partial, range: range, withTemplate: template
             )
         }
+    }
+
+    private static func isWordCharacter(_ c: Character) -> Bool {
+        c.isLetter || c.isNumber || c == "_"
     }
 }
