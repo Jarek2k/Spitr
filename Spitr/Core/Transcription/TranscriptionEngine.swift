@@ -54,5 +54,9 @@ protocol TranscriptionEngine: AnyObject {
     func prepare() async throws
 
     /// Transcribe a finished mono buffer at the buffer's sample rate.
-    func transcribe(_ audio: AudioBuffer, locale: Locale) async throws -> String
+    ///
+    /// - Parameter vocabulary: optional custom terms (names, jargon) the engine
+    ///   should be biased toward, so they aren't misheard. Engines that can't use
+    ///   such hints ignore it.
+    func transcribe(_ audio: AudioBuffer, locale: Locale, vocabulary: [String]) async throws -> String
 }

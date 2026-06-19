@@ -34,7 +34,7 @@ final class AppleSpeechEngine: TranscriptionEngine {
         }
     }
 
-    func transcribe(_ audio: AudioBuffer, locale: Locale) async throws -> String {
+    func transcribe(_ audio: AudioBuffer, locale: Locale, vocabulary: [String]) async throws -> String {
         guard !audio.samples.isEmpty else { throw TranscriptionError.empty }
 
         let recognizer = try resolveRecognizer(for: locale)
@@ -42,6 +42,10 @@ final class AppleSpeechEngine: TranscriptionEngine {
 
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = false
+        // Bias recognition toward the user's custom terms (names, jargon).
+        if !vocabulary.isEmpty {
+            request.contextualStrings = vocabulary
+        }
         // Force on-device — no network calls in MVP.
         if recognizer.supportsOnDeviceRecognition {
             request.requiresOnDeviceRecognition = true

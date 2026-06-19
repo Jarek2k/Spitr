@@ -56,15 +56,17 @@ final class WhisperKitEngine: TranscriptionEngine {
         }
     }
 
-    func transcribe(_ audio: AudioBuffer, locale: Locale) async throws -> String {
+    func transcribe(_ audio: AudioBuffer, locale: Locale, vocabulary: [String]) async throws -> String {
         guard !audio.samples.isEmpty else { throw TranscriptionError.empty }
         guard let pipe else { throw TranscriptionError.notPrepared }
 
         // WhisperKit expects 16 kHz mono Float — exactly what AudioCaptureService
         // produces. Pass the language hint when known, else let it auto-detect.
+        // Custom terms become a conditioning prompt the decoder is biased toward.
         let options = DecodingOptions(
             task: .transcribe,
-            language: locale.language.languageCode?.identifier
+            language: locale.language.languageCode?.identifier,
+            promptTokens: promptTokens(for: vocabulary)
         )
 
         do {
@@ -75,5 +77,15 @@ final class WhisperKitEngine: TranscriptionEngine {
         } catch {
             throw TranscriptionError.underlying(error)
         }
+    }
+
+    /// Encodes custom terms into decoder prompt tokens, dropping special tokens
+    /// (mirrors WhisperKit's own CLI). Returns nil when there's nothing to bias.
+    private func promptTokens(for vocabulary: [String]) -> [Int]? {
+        guard !vocabulary.isEmpty, let tokenizer = pipe?.tokenizer else { return nil }
+        let prompt = " " + vocabulary.joined(separator: ", ")
+        let tokens = tokenizer.encode(text: prompt)
+            .filter { $0 < tokenizer.specialTokens.specialTokenBegin }
+        return tokens.isEmpty ? nil : tokens
     }
 }

@@ -180,7 +180,7 @@ final class RecordingController: ObservableObject {
                     try await engine.prepare()
                     enginePrepared = true
                 }
-                let text = try await engine.transcribe(buffer, locale: settings.locale)
+                let text = try await engine.transcribe(buffer, locale: settings.locale, vocabulary: settings.vocabulary)
                 let corrected = replacement.apply(dictionary.activeRules, to: text)
                 let trimmed = corrected.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {

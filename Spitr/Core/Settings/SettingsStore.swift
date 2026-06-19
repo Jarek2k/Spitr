@@ -44,6 +44,20 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(waveformStyle.rawValue, forKey: Keys.waveform) }
     }
 
+    /// Custom recognition vocabulary, one term per line. Fed to the engine as a
+    /// bias hint so names/jargon aren't misheard.
+    @Published var vocabularyText: String {
+        didSet { defaults.set(vocabularyText, forKey: Keys.vocabulary) }
+    }
+
+    /// Non-empty, trimmed vocabulary terms.
+    var vocabulary: [String] {
+        vocabularyText
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
     /// Set once the user has seen the permission onboarding, so it shows only
     /// on first launch.
     @Published var hasCompletedOnboarding: Bool {
@@ -62,6 +76,7 @@ final class SettingsStore: ObservableObject {
         static let inputDevice = "inputDeviceUID"
         static let onboarding = "hasCompletedOnboarding"
         static let waveform = "waveformStyle"
+        static let vocabulary = "vocabularyText"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -76,5 +91,6 @@ final class SettingsStore: ObservableObject {
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
         let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.bars.rawValue
         self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .bars
+        self.vocabularyText = defaults.string(forKey: Keys.vocabulary) ?? ""
     }
 }

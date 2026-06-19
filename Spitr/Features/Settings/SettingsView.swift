@@ -19,6 +19,9 @@ struct SettingsView: View {
             GeneralSettingsView(settings: settings)
                 .tabItem { Label("Allgemein", systemImage: "gearshape") }
 
+            VocabularySettingsView(settings: settings)
+                .tabItem { Label("Vokabular", systemImage: "text.word.spacing") }
+
             DictionarySettingsView(dictionary: dictionary)
                 .tabItem { Label("Wörterbuch", systemImage: "character.book.closed") }
 
@@ -132,6 +135,32 @@ private struct GeneralSettingsView: View {
             inputDevices = AudioDeviceService.inputDevices()
             launchAtLogin = LaunchAtLogin.isEnabled
         }
+    }
+}
+
+private struct VocabularySettingsView: View {
+    @ObservedObject var settings: SettingsStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Eigennamen und Fachbegriffe — ein Begriff pro Zeile. Die Erkennung wird darauf vorbereitet, damit sie nicht verhört werden.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            TextEditor(text: $settings.vocabularyText)
+                .font(.body.monospaced())
+                .frame(minHeight: 240)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(.quaternary)
+                )
+
+            Text("Beispiel: Claude, Xcode, SwiftUI, Parnas")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(16)
+        .frame(height: 360)
     }
 }
 
