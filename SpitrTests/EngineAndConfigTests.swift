@@ -30,7 +30,7 @@ struct EngineSelectorTests {
 struct WaveformStyleTests {
 
     @Test func cases() {
-        #expect(WaveformStyle.allCases == [.bars, .strands])
+        #expect(WaveformStyle.allCases == [.bars, .strands, .kitt])
     }
 
     @Test func rawValueRoundTrips() {

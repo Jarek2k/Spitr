@@ -14,6 +14,8 @@ enum WaveformStyle: String, CaseIterable, Identifiable {
     case bars
     /// GPU "strands": flowing sine threads rendered by a Metal shader.
     case strands
+    /// KITT-style red segmented voice box (Knight Rider).
+    case kitt
 
     var id: String { rawValue }
 
@@ -21,6 +23,7 @@ enum WaveformStyle: String, CaseIterable, Identifiable {
         switch self {
         case .bars:    return "Balken"
         case .strands: return "Strähnen (Metal)"
+        case .kitt:    return "KITT (rot)"
         }
     }
 }

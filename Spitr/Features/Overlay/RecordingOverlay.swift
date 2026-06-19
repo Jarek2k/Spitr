@@ -60,7 +60,7 @@ struct RecordingOverlay: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                WaveformView(level: controller.inputLevel)
+                capsuleWaveform
                     .frame(maxWidth: .infinity)
                     .id(controller.sessionID)
             }
@@ -78,6 +78,16 @@ struct RecordingOverlay: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// The waveform shown inside the capsule (bars or KITT). Strands opts out of
+    /// the capsule entirely via `overlayIsStrandsOnly`, so it never reaches here.
+    @ViewBuilder
+    private var capsuleWaveform: some View {
+        switch settings.waveformStyle {
+        case .kitt: KittWaveformView(level: controller.inputLevel)
+        default:    WaveformView(level: controller.inputLevel)
         }
     }
 }
