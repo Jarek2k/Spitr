@@ -11,6 +11,12 @@ import SwiftUI
 
 struct RecordingOverlay: View {
     @ObservedObject var controller: RecordingController
+    @ObservedObject var settings: SettingsStore
+
+    init(controller: RecordingController) {
+        self.controller = controller
+        self.settings = controller.settings
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -18,7 +24,7 @@ struct RecordingOverlay: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.red)
 
-            WaveformView(level: controller.inputLevel)
+            waveform
                 .frame(maxWidth: .infinity)
                 .id(controller.sessionID)
         }
@@ -27,6 +33,14 @@ struct RecordingOverlay: View {
         .frame(width: 240, height: 64)
         .background(.black.opacity(0.78), in: Capsule())
         .overlay(Capsule().strokeBorder(.white.opacity(0.12)))
+    }
+
+    @ViewBuilder
+    private var waveform: some View {
+        switch settings.waveformStyle {
+        case .bars:    WaveformView(level: controller.inputLevel)
+        case .strands: MetalWaveformView(level: controller.inputLevel)
+        }
     }
 }
 

@@ -39,6 +39,11 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(inputDeviceUID, forKey: Keys.inputDevice) }
     }
 
+    /// Visual style of the recording overlay's waveform.
+    @Published var waveformStyle: WaveformStyle {
+        didSet { defaults.set(waveformStyle.rawValue, forKey: Keys.waveform) }
+    }
+
     /// Set once the user has seen the permission onboarding, so it shows only
     /// on first launch.
     @Published var hasCompletedOnboarding: Bool {
@@ -56,6 +61,7 @@ final class SettingsStore: ObservableObject {
         static let whisperModel = "whisperModel"
         static let inputDevice = "inputDeviceUID"
         static let onboarding = "hasCompletedOnboarding"
+        static let waveform = "waveformStyle"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -68,5 +74,7 @@ final class SettingsStore: ObservableObject {
         self.whisperModel = defaults.string(forKey: Keys.whisperModel) ?? WhisperKitEngine.defaultModel
         self.inputDeviceUID = defaults.string(forKey: Keys.inputDevice) ?? ""
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
+        let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.bars.rawValue
+        self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .bars
     }
 }

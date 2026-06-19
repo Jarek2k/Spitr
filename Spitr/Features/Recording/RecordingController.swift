@@ -43,7 +43,8 @@ final class RecordingController: ObservableObject {
     /// Current Hold-to-Talk key, derived from settings for the menu hint.
     var hotkeyConfig: HotkeyConfig { HotkeyConfig.named(keyCode: settings.hotkeyKeyCode) }
 
-    private let settings: SettingsStore
+    /// Shared preferences; exposed so the overlay can observe the waveform style.
+    let settings: SettingsStore
     private let history: HistoryStore
     private let dictionary: DictionaryStore
     private let replacement: TextReplacing = TextReplacementService()

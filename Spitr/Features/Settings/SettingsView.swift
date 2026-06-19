@@ -105,6 +105,12 @@ private struct GeneralSettingsView: View {
                         Text(config.displayName).tag(config.keyCode)
                     }
                 }
+
+                Picker("Wellenform", selection: $settings.waveformStyle) {
+                    ForEach(WaveformStyle.allCases) { style in
+                        Text(style.displayName).tag(style)
+                    }
+                }
             } footer: {
                 Text("Halte diese Taste zum Aufnehmen — eine Modifier-Taste, damit nichts getippt wird.")
                     .font(.caption)
