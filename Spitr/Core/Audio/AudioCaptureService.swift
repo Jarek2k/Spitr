@@ -124,6 +124,8 @@ final class AudioCaptureService: @unchecked Sendable {
         var sumSquares: Float = 0
         for s in chunk { sumSquares += s * s }
         let rms = sqrt(sumSquares / Float(count))
-        levelContinuation.yield(min(1, rms * 2))
+        // Speech RMS sits around 0.01–0.05 on normalized float; a sqrt curve
+        // lifts that into a lively, visible range without clipping loud peaks.
+        levelContinuation.yield(min(1, sqrt(rms) * 3.2))
     }
 }

@@ -27,6 +27,13 @@ final class RecordingController: ObservableObject {
     @Published private(set) var state: State = .idle
     @Published var locale: Locale = Locale(identifier: "de-DE")
 
+    /// Latest normalized input level (0…1), driven by the audio tap and consumed
+    /// by the recording overlay's waveform.
+    @Published private(set) var inputLevel: Float = 0
+
+    /// Increments on each recording start so the waveform resets its history.
+    @Published private(set) var sessionID = 0
+
     // Permission state, refreshed for the menu.
     @Published private(set) var micGranted = false
     @Published private(set) var speechGranted = false
@@ -42,6 +49,10 @@ final class RecordingController: ObservableObject {
     private let engine: TranscriptionEngine
     private var enginePrepared = false
 
+    private var overlay: OverlayController?
+    private var levelTask: Task<Void, Never>?
+    private var activated = false
+
     init() {
         let hotkey = HotkeyService()
         self.hotkey = hotkey
@@ -54,8 +65,17 @@ final class RecordingController: ObservableObject {
 
     /// Called once at launch: begin listening for the hotkey and read permissions.
     func activate() {
+        guard !activated else { return }
+        activated = true
         hotkey.start()
         refreshPermissions()
+        overlay = OverlayController(controller: self)
+        levelTask = Task { [weak self] in
+            guard let levels = self?.audio.levels else { return }
+            for await level in levels {
+                self?.inputLevel = level
+            }
+        }
     }
 
     func refreshPermissions() {
@@ -89,6 +109,8 @@ final class RecordingController: ObservableObject {
         guard state == .idle else { return }
         do {
             try audio.start()
+            inputLevel = 0
+            sessionID += 1
             state = .recording
         } catch {
             state = .error(error.localizedDescription)
@@ -99,6 +121,7 @@ final class RecordingController: ObservableObject {
     private func finishRecording() {
         guard state == .recording else { return }
         let buffer = audio.stop()
+        inputLevel = 0
         state = .transcribing
         log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
 
