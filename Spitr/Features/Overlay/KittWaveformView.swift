@@ -17,7 +17,7 @@ struct KittWaveformView: View {
     /// Latest normalized RMS level (0…1) from the audio tap.
     var level: Float
 
-    private static let segmentsPerHalf = 6
+    private static let segmentsPerHalf = 7
 
     /// KITT red.
     private static let red = Color(red: 1.0, green: 0.13, blue: 0.06)
@@ -59,7 +59,7 @@ struct KittWaveformView: View {
         let startX = (size.width - total) / 2
 
         let midY = size.height / 2
-        let segGap: CGFloat = 2
+        let segGap: CGFloat = 1
         let usableHalf = size.height / 2 - 2
         let segH = (usableHalf - CGFloat(halfSegs - 1) * segGap) / CGFloat(halfSegs)
         guard segH > 0 else { return }
@@ -69,11 +69,10 @@ struct KittWaveformView: View {
             // Centre uses its full level; outers are shorter and share one value
             // (so left and right are always identical) and lag behind.
             let frac = isCenter ? Double(centerLevel) : Double(outerLevel) * 0.5
-            let idle = isCenter ? 0.10 : 0.05
-            let h = max(idle, frac)
-
-            let lit = Int((h * Double(halfSegs)).rounded())
-            guard lit > 0 else { continue }
+            let dynamic = Int((frac * Double(halfSegs)).rounded())
+            // Idle baseline: 3 lit in the centre, 1 in each outer; grows from there.
+            let base = isCenter ? 3 : 1
+            let lit = min(halfSegs, max(base, dynamic))
 
             let x = startX + CGFloat(i) * (barWidth + gapX)
             for s in 0..<lit {
