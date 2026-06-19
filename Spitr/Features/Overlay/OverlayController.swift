@@ -39,20 +39,26 @@ final class OverlayController {
         }
     }
 
-    /// Capsule presentation vs. the larger, chrome-free strands animation.
+    /// Capsule presentation vs. the larger, chrome-free animations.
     private static let capsuleSize = NSSize(width: 240, height: 64)
     private static let strandsSize = NSSize(width: 300, height: 100)
+    private static let kittSize = NSSize(width: 240, height: 96)
 
     private func show() {
         let panel = panel ?? makePanel()
         self.panel = panel
-        let strandsOnly = controller.overlayIsStrandsOnly
-        let size = strandsOnly ? Self.strandsSize : Self.capsuleSize
+        let chromeless = controller.overlayIsChromeless
+        let size: NSSize
+        if chromeless {
+            size = controller.settings.waveformStyle == .kitt ? Self.kittSize : Self.strandsSize
+        } else {
+            size = Self.capsuleSize
+        }
         if panel.frame.size != size {
             panel.setContentSize(size)
         }
-        // No drop shadow behind the bare animation — only the capsule wants one.
-        panel.hasShadow = !strandsOnly
+        // No drop shadow behind the bare animations — only the capsule wants one.
+        panel.hasShadow = !chromeless
         panel.invalidateShadow()
         position(panel)
         panel.orderFrontRegardless()

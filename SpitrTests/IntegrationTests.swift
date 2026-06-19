@@ -53,10 +53,14 @@ struct RecordingControllerWiringTests {
         #expect(controller.paused == false)
     }
 
-    @Test func strandsOnlyTracksStyleAndMode() {
+    @Test func chromelessTracksStyleAndMode() {
         let (controller, settings) = makeController()
-        #expect(controller.overlayIsStrandsOnly == false)   // default bars
+        #expect(controller.overlayIsChromeless == false)   // default bars → capsule
         settings.waveformStyle = .strands
-        #expect(controller.overlayIsStrandsOnly == true)     // dictation + strands
+        #expect(controller.overlayIsChromeless == true)    // strands → chrome-free
+        settings.waveformStyle = .kitt
+        #expect(controller.overlayIsChromeless == true)    // KITT → chrome-free
+        settings.waveformStyle = .bars
+        #expect(controller.overlayIsChromeless == false)
     }
 }

@@ -21,13 +21,21 @@ struct RecordingOverlay: View {
     private var isCommand: Bool { controller.mode == .command }
 
     var body: some View {
-        if controller.overlayIsStrandsOnly {
+        if controller.overlayIsChromeless {
             // Bare animation: no capsule, no mic — fills the whole panel.
-            MetalWaveformView(level: controller.inputLevel)
+            chromelessAnimation
                 .id(controller.sessionID)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             chromed
+        }
+    }
+
+    @ViewBuilder
+    private var chromelessAnimation: some View {
+        switch settings.waveformStyle {
+        case .kitt: KittWaveformView(level: controller.inputLevel)
+        default:    MetalWaveformView(level: controller.inputLevel)
         }
     }
 
@@ -60,7 +68,7 @@ struct RecordingOverlay: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                capsuleWaveform
+                WaveformView(level: controller.inputLevel)
                     .frame(maxWidth: .infinity)
                     .id(controller.sessionID)
             }
@@ -78,16 +86,6 @@ struct RecordingOverlay: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    /// The waveform shown inside the capsule (bars or KITT). Strands opts out of
-    /// the capsule entirely via `overlayIsStrandsOnly`, so it never reaches here.
-    @ViewBuilder
-    private var capsuleWaveform: some View {
-        switch settings.waveformStyle {
-        case .kitt: KittWaveformView(level: controller.inputLevel)
-        default:    WaveformView(level: controller.inputLevel)
         }
     }
 }

@@ -15,8 +15,8 @@ struct KittWaveformView: View {
     /// Latest normalized RMS level (0…1) from the audio tap.
     var level: Float
 
-    private static let barCount = 15
-    private static let segmentsPerHalf = 9
+    private static let barCount = 3
+    private static let segmentsPerHalf = 8
 
     /// KITT red.
     private static let red = Color(red: 1.0, green: 0.12, blue: 0.05)
@@ -59,7 +59,7 @@ struct KittWaveformView: View {
         for i in 0..<n {
             let xnorm = (CGFloat(i) + 0.5) / CGFloat(n)
             let centerDist = abs(xnorm - 0.5) * 2          // 0 centre … 1 edge
-            let env = cos(Double(centerDist) * .pi / 2)    // smooth bell, 1 → 0
+            let env = 1.0 - 0.28 * Double(centerDist)      // centre tallest, outers ~0.8
 
             // Per-bar jiggle so the bars don't move in lockstep.
             let jiggle = 0.78 + 0.22 * sin(clock * 6.5 + Double(i) * 1.3)

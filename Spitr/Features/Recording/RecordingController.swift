@@ -294,9 +294,10 @@ final class RecordingController: ObservableObject {
         micGranted && speechGranted && accessibilityTrusted
     }
 
-    /// True when the overlay should show the bare strands animation — no capsule,
-    /// no mic glyph. Only for plain dictation with the strands style selected.
-    var overlayIsStrandsOnly: Bool {
-        settings.waveformStyle == .strands && mode == .dictation && commandFeedback == nil
+    /// True when the overlay should show a bare, chrome-free animation — no
+    /// capsule, no mic glyph (strands and KITT). Only for plain dictation.
+    var overlayIsChromeless: Bool {
+        (settings.waveformStyle == .strands || settings.waveformStyle == .kitt)
+            && mode == .dictation && commandFeedback == nil
     }
 }
