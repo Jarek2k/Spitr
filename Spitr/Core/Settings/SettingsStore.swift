@@ -39,6 +39,12 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(inputDeviceUID, forKey: Keys.inputDevice) }
     }
 
+    /// Set once the user has seen the permission onboarding, so it shows only
+    /// on first launch.
+    @Published var hasCompletedOnboarding: Bool {
+        didSet { defaults.set(hasCompletedOnboarding, forKey: Keys.onboarding) }
+    }
+
     var locale: Locale { Locale(identifier: localeIdentifier) }
 
     private let defaults: UserDefaults
@@ -49,6 +55,7 @@ final class SettingsStore: ObservableObject {
         static let hotkey = "hotkeyKeyCode"
         static let whisperModel = "whisperModel"
         static let inputDevice = "inputDeviceUID"
+        static let onboarding = "hasCompletedOnboarding"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -60,5 +67,6 @@ final class SettingsStore: ObservableObject {
         self.hotkeyKeyCode = storedHotkey.map(UInt16.init) ?? HotkeyConfig.rightOption.keyCode
         self.whisperModel = defaults.string(forKey: Keys.whisperModel) ?? WhisperKitEngine.defaultModel
         self.inputDeviceUID = defaults.string(forKey: Keys.inputDevice) ?? ""
+        self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
     }
 }

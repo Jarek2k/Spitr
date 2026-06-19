@@ -33,6 +33,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = SettingsStore()
     lazy var controller = RecordingController(settings: settings)
 
+    private var onboardingWindow: NSWindow?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         controller.activate()
         // Stay a menu-bar accessory by default (no Dock icon, no Cmd-Tab entry).
@@ -43,14 +45,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWindow.willCloseNotification,
             object: nil
         )
+
+        if !settings.hasCompletedOnboarding {
+            showOnboarding()
+        }
     }
 
-    /// While the settings window is open, become a regular app so it appears in
+    /// Presents the first-launch permission flow in its own window, briefly
+    /// becoming a regular app so it gets a real, focusable window.
+    private func showOnboarding() {
+        let view = OnboardingView(controller: controller) { [weak self] in
+            self?.onboardingWindow?.close()
+        }
+        let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+        window.title = "Willkommen bei Spitr"
+        window.styleMask = [.titled, .closable]
+        window.isReleasedWhenClosed = false
+        window.center()
+        onboardingWindow = window
+
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
+    }
+
+    /// While a managed window is open, become a regular app so it appears in
     /// Cmd-Tab and the Dock; drop back to accessory once it closes.
     @objc private func windowWillClose(_ note: Notification) {
-        guard let window = note.object as? NSWindow,
-              isSettingsWindow(window) else { return }
-        NSApp.setActivationPolicy(.accessory)
+        guard let window = note.object as? NSWindow else { return }
+
+        if window == onboardingWindow {
+            settings.hasCompletedOnboarding = true
+            onboardingWindow = nil
+            NSApp.setActivationPolicy(.accessory)
+            return
+        }
+
+        if isSettingsWindow(window) {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     static func isSettingsWindow(_ window: NSWindow) -> Bool {
