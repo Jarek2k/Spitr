@@ -47,10 +47,12 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     const float uScale      = 1.5;
     const float uOpacity    = 1.0;
 
-    // Audio-reactive: louder voice → bigger, brighter, faster threads.
-    float uIntensity = clamp(0.22 + level * 0.95, 0.0, 1.0);
-    float uAmplitude = 0.55 + level * 2.0;
-    float uSpeed     = 0.45 + level * 0.9;
+    // Audio-reactive: at rest the threads are calm and dim; the voice drives
+    // amplitude, brightness and speed. `level` is boosted because RMS is small.
+    float lvl = clamp(level * 1.6, 0.0, 1.0);
+    float uIntensity = clamp(0.05 + lvl * 1.1, 0.0, 1.0);
+    float uAmplitude = 0.08 + lvl * 2.6;
+    float uSpeed     = 0.5 + lvl * 1.6;
 
     // Aspect-correct, centred UV (flip Y: SwiftUI is top-down, GL bottom-up).
     float2 frag = float2(position.x, size.y - position.y);
@@ -90,8 +92,11 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     col = max(mix(float3(gray), col, uSaturation), 0.0);
 
     float lum = max(max(col.r, col.g), col.b);
-    float alpha = clamp(lum, 0.0, 1.0) * uOpacity;
+    // Cut the faint glow tail so the panel stays truly transparent (no visible
+    // rectangle edge); the floating overlay has no dark background to hide it.
+    float cover = smoothstep(0.04, 0.20, lum);
+    float alpha = clamp(lum, 0.0, 1.0) * cover * uOpacity;
 
     // Premultiplied output (matches reactbits ONE / ONE_MINUS_SRC_ALPHA blend).
-    return half4(half3(col * uOpacity), half(alpha));
+    return half4(half3(col * cover * uOpacity), half(alpha));
 }

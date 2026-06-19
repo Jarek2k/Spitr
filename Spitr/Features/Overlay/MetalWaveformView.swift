@@ -34,8 +34,9 @@ struct MetalWaveformView: View {
                 }
         }
         .onChange(of: level) { _, newValue in
-            // Asymmetric smoothing: rise fast, fall slow.
-            let factor: Float = newValue > smoothed ? 0.5 : 0.15
+            // Asymmetric smoothing: snap up to the voice, ease back down. Fast
+            // enough that the motion clearly tracks speech.
+            let factor: Float = newValue > smoothed ? 0.7 : 0.25
             smoothed += (newValue - smoothed) * factor
         }
     }

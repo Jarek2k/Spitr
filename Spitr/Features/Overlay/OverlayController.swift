@@ -53,6 +53,7 @@ final class OverlayController {
         }
         // No drop shadow behind the bare animation — only the capsule wants one.
         panel.hasShadow = !strandsOnly
+        panel.invalidateShadow()
         position(panel)
         panel.orderFrontRegardless()
     }
