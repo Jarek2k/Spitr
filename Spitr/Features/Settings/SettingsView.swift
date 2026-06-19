@@ -14,6 +14,10 @@ struct SettingsView: View {
     /// Connected input devices, refreshed when the window appears.
     @State private var inputDevices: [AudioInputDevice] = []
 
+    /// Mirrors the live SMAppService login-item status; the service is the
+    /// source of truth, this just drives the Toggle.
+    @State private var launchAtLogin = LaunchAtLogin.isEnabled
+
     /// Curated set of recognition languages. Kept short on purpose — the full
     /// system list is overwhelming and most are irrelevant for this app.
     private static let languages: [(id: String, name: String)] = [
@@ -85,11 +89,23 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section {
+                Toggle("Beim Anmelden starten", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, enabled in
+                        LaunchAtLogin.setEnabled(enabled)
+                        // Re-read in case the request failed, so the UI never lies.
+                        launchAtLogin = LaunchAtLogin.isEnabled
+                    }
+            }
         }
         .formStyle(.grouped)
         .frame(width: 420)
         .fixedSize(horizontal: false, vertical: true)
-        .onAppear { inputDevices = AudioDeviceService.inputDevices() }
+        .onAppear {
+            inputDevices = AudioDeviceService.inputDevices()
+            launchAtLogin = LaunchAtLogin.isEnabled
+        }
     }
 }
 
