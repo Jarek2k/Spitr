@@ -57,8 +57,8 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     // with loudness, so at rest the three threads sit on the centre line (one
     // strand) and only fan apart as the voice gets louder.
     float e = 0.12 + v * 0.88;
-    float separation = v * 0.13;   // gentle static ordering of the bands
-    float weaveAmp   = v * 0.23;   // the travelling weave — dominant when loud
+    float separation = v * 0.14;   // gentle static ordering of the bands
+    float weaveAmp   = v * 0.30;   // the travelling weave — dominant when loud
 
     // Spindle: concentrated in the centre, tapering to a point at the tips.
     float env = pow(sin(xn * PI), 1.8);
@@ -98,7 +98,7 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     col = max(mix(float3(gray), col, uSaturation), 0.0);
 
     // Fade at top/bottom so the bloom never hits the panel edge.
-    float vEdge = smoothstep(0.5, 0.36, abs(uy));
+    float vEdge = smoothstep(0.5, 0.46, abs(uy));
 
     float lum = max(max(col.r, col.g), col.b);
     float cover = smoothstep(0.03, 0.18, lum);     // kill faint haze → true transparency

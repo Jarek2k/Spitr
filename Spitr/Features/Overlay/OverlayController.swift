@@ -41,7 +41,7 @@ final class OverlayController {
 
     /// Capsule presentation vs. the larger, chrome-free strands animation.
     private static let capsuleSize = NSSize(width: 240, height: 64)
-    private static let strandsSize = NSSize(width: 360, height: 100)
+    private static let strandsSize = NSSize(width: 360, height: 124)
 
     private func show() {
         let panel = panel ?? makePanel()
