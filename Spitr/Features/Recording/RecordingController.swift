@@ -47,6 +47,7 @@ final class RecordingController: ObservableObject {
     private let hotkey: HotkeyService
     private let audio = AudioCaptureService()
     private let insertion = TextInsertionService()
+    private let media = MediaPlaybackController()
     private let selector = EngineSelector()
     private var engine: TranscriptionEngine
     private var enginePrepared = false
@@ -146,6 +147,7 @@ final class RecordingController: ObservableObject {
         guard state == .idle else { return }
         do {
             try audio.start()
+            media.pauseIfPlaying()
             inputLevel = 0
             sessionID += 1
             state = .recording
@@ -165,6 +167,7 @@ final class RecordingController: ObservableObject {
             // clipped when the key is released right after the last word.
             try? await Task.sleep(for: .milliseconds(180))
             let buffer = audio.stop()
+            media.resumeIfPaused()
             log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
             do {
                 if !enginePrepared {
