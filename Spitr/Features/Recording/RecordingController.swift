@@ -44,6 +44,7 @@ final class RecordingController: ObservableObject {
     var hotkeyConfig: HotkeyConfig { HotkeyConfig.named(keyCode: settings.hotkeyKeyCode) }
 
     private let settings: SettingsStore
+    private let history: HistoryStore
     private let hotkey: HotkeyService
     private let audio = AudioCaptureService()
     private let insertion = TextInsertionService()
@@ -57,8 +58,9 @@ final class RecordingController: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var activated = false
 
-    init(settings: SettingsStore) {
+    init(settings: SettingsStore, history: HistoryStore) {
         self.settings = settings
+        self.history = history
         let hotkey = HotkeyService(config: HotkeyConfig.named(keyCode: settings.hotkeyKeyCode))
         self.hotkey = hotkey
         self.engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
@@ -178,6 +180,7 @@ final class RecordingController: ObservableObject {
                 let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
                     insertion.insert(trimmed)
+                    history.record(trimmed)
                     log.info("inserted transcript (\(trimmed.count) chars)")
                 } else {
                     log.warning("empty transcript, nothing inserted")

@@ -3,12 +3,29 @@
 //  Spitr
 //
 //  Standard macOS settings window (⌘,). Edits the SettingsStore; changes take
-//  effect on the next recording without a restart.
+//  effect on the next recording without a restart. Split into tabs so the
+//  dictation history has room without crowding the preferences.
 //
 
 import SwiftUI
 
 struct SettingsView: View {
+    @ObservedObject var settings: SettingsStore
+    @ObservedObject var history: HistoryStore
+
+    var body: some View {
+        TabView {
+            GeneralSettingsView(settings: settings)
+                .tabItem { Label("Allgemein", systemImage: "gearshape") }
+
+            HistorySettingsView(history: history)
+                .tabItem { Label("Verlauf", systemImage: "clock.arrow.circlepath") }
+        }
+        .frame(width: 460)
+    }
+}
+
+private struct GeneralSettingsView: View {
     @ObservedObject var settings: SettingsStore
 
     /// Connected input devices, refreshed when the window appears.
@@ -100,7 +117,6 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 420)
         .fixedSize(horizontal: false, vertical: true)
         .onAppear {
             inputDevices = AudioDeviceService.inputDevices()
@@ -109,6 +125,61 @@ struct SettingsView: View {
     }
 }
 
+private struct HistorySettingsView: View {
+    @ObservedObject var history: HistoryStore
+
+    private static let timestamp: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .short
+        f.timeStyle = .short
+        return f
+    }()
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Toggle("Verlauf aufzeichnen", isOn: $history.isEnabled)
+                Spacer()
+                Button("Verlauf löschen", role: .destructive) { history.clear() }
+                    .disabled(history.entries.isEmpty)
+            }
+            .padding(12)
+
+            Divider()
+
+            if history.entries.isEmpty {
+                Spacer()
+                Text("Noch keine Diktate.")
+                    .foregroundStyle(.secondary)
+                Spacer()
+            } else {
+                List {
+                    ForEach(history.entries) { entry in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(entry.text)
+                                .textSelection(.enabled)
+                                .lineLimit(4)
+                            Text(Self.timestamp.string(from: entry.date))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 2)
+                        .contextMenu {
+                            Button("Kopieren") {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(entry.text, forType: .string)
+                            }
+                            Button("Löschen", role: .destructive) { history.delete(entry) }
+                        }
+                    }
+                }
+                .listStyle(.inset)
+            }
+        }
+        .frame(height: 360)
+    }
+}
+
 #Preview {
-    SettingsView(settings: SettingsStore())
+    SettingsView(settings: SettingsStore(), history: HistoryStore())
 }

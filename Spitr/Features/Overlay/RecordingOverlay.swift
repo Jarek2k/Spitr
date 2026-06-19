@@ -31,6 +31,6 @@ struct RecordingOverlay: View {
 }
 
 #Preview {
-    RecordingOverlay(controller: RecordingController(settings: SettingsStore()))
+    RecordingOverlay(controller: RecordingController(settings: SettingsStore(), history: HistoryStore()))
         .padding(40)
 }
