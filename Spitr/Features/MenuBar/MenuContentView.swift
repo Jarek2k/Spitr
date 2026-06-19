@@ -30,6 +30,17 @@ struct MenuContentView: View {
 
             Divider()
 
+            SettingsLink {
+                Text("Einstellungen…")
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(",")
+            // SettingsLink creates the window, but a menu-bar-only app runs as an
+            // accessory, so it opens hidden. Activate and surface it explicitly.
+            .simultaneousGesture(TapGesture().onEnded { surfaceSettingsWindow() })
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+
             Button("Beenden") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
                 .buttonStyle(.plain)
@@ -39,6 +50,20 @@ struct MenuContentView: View {
         .padding(.vertical, 6)
         .frame(width: 260)
         .onAppear { controller.refreshPermissions() }
+    }
+
+    /// Brings the SwiftUI settings window to the front. It opens hidden because
+    /// the app is an accessory; switching to a regular app gives it a Dock icon
+    /// and Cmd-Tab entry, then we activate and order it front once SwiftUI has
+    /// had a run-loop turn to create it.
+    private func surfaceSettingsWindow() {
+        NSApp.setActivationPolicy(.regular)
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            let window = NSApp.windows.first(where: AppDelegate.isSettingsWindow)
+            window?.makeKeyAndOrderFront(nil)
+            window?.orderFrontRegardless()
+        }
     }
 
     private var statusRow: some View {
