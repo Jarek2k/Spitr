@@ -17,7 +17,7 @@ struct KittWaveformView: View {
     /// Latest normalized RMS level (0…1) from the audio tap.
     var level: Float
 
-    private static let segmentsPerHalf = 9
+    private static let segmentsPerHalf = 6
 
     /// KITT red.
     private static let red = Color(red: 1.0, green: 0.13, blue: 0.06)
