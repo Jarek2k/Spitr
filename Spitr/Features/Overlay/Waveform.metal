@@ -57,11 +57,11 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     // with loudness, so at rest the three threads sit on the centre line (one
     // strand) and only fan apart as the voice gets louder.
     float e = 0.12 + v * 0.88;
-    float separation = v * 0.26;   // vertical band offset at full loudness
-    float wiggleAmp  = v * 0.08;   // flowing wave grows with the voice too
+    float separation = v * 0.13;   // gentle static ordering of the bands
+    float weaveAmp   = v * 0.23;   // the travelling weave — dominant when loud
 
-    // Clean spindle: concentrated in the centre, tapering to a point at the tips.
-    float env = pow(sin(xn * PI), 2.0);
+    // Spindle: concentrated in the centre, tapering to a point at the tips.
+    float env = pow(sin(xn * PI), 1.8);
 
     float3 col = float3(0.0);
 
@@ -69,18 +69,19 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
         float fi = float(i);
         float offset = fi - float(strandCount - 1) * 0.5;   // -1, 0, +1
         float ph = fi * 1.7;
-        // Low frequency → each strand is a single smooth arc across the width,
-        // not a wavy multi-hump line.
-        float freq = 0.7 + fi * 0.15;
+        // Mid frequency + two counter-travelling sines per strand → the curve
+        // weaves up and down across the width (down/over/up/down), and each
+        // strand moves at its own pace.
+        float freq = 1.6 + fi * 0.4;
         float spd = 1.4 + fi * 1.2;
-        float tt = time * 0.65;
+        float tt = time;
 
         float w = sin(ux * freq + tt * spd + ph) * 0.60
                 + sin(ux * freq * 1.1 - tt * spd * 0.7 + ph * 1.7) * 0.40;
 
-        // Band offset (loudness-driven separation) plus a small flowing wiggle,
-        // converging to the centre at the tips via env.
-        float y = (offset * separation + w * wiggleAmp) * env;
+        // Loudness-driven band offset plus the travelling weave, converging to
+        // the centre at the tips via env.
+        float y = (offset * separation + w * weaveAmp) * env;
 
         float d = abs(uy - y);
         float thick = (0.011 + 0.045 * e) * (0.40 + env) * 0.8;   // soft, wide glow
