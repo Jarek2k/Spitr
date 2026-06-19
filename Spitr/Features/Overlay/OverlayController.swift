@@ -97,7 +97,7 @@ final class OverlayController {
         let visible = screen.visibleFrame
         let size = panel.frame.size
         let x = visible.midX - size.width / 2
-        let y = visible.minY + 120
+        let y = visible.minY + 72
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 }

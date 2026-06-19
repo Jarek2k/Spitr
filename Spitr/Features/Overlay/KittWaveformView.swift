@@ -44,8 +44,8 @@ struct KittWaveformView: View {
             let target = Float(pow(norm, 1.35))
 
             // Centre snaps and decays fast (lots happening); outers trail it.
-            centerLevel += (target - centerLevel) * (target > centerLevel ? 0.85 : 0.72)
-            outerLevel  += (target - outerLevel)  * (target > outerLevel ? 0.5 : 0.45)
+            centerLevel += (target - centerLevel) * (target > centerLevel ? 0.92 : 0.82)
+            outerLevel  += (target - outerLevel)  * (target > outerLevel ? 0.62 : 0.55)
         }
     }
 
