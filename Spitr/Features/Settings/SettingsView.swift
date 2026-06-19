@@ -33,7 +33,7 @@ struct SettingsView: View {
                 }
             } footer: {
                 if settings.engineKind == .whisperKit {
-                    Text("WhisperKit folgt — bis dahin wird Apple Speech verwendet.")
+                    Text("WhisperKit lädt das Modell beim ersten Mal einmalig herunter; danach läuft alles offline.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

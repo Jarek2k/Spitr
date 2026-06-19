@@ -31,8 +31,7 @@ final class EngineSelector {
         case .apple:
             return AppleSpeechEngine()
         case .whisperKit:
-            // TODO: return WhisperKitEngine() once the SPM dependency is added.
-            return AppleSpeechEngine()
+            return WhisperKitEngine()
         }
     }
 
