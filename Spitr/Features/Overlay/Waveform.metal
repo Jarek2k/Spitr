@@ -53,10 +53,12 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     float ux = (position.x - 0.5 * size.x) / size.y;
     float uy = ((size.y - position.y) - 0.5 * size.y) / size.y;
 
-    // Intensity drives brightness/thickness; amplitude drives the swell. Tiny
-    // floor → a thin calm thread at rest; large headroom → big fan-out when loud.
-    float e   = 0.10 + v * 0.90;
-    float amplitude = 0.05 + v * 2.25;   // more headroom for loud peaks
+    // Intensity drives brightness/thickness. Separation and wiggle BOTH scale
+    // with loudness, so at rest the three threads sit on the centre line (one
+    // strand) and only fan apart as the voice gets louder.
+    float e = 0.12 + v * 0.88;
+    float separation = v * 0.26;   // vertical band offset at full loudness
+    float wiggleAmp  = v * 0.08;   // flowing wave grows with the voice too
 
     // Clean spindle: tapers to a point at the left/right tips.
     float env = pow(sin(xn * PI), 1.3);
@@ -65,19 +67,21 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
 
     for (int i = 0; i < strandCount; i++) {
         float fi = float(i);
+        float offset = fi - float(strandCount - 1) * 0.5;   // -1, 0, +1
         float ph = fi * 1.7;
         float freq = 2.0 + fi * 0.35;
         float spd = 1.4 + fi * 1.2;
-        float tt = time * 0.65;   // a touch faster → livelier flow
+        float tt = time * 0.65;
 
         float w = sin(ux * freq + tt * spd + ph) * 0.60
                 + sin(ux * freq * 1.1 - tt * spd * 0.7 + ph * 1.7) * 0.40;
 
-        float amp = (0.10 + 0.02 * e) * env * amplitude;
-        float y = w * amp;
+        // Band offset (loudness-driven separation) plus a small flowing wiggle,
+        // converging to the centre at the tips via env.
+        float y = (offset * separation + w * wiggleAmp) * env;
 
         float d = abs(uy - y);
-        float thick = (0.012 + 0.045 * e) * (0.35 + env) * 0.8;   // soft, wide glow
+        float thick = (0.011 + 0.045 * e) * (0.40 + env) * 0.8;   // soft, wide glow
         float g = thick / (d + thick * 0.45);
         g = g * g;
 
@@ -91,7 +95,7 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     col = max(mix(float3(gray), col, uSaturation), 0.0);
 
     // Fade at top/bottom so the bloom never hits the panel edge.
-    float vEdge = smoothstep(0.5, 0.32, abs(uy));
+    float vEdge = smoothstep(0.5, 0.36, abs(uy));
 
     float lum = max(max(col.r, col.g), col.b);
     float cover = smoothstep(0.03, 0.18, lum);     // kill faint haze → true transparency

@@ -41,9 +41,11 @@ struct MetalWaveformView: View {
         .onReceive(ticker) { _ in
             // Exponential smoothing toward the latest level. Asymmetric: snaps up
             // to the voice, eases back down.
+            // Light, fast smoothing only — the audio envelope already does the
+            // temporal shaping, so keep this responsive (not sluggish).
             let target = min(max(level, 0), 1)
             let dt: Float = 1.0 / 60.0
-            let tau: Float = target > smoothed ? 0.06 : 0.22
+            let tau: Float = target > smoothed ? 0.04 : 0.08
             smoothed += (target - smoothed) * (1 - exp(-dt / tau))
         }
     }
