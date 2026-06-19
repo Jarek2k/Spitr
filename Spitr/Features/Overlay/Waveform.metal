@@ -46,7 +46,7 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     // speech); gate ambient at the bottom, use the real speech span, expand a
     // touch. No saturating boost → soft vs. loud stay distinguishable.
     float v = clamp((level - 0.16) / 0.74, 0.0, 1.0);
-    v = pow(v, 1.2);
+    v = pow(v, 1.4);   // expand: soft stays small, loud grows → wider range
 
     // Aspect-correct centred coords (Y flipped to GL convention).
     float xn = clamp(position.x / size.x, 0.0, 1.0);
@@ -56,7 +56,7 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     // Intensity drives brightness/thickness; amplitude drives the swell. Tiny
     // floor → a thin calm thread at rest; large headroom → big fan-out when loud.
     float e   = 0.10 + v * 0.90;
-    float amplitude = 0.05 + v * 1.70;
+    float amplitude = 0.05 + v * 2.25;   // more headroom for loud peaks
 
     // Clean spindle: tapers to a point at the left/right tips.
     float env = pow(sin(xn * PI), 1.3);
@@ -68,7 +68,7 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
         float ph = fi * 1.7;
         float freq = 2.0 + fi * 0.35;
         float spd = 1.4 + fi * 1.2;
-        float tt = time * 0.5;
+        float tt = time * 0.65;   // a touch faster → livelier flow
 
         float w = sin(ux * freq + tt * spd + ph) * 0.60
                 + sin(ux * freq * 1.1 - tt * spd * 0.7 + ph * 1.7) * 0.40;
