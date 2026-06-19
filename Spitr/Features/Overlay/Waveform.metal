@@ -41,18 +41,22 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     const float uGlow       = 2.6;
     const float uSaturation = 1.4;
 
-    // Current loudness (smoothed on the CPU); RMS is small → boost.
-    float lvl = clamp(level * 1.8, 0.0, 1.0);
+    // Remap the incoming level so the swell tracks *how loud* the voice is, not
+    // just whether there is any. The level arrives sqrt-compressed (~0.45–0.9 for
+    // speech); gate ambient at the bottom, use the real speech span, expand a
+    // touch. No saturating boost → soft vs. loud stay distinguishable.
+    float v = clamp((level - 0.16) / 0.74, 0.0, 1.0);
+    v = pow(v, 1.2);
 
     // Aspect-correct centred coords (Y flipped to GL convention).
     float xn = clamp(position.x / size.x, 0.0, 1.0);
     float ux = (position.x - 0.5 * size.x) / size.y;
     float uy = ((size.y - position.y) - 0.5 * size.y) / size.y;
 
-    // Intensity drives brightness/thickness; amplitude drives the swell. Both
-    // have a small floor so at rest there's a calm, glowing thread, not nothing.
-    float e   = 0.14 + lvl * 0.86;
-    float amplitude = 0.20 + lvl * 1.35;
+    // Intensity drives brightness/thickness; amplitude drives the swell. Tiny
+    // floor → a thin calm thread at rest; large headroom → big fan-out when loud.
+    float e   = 0.10 + v * 0.90;
+    float amplitude = 0.05 + v * 1.70;
 
     // Clean spindle: tapers to a point at the left/right tips.
     float env = pow(sin(xn * PI), 1.3);
