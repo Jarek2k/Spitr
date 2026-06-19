@@ -17,7 +17,7 @@ struct KittWaveformView: View {
     /// Latest normalized RMS level (0…1) from the audio tap.
     var level: Float
 
-    private static let segmentsPerHalf = 6
+    private static let segmentsPerHalf = 9
 
     /// KITT red.
     private static let red = Color(red: 1.0, green: 0.13, blue: 0.06)
@@ -37,14 +37,15 @@ struct KittWaveformView: View {
             drawBars(in: ctx, size: size)
         }
         .onReceive(ticker) { _ in
-            // Steep mapping → soft vs loud differ a lot.
+            // Map loudness with a gentle curve — keeps quiet low and loud high
+            // but lets the mid-range come through so there's lots of motion.
             let raw = Double(min(max(level, 0), 1))
-            let norm = max(0, min(1, (raw - 0.20) / 0.62))
-            let target = Float(pow(norm, 1.7))
+            let norm = max(0, min(1, (raw - 0.18) / 0.64))
+            let target = Float(pow(norm, 1.35))
 
-            // Centre snaps; outers follow slower so they trail the centre.
-            centerLevel += (target - centerLevel) * (target > centerLevel ? 0.6 : 0.28)
-            outerLevel  += (target - outerLevel)  * (target > outerLevel ? 0.26 : 0.12)
+            // Centre snaps and decays fast (lots happening); outers trail it.
+            centerLevel += (target - centerLevel) * (target > centerLevel ? 0.7 : 0.4)
+            outerLevel  += (target - outerLevel)  * (target > outerLevel ? 0.32 : 0.18)
         }
     }
 
