@@ -36,6 +36,8 @@ fokussierte Fenster eingefügt. On-device, kostenlos, privat, ohne Cloud, ohne A
 - **Mikro nur während die Taste gehalten wird.** Kein Dauer-Listening, keine
   Auto-Aufnahme, keine VAD im MVP. `AudioEngine` startet am Key-Down, stoppt am Key-Up.
 - **Keine Netzwerk-Calls im MVP.** Alles on-device. Keine Telemetrie, kein Analytics.
+  *Bewusste Ausnahme (entschieden 2026-06-19):* WhisperKit darf sein Modell **einmalig**
+  beim ersten Aktivieren herunterladen; danach läuft alles offline. Keine sonstigen Calls.
 - **App-Sandbox AUS** (non-sandboxed) — nötig für Accessibility/Keystroke-Injection.
 - **Permissions** minimal und einzeln erklärt: Mikrofon, Spracherkennung, Accessibility.
 - **Signing**: „Sign to Run Locally" / Personal Team. Kein bezahlter Developer-Account
