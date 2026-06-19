@@ -35,9 +35,11 @@ static float3 samplePalette(float t) {
     return mix(kPalette[idx & 3], kPalette[next], blend);
 }
 
+// SwiftUI's `.floatArray` passes the pointer *and* an int length, so the count
+// parameter is required even though we also know it as kCount.
 [[ stitchable ]]
 half4 strands(float2 position, half4 color, float2 size, float time,
-              device const float *levels) {
+              device const float *levels, int count) {
     const int   strandCount = 3;
     const float uThickness  = 0.7;
     const float uGlow       = 2.4;
@@ -47,9 +49,9 @@ half4 strands(float2 position, half4 color, float2 size, float time,
 
     // Local voice loudness from the history buffer, interpolated and gated so
     // idle noise reads as zero.
-    float fidx = xn * float(kCount - 1);
+    float fidx = xn * float(count - 1);
     int i0 = int(floor(fidx));
-    int i1 = min(i0 + 1, kCount - 1);
+    int i1 = min(i0 + 1, count - 1);
     float fr = fidx - float(i0);
     float lvl = mix(levels[i0], levels[i1], fr);
     lvl = clamp((lvl - 0.04) / 0.96, 0.0, 1.0);        // noise gate
