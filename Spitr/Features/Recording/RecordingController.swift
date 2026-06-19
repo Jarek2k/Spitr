@@ -39,7 +39,9 @@ final class RecordingController: ObservableObject {
     @Published private(set) var accessibilityTrusted = false
 
     let permissions = PermissionService()
-    let hotkeyConfig: HotkeyConfig
+
+    /// Current Hold-to-Talk key, derived from settings for the menu hint.
+    var hotkeyConfig: HotkeyConfig { HotkeyConfig.named(keyCode: settings.hotkeyKeyCode) }
 
     private let settings: SettingsStore
     private let hotkey: HotkeyService
@@ -56,9 +58,8 @@ final class RecordingController: ObservableObject {
 
     init(settings: SettingsStore) {
         self.settings = settings
-        let hotkey = HotkeyService()
+        let hotkey = HotkeyService(config: HotkeyConfig.named(keyCode: settings.hotkeyKeyCode))
         self.hotkey = hotkey
-        self.hotkeyConfig = hotkey.config
         self.engine = selector.makeEngine(settings.engineKind)
 
         hotkey.onPress = { [weak self] in self?.startRecording() }
@@ -72,6 +73,14 @@ final class RecordingController: ObservableObject {
                 guard let self else { return }
                 self.engine = self.selector.makeEngine(kind)
                 self.enginePrepared = false
+            }
+            .store(in: &cancellables)
+
+        // Swap the Hold-to-Talk key live when changed in Settings.
+        settings.$hotkeyKeyCode
+            .dropFirst()
+            .sink { [weak self] code in
+                self?.hotkey.update(config: HotkeyConfig.named(keyCode: code))
             }
             .store(in: &cancellables)
     }

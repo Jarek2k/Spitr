@@ -23,6 +23,11 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(localeIdentifier, forKey: Keys.locale) }
     }
 
+    /// Virtual key code of the Hold-to-Talk key (see HotkeyConfig.selectable).
+    @Published var hotkeyKeyCode: UInt16 {
+        didSet { defaults.set(Int(hotkeyKeyCode), forKey: Keys.hotkey) }
+    }
+
     var locale: Locale { Locale(identifier: localeIdentifier) }
 
     private let defaults: UserDefaults
@@ -30,6 +35,7 @@ final class SettingsStore: ObservableObject {
     private enum Keys {
         static let engine = "engineKind"
         static let locale = "localeIdentifier"
+        static let hotkey = "hotkeyKeyCode"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -37,5 +43,7 @@ final class SettingsStore: ObservableObject {
         let raw = defaults.string(forKey: Keys.engine) ?? EngineKind.apple.rawValue
         self.engineKind = EngineKind(rawValue: raw) ?? .apple
         self.localeIdentifier = defaults.string(forKey: Keys.locale) ?? "de-DE"
+        let storedHotkey = defaults.object(forKey: Keys.hotkey) as? Int
+        self.hotkeyKeyCode = storedHotkey.map(UInt16.init) ?? HotkeyConfig.rightOption.keyCode
     }
 }

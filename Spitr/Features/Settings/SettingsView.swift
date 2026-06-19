@@ -45,6 +45,16 @@ struct SettingsView: View {
                         Text(lang.name).tag(lang.id)
                     }
                 }
+
+                Picker("Aufnahme-Taste", selection: $settings.hotkeyKeyCode) {
+                    ForEach(HotkeyConfig.selectable, id: \.keyCode) { config in
+                        Text(config.displayName).tag(config.keyCode)
+                    }
+                }
+            } footer: {
+                Text("Halte diese Taste zum Aufnehmen — eine Modifier-Taste, damit nichts getippt wird.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

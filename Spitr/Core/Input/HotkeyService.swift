@@ -21,7 +21,23 @@ struct HotkeyConfig: Equatable {
     /// Label for the UI, e.g. "⌥ rechts".
     var displayName: String
 
-    static let rightOption = HotkeyConfig(keyCode: 61, flag: .option, displayName: "⌥ rechts")
+    static let rightOption  = HotkeyConfig(keyCode: 61, flag: .option,   displayName: "⌥ rechts")
+    static let leftOption   = HotkeyConfig(keyCode: 58, flag: .option,   displayName: "⌥ links")
+    static let rightControl = HotkeyConfig(keyCode: 62, flag: .control,  displayName: "⌃ rechts")
+    static let leftControl  = HotkeyConfig(keyCode: 59, flag: .control,  displayName: "⌃ links")
+    static let function     = HotkeyConfig(keyCode: 63, flag: .function, displayName: "fn")
+
+    /// Modifier keys offered in Settings. Hold-to-Talk needs a modifier so the
+    /// held key never types a character; Command/Shift are left out (shortcut
+    /// clashes / caps behaviour).
+    static let selectable: [HotkeyConfig] = [
+        .rightOption, .leftOption, .rightControl, .leftControl, .function,
+    ]
+
+    /// Resolves a persisted key code back to a known config, defaulting safely.
+    static func named(keyCode: UInt16) -> HotkeyConfig {
+        selectable.first { $0.keyCode == keyCode } ?? .rightOption
+    }
 }
 
 /// Watches the system-wide keyboard for the configured hold key and reports
