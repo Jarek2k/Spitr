@@ -43,6 +43,10 @@ final class AudioCaptureService: @unchecked Sendable {
     private let lock = NSLock()
     private var samples: [Float] = []
 
+    /// Envelope follower for the level meter: fast attack, slow release, so the
+    /// gaps between syllables don't collapse the waveform to a dot.
+    private var levelEnvelope: Float = 0
+
     private var converter: AVAudioConverter?
     private var targetFormat: AVAudioFormat?
 
@@ -64,6 +68,7 @@ final class AudioCaptureService: @unchecked Sendable {
         lock.lock()
         samples.removeAll(keepingCapacity: true)
         lock.unlock()
+        levelEnvelope = 0
 
         let input = engine.inputNode
         applyPreferredDevice(to: input)
@@ -167,6 +172,11 @@ final class AudioCaptureService: @unchecked Sendable {
         // see Self.levelFloorDb / levelCeilingDb to tune sensitivity.
         let db = 20 * log10(max(Double(rms), 1e-7))
         let level = Float(max(0, min(1, (db - Self.levelFloorDb) / (Self.levelCeilingDb - Self.levelFloorDb))))
-        levelContinuation.yield(level)
+
+        // Envelope follower: jump up to louder input immediately, ease back down
+        // slowly so brief inter-syllable dips don't collapse the meter.
+        let coeff: Float = level > levelEnvelope ? 0.6 : 0.12
+        levelEnvelope += (level - levelEnvelope) * coeff
+        levelContinuation.yield(levelEnvelope)
     }
 }
