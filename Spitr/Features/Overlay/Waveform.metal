@@ -2,40 +2,96 @@
 //  Waveform.metal
 //  Spitr
 //
-//  "Strands" waveform: a handful of sine threads flowing across the overlay,
-//  their amplitude driven by the live audio level. Used as a SwiftUI
-//  colorEffect, so it returns a colour per pixel and leaves the rest transparent.
+//  "Strands" waveform — a Metal port of the reactbits.dev WebGL effect
+//  (https://reactbits.dev/animations/strands). Glowing, multi-coloured threads
+//  with an additive bloom. Amplitude, intensity and speed are driven by the
+//  live audio level so the motion follows the voice. Used as a SwiftUI
+//  colorEffect; output is premultiplied so the glow composites over the dark
+//  overlay.
 //
 
 #include <metal_stdlib>
 #include <SwiftUI/SwiftUI_Metal.h>
 using namespace metal;
 
+constant float PI = 3.14159265;
+
+// Default reactbits palette: red, violet, cyan, amber.
+constant float3 kPalette[4] = {
+    float3(1.000, 0.259, 0.259),
+    float3(0.486, 0.227, 0.929),
+    float3(0.024, 0.714, 0.831),
+    float3(0.918, 0.702, 0.031)
+};
+
+static float3 samplePalette(float t) {
+    t = fract(t);
+    float scaled = t * 4.0;
+    int idx = int(floor(scaled));
+    float blend = fract(scaled);
+    int next = (idx + 1) & 3;
+    return mix(kPalette[idx & 3], kPalette[next], blend);
+}
+
 [[ stitchable ]]
 half4 strands(float2 position, half4 color, float2 size, float time, float level) {
-    float2 uv = position / size;
+    // Fixed look (reactbits defaults).
+    const int   strandCount = 3;
+    const float uWaviness   = 1.0;
+    const float uThickness  = 0.7;
+    const float uGlow       = 2.6;
+    const float uTaper      = 3.0;
+    const float uSpread     = 1.0;
+    const float uHueShift   = 0.0;
+    const float uSaturation = 1.5;
+    const float uScale      = 1.5;
+    const float uOpacity    = 1.0;
 
-    // Taper amplitude toward the edges so threads meet in a spindle shape.
-    float envelope = sin(uv.x * M_PI_F);
+    // Audio-reactive: louder voice → bigger, brighter, faster threads.
+    float uIntensity = clamp(0.22 + level * 0.95, 0.0, 1.0);
+    float uAmplitude = 0.55 + level * 2.0;
+    float uSpeed     = 0.45 + level * 0.9;
 
-    const int strandCount = 3;
-    float intensity = 0.0;
+    // Aspect-correct, centred UV (flip Y: SwiftUI is top-down, GL bottom-up).
+    float2 frag = float2(position.x, size.y - position.y);
+    float2 uv = (frag - 0.5 * size) / size.y;
+    uv /= max(uScale, 0.0001);
 
+    float e = 0.06 + uIntensity * 0.94;
+    float env = pow(max(cos(uv.x * PI * 1.3), 0.0), uTaper);
+
+    float3 col = float3(0.0);
     for (int i = 0; i < strandCount; i++) {
         float fi = float(i);
-        float phase = time * (1.3 + fi * 0.4) + fi * 1.7;
-        float freq = 2.0 + fi * 0.8;
-        float amp = (0.06 + 0.34 * level) * (1.0 - fi * 0.2) * envelope;
+        float ph = fi * 1.7 * uSpread;
+        float freq = (2.0 + fi * 0.35) * uWaviness;
+        float spd = 1.4 + fi * 1.2;
+        float tt = time * uSpeed;
 
-        float y = 0.5 + sin(uv.x * 6.2831853 * freq + phase) * amp;
-        float dist = abs(uv.y - y);
+        float w = sin(uv.x * freq + tt * spd + ph) * 0.60
+                + sin(uv.x * freq * 1.1 - tt * spd * 0.7 + ph * 1.7) * 0.40;
 
-        // Soft line: bright core, quick falloff.
-        intensity += smoothstep(0.02, 0.0, dist) * (1.0 - fi * 0.22);
+        float amp = (0.1 + 0.02 * e) * env * uAmplitude;
+        float y = w * amp;
+
+        float d = abs(uv.y - y);
+        float thick = (0.001 + 0.05 * e) * (0.35 + env) * uThickness;
+        float g = thick / (d + thick * 0.45);
+        g = g * g;
+
+        float h = fi / float(strandCount) + uv.x * 0.30 + time * 0.04 + uHueShift;
+        col += samplePalette(h) * g * env;
     }
 
-    float alpha = clamp(intensity, 0.0, 1.0);
-    half3 tint = half3(1.0);
-    // Composite white threads over whatever (near-transparent) pixel was there.
-    return half4(tint, 1.0h) * half(alpha) + color * half(1.0 - alpha);
+    col *= 0.45 + 0.7 * e;
+    col = 1.0 - exp(-col * uGlow);              // tonemap → soft glow
+
+    float gray = dot(col, float3(0.2126, 0.7152, 0.0722));
+    col = max(mix(float3(gray), col, uSaturation), 0.0);
+
+    float lum = max(max(col.r, col.g), col.b);
+    float alpha = clamp(lum, 0.0, 1.0) * uOpacity;
+
+    // Premultiplied output (matches reactbits ONE / ONE_MINUS_SRC_ALPHA blend).
+    return half4(half3(col * uOpacity), half(alpha));
 }
