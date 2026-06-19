@@ -12,11 +12,15 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var settings: SettingsStore
     @ObservedObject var history: HistoryStore
+    @ObservedObject var dictionary: DictionaryStore
 
     var body: some View {
         TabView {
             GeneralSettingsView(settings: settings)
                 .tabItem { Label("Allgemein", systemImage: "gearshape") }
+
+            DictionarySettingsView(dictionary: dictionary)
+                .tabItem { Label("Wörterbuch", systemImage: "character.book.closed") }
 
             HistorySettingsView(history: history)
                 .tabItem { Label("Verlauf", systemImage: "clock.arrow.circlepath") }
@@ -125,6 +129,90 @@ private struct GeneralSettingsView: View {
     }
 }
 
+private struct DictionarySettingsView: View {
+    @ObservedObject var dictionary: DictionaryStore
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Toggle("Wörterbuch anwenden", isOn: $dictionary.isEnabled)
+                Spacer()
+                Button {
+                    dictionary.add()
+                } label: {
+                    Label("Regel", systemImage: "plus")
+                }
+            }
+            .padding(12)
+
+            Divider()
+
+            if dictionary.rules.isEmpty {
+                Spacer()
+                Text("Noch keine Regeln. „Erkannt“ wird durch „Ersetzung“ getauscht.")
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                Spacer()
+            } else {
+                List {
+                    HStack {
+                        Text("Erkannt").frame(maxWidth: .infinity, alignment: .leading)
+                        Text("Ersetzung").frame(maxWidth: .infinity, alignment: .leading)
+                        Spacer().frame(width: 24)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                    ForEach(dictionary.rules) { rule in
+                        RuleRow(rule: rule, dictionary: dictionary)
+                    }
+                }
+                .listStyle(.inset)
+            }
+        }
+        .frame(height: 360)
+        .opacity(dictionary.isEnabled ? 1 : 0.55)
+    }
+}
+
+/// One editable replacement rule. Edits are committed back to the store on change.
+private struct RuleRow: View {
+    let rule: ReplacementRule
+    @ObservedObject var dictionary: DictionaryStore
+
+    @State private var pattern: String
+    @State private var replacement: String
+
+    init(rule: ReplacementRule, dictionary: DictionaryStore) {
+        self.rule = rule
+        self.dictionary = dictionary
+        _pattern = State(initialValue: rule.pattern)
+        _replacement = State(initialValue: rule.replacement)
+    }
+
+    var body: some View {
+        HStack {
+            TextField("Klode", text: $pattern)
+                .textFieldStyle(.roundedBorder)
+                .onChange(of: pattern) { _, _ in commit() }
+            TextField("Claude", text: $replacement)
+                .textFieldStyle(.roundedBorder)
+                .onChange(of: replacement) { _, _ in commit() }
+            Button {
+                dictionary.delete(rule)
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+
+    private func commit() {
+        dictionary.update(ReplacementRule(id: rule.id, pattern: pattern, replacement: replacement))
+    }
+}
+
 private struct HistorySettingsView: View {
     @ObservedObject var history: HistoryStore
 
@@ -181,5 +269,5 @@ private struct HistorySettingsView: View {
 }
 
 #Preview {
-    SettingsView(settings: SettingsStore(), history: HistoryStore())
+    SettingsView(settings: SettingsStore(), history: HistoryStore(), dictionary: DictionaryStore())
 }

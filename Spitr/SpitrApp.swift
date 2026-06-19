@@ -28,7 +28,7 @@ struct SpitrApp: App {
         .menuBarExtraStyle(.window)
 
         Settings {
-            SettingsView(settings: appDelegate.settings, history: appDelegate.history)
+            SettingsView(settings: appDelegate.settings, history: appDelegate.history, dictionary: appDelegate.dictionary)
         }
     }
 }
@@ -37,7 +37,8 @@ struct SpitrApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = SettingsStore()
     let history = HistoryStore()
-    lazy var controller = RecordingController(settings: settings, history: history)
+    let dictionary = DictionaryStore()
+    lazy var controller = RecordingController(settings: settings, history: history, dictionary: dictionary)
 
     private var onboardingWindow: NSWindow?
 
