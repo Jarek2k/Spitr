@@ -39,9 +39,20 @@ final class OverlayController {
         }
     }
 
+    /// Capsule presentation vs. the larger, chrome-free strands animation.
+    private static let capsuleSize = NSSize(width: 240, height: 64)
+    private static let strandsSize = NSSize(width: 360, height: 100)
+
     private func show() {
         let panel = panel ?? makePanel()
         self.panel = panel
+        let strandsOnly = controller.overlayIsStrandsOnly
+        let size = strandsOnly ? Self.strandsSize : Self.capsuleSize
+        if panel.frame.size != size {
+            panel.setContentSize(size)
+        }
+        // No drop shadow behind the bare animation — only the capsule wants one.
+        panel.hasShadow = !strandsOnly
         position(panel)
         panel.orderFrontRegardless()
     }
@@ -51,7 +62,7 @@ final class OverlayController {
     }
 
     private func makePanel() -> NSPanel {
-        let size = NSSize(width: 240, height: 64)
+        let size = Self.capsuleSize
         let panel = NSPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -69,6 +80,7 @@ final class OverlayController {
 
         let host = NSHostingView(rootView: RecordingOverlay(controller: controller))
         host.frame = NSRect(origin: .zero, size: size)
+        host.autoresizingMask = [.width, .height]
         panel.contentView = host
         return panel
     }

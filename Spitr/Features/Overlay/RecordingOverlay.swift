@@ -21,6 +21,19 @@ struct RecordingOverlay: View {
     private var isCommand: Bool { controller.mode == .command }
 
     var body: some View {
+        if controller.overlayIsStrandsOnly {
+            // Bare animation: no capsule, no mic — fills the whole panel.
+            MetalWaveformView(level: controller.inputLevel)
+                .id(controller.sessionID)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            chromed
+        }
+    }
+
+    /// The capsule presentation: used for the bars waveform, command mode and
+    /// the command result. The strands style opts out of this entirely.
+    private var chromed: some View {
         Group {
             if let feedback = controller.commandFeedback, controller.state != .recording {
                 commandResult(feedback)
@@ -47,7 +60,7 @@ struct RecordingOverlay: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                waveform
+                WaveformView(level: controller.inputLevel)
                     .frame(maxWidth: .infinity)
                     .id(controller.sessionID)
             }
@@ -65,14 +78,6 @@ struct RecordingOverlay: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    @ViewBuilder
-    private var waveform: some View {
-        switch settings.waveformStyle {
-        case .bars:    WaveformView(level: controller.inputLevel)
-        case .strands: MetalWaveformView(level: controller.inputLevel)
         }
     }
 }
