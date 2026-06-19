@@ -60,8 +60,8 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     float separation = v * 0.26;   // vertical band offset at full loudness
     float wiggleAmp  = v * 0.08;   // flowing wave grows with the voice too
 
-    // Clean spindle: tapers to a point at the left/right tips.
-    float env = pow(sin(xn * PI), 1.3);
+    // Clean spindle: concentrated in the centre, tapering to a point at the tips.
+    float env = pow(sin(xn * PI), 2.0);
 
     float3 col = float3(0.0);
 
@@ -69,7 +69,9 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
         float fi = float(i);
         float offset = fi - float(strandCount - 1) * 0.5;   // -1, 0, +1
         float ph = fi * 1.7;
-        float freq = 2.0 + fi * 0.35;
+        // Low frequency → each strand is a single smooth arc across the width,
+        // not a wavy multi-hump line.
+        float freq = 0.7 + fi * 0.15;
         float spd = 1.4 + fi * 1.2;
         float tt = time * 0.65;
 
