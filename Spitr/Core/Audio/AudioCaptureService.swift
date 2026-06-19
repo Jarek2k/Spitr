@@ -31,8 +31,8 @@ final class AudioCaptureService: @unchecked Sendable {
     /// dBFS window mapped onto the 0…1 waveform level. Below the floor → 0 (calm),
     /// at/above the ceiling → 1 (full swell). Raise the floor to make quiet speech
     /// register smaller; lower the ceiling to reach full scale more easily.
-    static let levelFloorDb: Double = -42
-    static let levelCeilingDb: Double = -10
+    static let levelFloorDb: Double = -20
+    static let levelCeilingDb: Double = -7
 
     private let engine = AVAudioEngine()
 
@@ -104,20 +104,6 @@ final class AudioCaptureService: @unchecked Sendable {
         let copy = samples
         samples.removeAll(keepingCapacity: false)
         lock.unlock()
-
-        // TEMP diagnostic: real loudness of the take, to tune the dBFS window.
-        if !copy.isEmpty {
-            var peak: Float = 0
-            var sq: Float = 0
-            for s in copy {
-                let a = abs(s)
-                if a > peak { peak = a }
-                sq += s * s
-            }
-            let rmsDb = 20 * log10(max(Double(sqrt(sq / Float(copy.count))), 1e-7))
-            let peakDb = 20 * log10(max(Double(peak), 1e-7))
-            log.info("level diag: rms \(String(format: "%.1f", rmsDb)) dBFS, peak \(String(format: "%.1f", peakDb)) dBFS")
-        }
 
         return AudioBuffer(samples: copy, sampleRate: Self.targetSampleRate)
     }
