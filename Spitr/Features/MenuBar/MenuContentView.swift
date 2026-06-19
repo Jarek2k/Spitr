@@ -30,6 +30,13 @@ struct MenuContentView: View {
 
             Divider()
 
+            Button("Einrichtung…") {
+                NotificationCenter.default.post(name: .showOnboarding, object: nil)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+
             SettingsLink {
                 Text("Einstellungen…")
             }

@@ -10,6 +10,11 @@
 
 import SwiftUI
 
+extension Notification.Name {
+    /// Posted from the menu to (re)open the permission onboarding window.
+    static let showOnboarding = Notification.Name("com.jarek.Spitr.showOnboarding")
+}
+
 @main
 struct SpitrApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
@@ -45,8 +50,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWindow.willCloseNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleShowOnboarding),
+            name: .showOnboarding,
+            object: nil
+        )
 
         if !settings.hasCompletedOnboarding {
+            showOnboarding()
+        }
+    }
+
+    @objc private func handleShowOnboarding() {
+        if let onboardingWindow {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+            onboardingWindow.makeKeyAndOrderFront(nil)
+            onboardingWindow.orderFrontRegardless()
+        } else {
             showOnboarding()
         }
     }
