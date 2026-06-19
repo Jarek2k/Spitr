@@ -26,12 +26,12 @@ enum EngineKind: String, CaseIterable, Identifiable {
 final class EngineSelector {
     /// Builds the engine for a given kind. Falls back to Apple if a kind is
     /// not yet implemented or unavailable on this device.
-    func makeEngine(_ kind: EngineKind) -> TranscriptionEngine {
+    func makeEngine(_ kind: EngineKind, whisperModel: String = WhisperKitEngine.defaultModel) -> TranscriptionEngine {
         switch kind {
         case .apple:
             return AppleSpeechEngine()
         case .whisperKit:
-            return WhisperKitEngine()
+            return WhisperKitEngine(model: whisperModel)
         }
     }
 

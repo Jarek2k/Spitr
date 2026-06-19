@@ -28,6 +28,12 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(Int(hotkeyKeyCode), forKey: Keys.hotkey) }
     }
 
+    /// WhisperKit model name (e.g. "base", "small", "large-v3"). Only relevant
+    /// when the WhisperKit engine is selected.
+    @Published var whisperModel: String {
+        didSet { defaults.set(whisperModel, forKey: Keys.whisperModel) }
+    }
+
     var locale: Locale { Locale(identifier: localeIdentifier) }
 
     private let defaults: UserDefaults
@@ -36,6 +42,7 @@ final class SettingsStore: ObservableObject {
         static let engine = "engineKind"
         static let locale = "localeIdentifier"
         static let hotkey = "hotkeyKeyCode"
+        static let whisperModel = "whisperModel"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -45,5 +52,6 @@ final class SettingsStore: ObservableObject {
         self.localeIdentifier = defaults.string(forKey: Keys.locale) ?? "de-DE"
         let storedHotkey = defaults.object(forKey: Keys.hotkey) as? Int
         self.hotkeyKeyCode = storedHotkey.map(UInt16.init) ?? HotkeyConfig.rightOption.keyCode
+        self.whisperModel = defaults.string(forKey: Keys.whisperModel) ?? WhisperKitEngine.defaultModel
     }
 }

@@ -20,12 +20,21 @@ final class WhisperKitEngine: TranscriptionEngine {
     let displayName = "WhisperKit"
 
     /// Default model: a good speed/accuracy trade-off and a modest download.
-    /// A model picker (ModelManager) can override this later.
+    static let defaultModel = "base"
+
+    /// Models offered in Settings, smallest/fastest first. WhisperKit fuzzy-
+    /// matches these names against the argmaxinc CoreML model repo.
+    static let selectableModels: [(id: String, name: String)] = [
+        ("base", "Base — schnell, klein"),
+        ("small", "Small — bessere Genauigkeit"),
+        ("large-v3", "Large v3 — beste Genauigkeit, groß"),
+    ]
+
     private let model: String
 
     private var pipe: WhisperKit?
 
-    init(model: String = "base") {
+    init(model: String = WhisperKitEngine.defaultModel) {
         self.model = model
     }
 

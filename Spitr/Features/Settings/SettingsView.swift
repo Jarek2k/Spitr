@@ -31,6 +31,14 @@ struct SettingsView: View {
                         Text(kind.displayName).tag(kind)
                     }
                 }
+
+                if settings.engineKind == .whisperKit {
+                    Picker("Modell", selection: $settings.whisperModel) {
+                        ForEach(WhisperKitEngine.selectableModels, id: \.id) { model in
+                            Text(model.name).tag(model.id)
+                        }
+                    }
+                }
             } footer: {
                 if settings.engineKind == .whisperKit {
                     Text("WhisperKit lädt das Modell beim ersten Mal einmalig herunter; danach läuft alles offline.")

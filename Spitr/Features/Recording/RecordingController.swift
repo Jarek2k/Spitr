@@ -60,20 +60,20 @@ final class RecordingController: ObservableObject {
         self.settings = settings
         let hotkey = HotkeyService(config: HotkeyConfig.named(keyCode: settings.hotkeyKeyCode))
         self.hotkey = hotkey
-        self.engine = selector.makeEngine(settings.engineKind)
+        self.engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
 
         hotkey.onPress = { [weak self] in self?.startRecording() }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
 
-        // Rebuild the engine when the override changes; defer prepare() to the
-        // next recording so switching is cheap.
+        // Rebuild the engine when the override or WhisperKit model changes;
+        // defer prepare() to the next recording so switching is cheap.
         settings.$engineKind
             .dropFirst()
-            .sink { [weak self] kind in
-                guard let self else { return }
-                self.engine = self.selector.makeEngine(kind)
-                self.enginePrepared = false
-            }
+            .sink { [weak self] _ in self?.rebuildEngine() }
+            .store(in: &cancellables)
+        settings.$whisperModel
+            .dropFirst()
+            .sink { [weak self] _ in self?.rebuildEngine() }
             .store(in: &cancellables)
 
         // Swap the Hold-to-Talk key live when changed in Settings.
@@ -83,6 +83,13 @@ final class RecordingController: ObservableObject {
                 self?.hotkey.update(config: HotkeyConfig.named(keyCode: code))
             }
             .store(in: &cancellables)
+    }
+
+    /// Rebuilds the transcription engine from current settings. Prepare() is
+    /// deferred to the next recording, so switching engines/models is cheap.
+    private func rebuildEngine() {
+        engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
+        enginePrepared = false
     }
 
     /// Called once at launch: begin listening for the hotkey and read permissions.
