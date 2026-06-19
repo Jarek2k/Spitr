@@ -156,8 +156,12 @@ final class AudioCaptureService: @unchecked Sendable {
         var sumSquares: Float = 0
         for s in chunk { sumSquares += s * s }
         let rms = sqrt(sumSquares / Float(count))
-        // Speech RMS sits around 0.01–0.05 on normalized float; a sqrt curve
-        // lifts that into a lively, visible range without clipping loud peaks.
-        levelContinuation.yield(min(1, sqrt(rms) * 3.2))
+        // Map to loudness in dBFS, not raw RMS: a fixed gain saturates the moment
+        // there's any speech, so height/amplitude stopped tracking volume. Linear
+        // in dB is perceptual and keeps soft↔loud distinguishable across the
+        // useful range (~-50 dBFS = quiet → -12 dBFS = loud).
+        let db = 20 * log10(max(Double(rms), 1e-7))
+        let level = Float(max(0, min(1, (db + 50) / 38)))
+        levelContinuation.yield(level)
     }
 }

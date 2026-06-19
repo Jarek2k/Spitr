@@ -16,25 +16,30 @@ struct WaveformView: View {
     @State private var history = [Float](repeating: 0, count: WaveformView.barCount)
 
     var body: some View {
-        Canvas { ctx, size in
-            guard !history.isEmpty else { return }
-            let slot = size.width / CGFloat(history.count)
-            let barWidth = slot * 0.62
-            let midY = size.height / 2
+        // Sample on a steady clock so the bars keep scrolling while a sustained
+        // sound holds the level constant — the scroll must not depend on the
+        // level *changing*.
+        TimelineView(.periodic(from: .now, by: 0.06)) { timeline in
+            Canvas { ctx, size in
+                guard !history.isEmpty else { return }
+                let slot = size.width / CGFloat(history.count)
+                let barWidth = slot * 0.62
+                let midY = size.height / 2
 
-            for (i, value) in history.enumerated() {
-                let height = max(barWidth, CGFloat(value) * size.height)
-                let x = CGFloat(i) * slot + (slot - barWidth) / 2
-                let rect = CGRect(x: x, y: midY - height / 2, width: barWidth, height: height)
-                ctx.fill(
-                    Path(roundedRect: rect, cornerRadius: barWidth / 2),
-                    with: .color(.white.opacity(0.9))
-                )
+                for (i, value) in history.enumerated() {
+                    let height = max(barWidth, CGFloat(value) * size.height)
+                    let x = CGFloat(i) * slot + (slot - barWidth) / 2
+                    let rect = CGRect(x: x, y: midY - height / 2, width: barWidth, height: height)
+                    ctx.fill(
+                        Path(roundedRect: rect, cornerRadius: barWidth / 2),
+                        with: .color(.white.opacity(0.9))
+                    )
+                }
             }
-        }
-        .onChange(of: level) { _, newValue in
-            history.removeFirst()
-            history.append(newValue)
+            .onChange(of: timeline.date) { _, _ in
+                history.removeFirst()
+                history.append(level)
+            }
         }
     }
 }
