@@ -34,6 +34,11 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(whisperModel, forKey: Keys.whisperModel) }
     }
 
+    /// UID of the chosen input device. Empty string → system default mic.
+    @Published var inputDeviceUID: String {
+        didSet { defaults.set(inputDeviceUID, forKey: Keys.inputDevice) }
+    }
+
     var locale: Locale { Locale(identifier: localeIdentifier) }
 
     private let defaults: UserDefaults
@@ -43,6 +48,7 @@ final class SettingsStore: ObservableObject {
         static let locale = "localeIdentifier"
         static let hotkey = "hotkeyKeyCode"
         static let whisperModel = "whisperModel"
+        static let inputDevice = "inputDeviceUID"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -53,5 +59,6 @@ final class SettingsStore: ObservableObject {
         let storedHotkey = defaults.object(forKey: Keys.hotkey) as? Int
         self.hotkeyKeyCode = storedHotkey.map(UInt16.init) ?? HotkeyConfig.rightOption.keyCode
         self.whisperModel = defaults.string(forKey: Keys.whisperModel) ?? WhisperKitEngine.defaultModel
+        self.inputDeviceUID = defaults.string(forKey: Keys.inputDevice) ?? ""
     }
 }

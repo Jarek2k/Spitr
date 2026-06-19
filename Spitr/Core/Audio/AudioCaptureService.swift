@@ -7,6 +7,10 @@
 
 import Foundation
 import AVFoundation
+import CoreAudio
+import os
+
+private let log = Logger(subsystem: "com.jarek.Spitr", category: "audio")
 
 enum AudioCaptureError: Error, LocalizedError {
     case formatUnavailable
@@ -25,6 +29,10 @@ final class AudioCaptureService: @unchecked Sendable {
     static let targetSampleRate: Double = 16_000
 
     private let engine = AVAudioEngine()
+
+    /// UID of the microphone to capture from. Empty/nil → system default input.
+    /// Set by RecordingController from Settings; applied on the next start().
+    var preferredDeviceUID: String?
 
     private let lock = NSLock()
     private var samples: [Float] = []
@@ -52,6 +60,7 @@ final class AudioCaptureService: @unchecked Sendable {
         lock.unlock()
 
         let input = engine.inputNode
+        applyPreferredDevice(to: input)
         let inputFormat = input.outputFormat(forBus: 0)
 
         guard let target = AVAudioFormat(commonFormat: .pcmFormatFloat32,
@@ -91,6 +100,29 @@ final class AudioCaptureService: @unchecked Sendable {
         lock.unlock()
 
         return AudioBuffer(samples: copy, sampleRate: Self.targetSampleRate)
+    }
+
+    /// Pins the engine's input node to the chosen Core Audio device. A nil/empty
+    /// UID or an unplugged device leaves the system default in place.
+    private func applyPreferredDevice(to input: AVAudioInputNode) {
+        guard let uid = preferredDeviceUID, !uid.isEmpty else { return }
+        guard let deviceID = AudioDeviceService.deviceID(forUID: uid) else {
+            log.warning("preferred mic not found, using system default")
+            return
+        }
+        guard let audioUnit = input.audioUnit else { return }
+
+        var device = deviceID
+        let status = AudioUnitSetProperty(
+            audioUnit,
+            kAudioOutputUnitProperty_CurrentDevice,
+            kAudioUnitScope_Global,
+            0,
+            &device,
+            UInt32(MemoryLayout<AudioDeviceID>.size))
+        if status != noErr {
+            log.error("failed to set input device (status \(status)), using default")
+        }
     }
 
     private func handleTap(_ input: AVAudioPCMBuffer) {

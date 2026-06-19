@@ -62,6 +62,8 @@ final class RecordingController: ObservableObject {
         self.hotkey = hotkey
         self.engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
 
+        audio.preferredDeviceUID = settings.inputDeviceUID
+
         hotkey.onPress = { [weak self] in self?.startRecording() }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
 
@@ -82,6 +84,12 @@ final class RecordingController: ObservableObject {
             .sink { [weak self] code in
                 self?.hotkey.update(config: HotkeyConfig.named(keyCode: code))
             }
+            .store(in: &cancellables)
+
+        // Apply a new mic choice on the next recording.
+        settings.$inputDeviceUID
+            .dropFirst()
+            .sink { [weak self] uid in self?.audio.preferredDeviceUID = uid }
             .store(in: &cancellables)
     }
 

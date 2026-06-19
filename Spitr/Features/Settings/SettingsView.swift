@@ -11,6 +11,9 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var settings: SettingsStore
 
+    /// Connected input devices, refreshed when the window appears.
+    @State private var inputDevices: [AudioInputDevice] = []
+
     /// Curated set of recognition languages. Kept short on purpose — the full
     /// system list is overwhelming and most are irrelevant for this app.
     private static let languages: [(id: String, name: String)] = [
@@ -48,6 +51,24 @@ struct SettingsView: View {
             }
 
             Section {
+                Picker("Mikrofon", selection: $settings.inputDeviceUID) {
+                    Text("Systemstandard").tag("")
+                    ForEach(inputDevices) { device in
+                        Text(device.name).tag(device.uid)
+                    }
+                    // Keep a vanished but still-selected device visible.
+                    if !settings.inputDeviceUID.isEmpty,
+                       !inputDevices.contains(where: { $0.uid == settings.inputDeviceUID }) {
+                        Text("Nicht verfügbar").tag(settings.inputDeviceUID)
+                    }
+                }
+            } footer: {
+                Text("Aufgenommen wird nur, solange du die Taste hältst.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 Picker("Sprache", selection: $settings.localeIdentifier) {
                     ForEach(Self.languages, id: \.id) { lang in
                         Text(lang.name).tag(lang.id)
@@ -68,6 +89,7 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 420)
         .fixedSize(horizontal: false, vertical: true)
+        .onAppear { inputDevices = AudioDeviceService.inputDevices() }
     }
 }
 
