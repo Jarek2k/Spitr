@@ -25,7 +25,6 @@ final class RecordingController: ObservableObject {
     }
 
     @Published private(set) var state: State = .idle
-    @Published var locale: Locale = Locale(identifier: "de-DE")
 
     /// Latest normalized input level (0…1), driven by the audio tap and consumed
     /// by the recording overlay's waveform.
@@ -42,25 +41,39 @@ final class RecordingController: ObservableObject {
     let permissions = PermissionService()
     let hotkeyConfig: HotkeyConfig
 
+    private let settings: SettingsStore
     private let hotkey: HotkeyService
     private let audio = AudioCaptureService()
     private let insertion = TextInsertionService()
     private let selector = EngineSelector()
-    private let engine: TranscriptionEngine
+    private var engine: TranscriptionEngine
     private var enginePrepared = false
 
     private var overlay: OverlayController?
     private var levelTask: Task<Void, Never>?
+    private var cancellables = Set<AnyCancellable>()
     private var activated = false
 
-    init() {
+    init(settings: SettingsStore) {
+        self.settings = settings
         let hotkey = HotkeyService()
         self.hotkey = hotkey
         self.hotkeyConfig = hotkey.config
-        self.engine = selector.makeEngine(selector.defaultKind())
+        self.engine = selector.makeEngine(settings.engineKind)
 
         hotkey.onPress = { [weak self] in self?.startRecording() }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
+
+        // Rebuild the engine when the override changes; defer prepare() to the
+        // next recording so switching is cheap.
+        settings.$engineKind
+            .dropFirst()
+            .sink { [weak self] kind in
+                guard let self else { return }
+                self.engine = self.selector.makeEngine(kind)
+                self.enginePrepared = false
+            }
+            .store(in: &cancellables)
     }
 
     /// Called once at launch: begin listening for the hotkey and read permissions.
@@ -134,7 +147,7 @@ final class RecordingController: ObservableObject {
                     try await engine.prepare()
                     enginePrepared = true
                 }
-                let text = try await engine.transcribe(buffer, locale: locale)
+                let text = try await engine.transcribe(buffer, locale: settings.locale)
                 let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
                     insertion.insert(trimmed)
