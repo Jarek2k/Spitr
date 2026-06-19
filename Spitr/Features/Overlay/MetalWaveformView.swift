@@ -8,20 +8,22 @@
 //
 
 import SwiftUI
+import Combine
 
 struct MetalWaveformView: View {
     /// Latest normalized RMS level (0…1) from the audio tap.
     var level: Float
 
     @State private var smoothed: Float = 0
-    @State private var target: Float = 0
     @State private var start = Date()
-    @State private var lastTick = Date()
+
+    /// Smoothing/redraw clock. Mutating state here (not inside onChange-of-date)
+    /// avoids SwiftUI's "update multiple times per frame" warning.
+    private let ticker = Timer.publish(every: 1.0 / 60.0, on: .main, in: .common).autoconnect()
 
     var body: some View {
         TimelineView(.animation) { timeline in
-            let now = timeline.date
-            let t = Float(now.timeIntervalSince(start))
+            let t = Float(timeline.date.timeIntervalSince(start))
             Rectangle()
                 // Near-invisible fill guarantees the shader runs across the full
                 // bounds; the shader paints (and clips to) the visible threads.
@@ -35,17 +37,14 @@ struct MetalWaveformView: View {
                         )
                     )
                 }
-                .onChange(of: now) { _, newNow in
-                    // Exponential smoothing toward the latest level, advanced
-                    // every frame. Asymmetric: snaps up to the voice, eases down.
-                    let dt = Float(max(0, min(0.1, newNow.timeIntervalSince(lastTick))))
-                    lastTick = newNow
-                    let tau: Float = target > smoothed ? 0.06 : 0.22
-                    smoothed += (target - smoothed) * (1 - exp(-dt / tau))
-                }
         }
-        .onChange(of: level) { _, newValue in
-            target = min(max(newValue, 0), 1)
+        .onReceive(ticker) { _ in
+            // Exponential smoothing toward the latest level. Asymmetric: snaps up
+            // to the voice, eases back down.
+            let target = min(max(level, 0), 1)
+            let dt: Float = 1.0 / 60.0
+            let tau: Float = target > smoothed ? 0.06 : 0.22
+            smoothed += (target - smoothed) * (1 - exp(-dt / tau))
         }
     }
 }

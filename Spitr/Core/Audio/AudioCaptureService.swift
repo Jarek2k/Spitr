@@ -28,6 +28,12 @@ final class AudioCaptureService: @unchecked Sendable {
     /// Engines like Apple Speech and Whisper expect 16 kHz mono Float PCM.
     static let targetSampleRate: Double = 16_000
 
+    /// dBFS window mapped onto the 0…1 waveform level. Below the floor → 0 (calm),
+    /// at/above the ceiling → 1 (full swell). Raise the floor to make quiet speech
+    /// register smaller; lower the ceiling to reach full scale more easily.
+    static let levelFloorDb: Double = -42
+    static let levelCeilingDb: Double = -10
+
     private let engine = AVAudioEngine()
 
     /// UID of the microphone to capture from. Empty/nil → system default input.
@@ -99,6 +105,20 @@ final class AudioCaptureService: @unchecked Sendable {
         samples.removeAll(keepingCapacity: false)
         lock.unlock()
 
+        // TEMP diagnostic: real loudness of the take, to tune the dBFS window.
+        if !copy.isEmpty {
+            var peak: Float = 0
+            var sq: Float = 0
+            for s in copy {
+                let a = abs(s)
+                if a > peak { peak = a }
+                sq += s * s
+            }
+            let rmsDb = 20 * log10(max(Double(sqrt(sq / Float(copy.count))), 1e-7))
+            let peakDb = 20 * log10(max(Double(peak), 1e-7))
+            log.info("level diag: rms \(String(format: "%.1f", rmsDb)) dBFS, peak \(String(format: "%.1f", peakDb)) dBFS")
+        }
+
         return AudioBuffer(samples: copy, sampleRate: Self.targetSampleRate)
     }
 
@@ -156,12 +176,11 @@ final class AudioCaptureService: @unchecked Sendable {
         var sumSquares: Float = 0
         for s in chunk { sumSquares += s * s }
         let rms = sqrt(sumSquares / Float(count))
-        // Map to loudness in dBFS, not raw RMS: a fixed gain saturates the moment
-        // there's any speech, so height/amplitude stopped tracking volume. Linear
-        // in dB is perceptual and keeps soft↔loud distinguishable across the
-        // useful range (~-50 dBFS = quiet → -12 dBFS = loud).
+        // Map loudness in dBFS, linear in dB (perceptual). Floor/ceiling chosen so
+        // quiet speech sits near the bottom and only loud speech approaches 1 —
+        // see Self.levelFloorDb / levelCeilingDb to tune sensitivity.
         let db = 20 * log10(max(Double(rms), 1e-7))
-        let level = Float(max(0, min(1, (db + 50) / 38)))
+        let level = Float(max(0, min(1, (db - Self.levelFloorDb) / (Self.levelCeilingDb - Self.levelFloorDb))))
         levelContinuation.yield(level)
     }
 }
