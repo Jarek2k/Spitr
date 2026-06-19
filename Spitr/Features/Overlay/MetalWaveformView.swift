@@ -2,9 +2,9 @@
 //  MetalWaveformView.swift
 //  Spitr
 //
-//  GPU-rendered "strands" waveform. Keeps a short ring buffer of recent audio
-//  levels (like the bar waveform) and feeds it to the Metal `strands` shader,
-//  which modulates the threads per position — so the motion tracks the voice.
+//  GPU-rendered "strands" waveform. Feeds the current, smoothed audio level to
+//  the Metal `strands` shader, which swells a single global amplitude — thin
+//  line at rest, threads fanning apart as the voice gets louder.
 //
 
 import SwiftUI
@@ -13,9 +13,9 @@ struct MetalWaveformView: View {
     /// Latest normalized RMS level (0…1) from the audio tap.
     var level: Float
 
-    /// History length — must match `kCount` in Waveform.metal.
-    static let count = 48
-    @State private var history = [Float](repeating: 0, count: MetalWaveformView.count)
+    /// Smoothed loudness: snaps up to the voice, eases back down, so the swell
+    /// tracks speech without jittering on every frame.
+    @State private var smoothed: Float = 0
     @State private var start = Date()
 
     var body: some View {
@@ -30,15 +30,14 @@ struct MetalWaveformView: View {
                         ShaderLibrary.strands(
                             .float2(proxy.size.width, proxy.size.height),
                             .float(t),
-                            .floatArray(history)
+                            .float(smoothed)
                         )
                     )
                 }
         }
         .onChange(of: level) { _, newValue in
-            // Scroll the buffer left, newest sample on the right.
-            history.removeFirst()
-            history.append(min(max(newValue, 0), 1))
+            let factor: Float = newValue > smoothed ? 0.6 : 0.12
+            smoothed += (newValue - smoothed) * factor
         }
     }
 }
