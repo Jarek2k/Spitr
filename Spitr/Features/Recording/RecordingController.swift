@@ -120,12 +120,15 @@ final class RecordingController: ObservableObject {
 
     private func finishRecording() {
         guard state == .recording else { return }
-        let buffer = audio.stop()
         inputLevel = 0
         state = .transcribing
-        log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
 
         Task {
+            // Keep capturing briefly so trailing audio (input latency) isn't
+            // clipped when the key is released right after the last word.
+            try? await Task.sleep(for: .milliseconds(180))
+            let buffer = audio.stop()
+            log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
             do {
                 if !enginePrepared {
                     try await engine.prepare()
