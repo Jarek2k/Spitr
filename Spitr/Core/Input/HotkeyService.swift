@@ -43,7 +43,9 @@ struct HotkeyConfig: Equatable {
 /// Watches the system-wide keyboard for the configured hold key and reports
 /// press/release. Callbacks fire on the main thread.
 final class HotkeyService {
-    var onPress: (() -> Void)?
+    /// Fires on key-down. `commandMode` is true when Shift was held at that
+    /// instant — the gesture that turns dictation into a voice command.
+    var onPress: ((_ commandMode: Bool) -> Void)?
     var onRelease: (() -> Void)?
 
     private(set) var config: HotkeyConfig
@@ -89,7 +91,7 @@ final class HotkeyService {
         let pressed = event.modifierFlags.contains(config.flag)
         if pressed, !isHeld {
             isHeld = true
-            onPress?()
+            onPress?(event.modifierFlags.contains(.shift))
         } else if !pressed, isHeld {
             isHeld = false
             onRelease?()

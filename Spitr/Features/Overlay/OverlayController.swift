@@ -16,17 +16,23 @@ import Combine
 final class OverlayController {
     private unowned let controller: RecordingController
     private var panel: NSPanel?
-    private var cancellable: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
 
     init(controller: RecordingController) {
         self.controller = controller
-        cancellable = controller.$state
-            .removeDuplicates()
-            .sink { [weak self] state in self?.update(for: state) }
+        // Visible while recording, or briefly while a command result is shown.
+        Publishers.CombineLatest(
+            controller.$state.removeDuplicates(),
+            controller.$commandFeedback.removeDuplicates()
+        )
+        .sink { [weak self] state, feedback in
+            self?.update(recording: state == .recording, hasFeedback: feedback != nil)
+        }
+        .store(in: &cancellables)
     }
 
-    private func update(for state: RecordingController.State) {
-        if state == .recording {
+    private func update(recording: Bool, hasFeedback: Bool) {
+        if recording || hasFeedback {
             show()
         } else {
             hide()

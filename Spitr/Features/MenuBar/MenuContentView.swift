@@ -17,11 +17,15 @@ struct MenuContentView: View {
 
             Divider()
 
-            Text("Halte \(controller.hotkeyConfig.displayName) und sprich.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Halte \(controller.hotkeyConfig.displayName) und sprich.")
+                Text("Mit ⇧ dazu: Befehlsmodus (z. B. »pause«, »weiter«).")
+                    .foregroundStyle(.tertiary)
+            }
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
 
             if !controller.allPermissionsGranted {
                 Divider()
@@ -29,6 +33,13 @@ struct MenuContentView: View {
             }
 
             Divider()
+
+            Button(controller.paused ? "Fortsetzen" : "Pausieren") {
+                controller.togglePause()
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
 
             Button("Einrichtung…") {
                 NotificationCenter.default.post(name: .showOnboarding, object: nil)

@@ -24,7 +24,23 @@ final class RecordingController: ObservableObject {
         case error(String)
     }
 
+    enum Mode { case dictation, command }
+
     @Published private(set) var state: State = .idle
+
+    /// Whether the in-flight recording is a voice command (Shift held) rather
+    /// than dictation. Drives the overlay's appearance.
+    @Published private(set) var mode: Mode = .dictation
+
+    /// Short confirmation of the last voice command, shown briefly in the
+    /// overlay then cleared.
+    @Published private(set) var commandFeedback: String?
+
+    /// Whether the last command was recognized (drives the feedback icon).
+    @Published private(set) var lastCommandRecognized = false
+
+    /// Mirrors `settings.isPaused` so the menu/status update reactively.
+    @Published private(set) var paused = false
 
     /// Latest normalized input level (0…1), driven by the audio tap and consumed
     /// by the recording overlay's waveform.
@@ -48,6 +64,7 @@ final class RecordingController: ObservableObject {
     private let history: HistoryStore
     private let dictionary: DictionaryStore
     private let replacement: TextReplacing = TextReplacementService()
+    private let interpreter = VoiceCommandInterpreter()
     private let hotkey: HotkeyService
     private let audio = AudioCaptureService()
     private let insertion = TextInsertionService()
@@ -71,7 +88,7 @@ final class RecordingController: ObservableObject {
 
         audio.preferredDeviceUID = settings.inputDeviceUID
 
-        hotkey.onPress = { [weak self] in self?.startRecording() }
+        hotkey.onPress = { [weak self] command in self?.startRecording(command: command) }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
 
         // Rebuild the engine when the override or WhisperKit model changes;
@@ -98,7 +115,16 @@ final class RecordingController: ObservableObject {
             .dropFirst()
             .sink { [weak self] uid in self?.audio.preferredDeviceUID = uid }
             .store(in: &cancellables)
+
+        // Mirror pause state (toggled from menu or by voice command).
+        settings.$isPaused
+            .sink { [weak self] in self?.paused = $0 }
+            .store(in: &cancellables)
     }
+
+    /// Toggles pause; while paused, plain dictation is ignored but command mode
+    /// still works so the user can resume by voice.
+    func togglePause() { settings.isPaused.toggle() }
 
     /// Rebuilds the transcription engine from current settings. Prepare() is
     /// deferred to the next recording, so switching engines/models is cheap.
@@ -149,8 +175,13 @@ final class RecordingController: ObservableObject {
 
     // MARK: - Recording lifecycle
 
-    private func startRecording() {
+    private func startRecording(command: Bool = false) {
         guard state == .idle else { return }
+        // While paused, ignore dictation — but command mode still works so the
+        // user can say "weiter" to resume.
+        guard command || !settings.isPaused else { return }
+        mode = command ? .command : .dictation
+        commandFeedback = nil
         do {
             try audio.start()
             media.pauseIfPlaying()
@@ -181,6 +212,11 @@ final class RecordingController: ObservableObject {
                     enginePrepared = true
                 }
                 let text = try await engine.transcribe(buffer, locale: settings.locale, vocabulary: settings.vocabulary)
+                if mode == .command {
+                    handleCommand(text)
+                    state = .idle
+                    return
+                }
                 let corrected = replacement.apply(dictionary.activeRules, to: text)
                 let trimmed = corrected.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
@@ -199,6 +235,32 @@ final class RecordingController: ObservableObject {
         }
     }
 
+    /// Matches a spoken transcript to a voice command and applies it, surfacing
+    /// a short confirmation in the overlay either way.
+    private func handleCommand(_ transcript: String) {
+        if let command = interpreter.match(transcript,
+                                           settings: settings,
+                                           history: history,
+                                           dictionary: dictionary) {
+            command.perform()
+            log.info("voice command: \(command.id, privacy: .public)")
+            lastCommandRecognized = true
+            showCommandFeedback(command.title)
+        } else {
+            log.info("voice command not recognized")
+            lastCommandRecognized = false
+            showCommandFeedback("Befehl nicht erkannt")
+        }
+    }
+
+    private func showCommandFeedback(_ text: String) {
+        commandFeedback = text
+        Task {
+            try? await Task.sleep(for: .milliseconds(1600))
+            if commandFeedback == text { commandFeedback = nil }
+        }
+    }
+
     private func scheduleIdleReset() {
         Task {
             try? await Task.sleep(for: .seconds(2))
@@ -209,18 +271,20 @@ final class RecordingController: ObservableObject {
     // MARK: - UI helpers
 
     var menuBarSymbol: String {
+        if paused, state == .idle { return "pause.circle" }
         switch state {
         case .idle:         return "mic"
-        case .recording:    return "mic.fill"
+        case .recording:    return mode == .command ? "command.circle.fill" : "mic.fill"
         case .transcribing: return "waveform"
         case .error:        return "exclamationmark.triangle"
         }
     }
 
     var statusText: String {
+        if paused, state == .idle { return "Pausiert" }
         switch state {
         case .idle:         return "Bereit"
-        case .recording:    return "Aufnahme läuft…"
+        case .recording:    return mode == .command ? "Befehl…" : "Aufnahme läuft…"
         case .transcribing: return "Wandle um…"
         case .error(let m): return "Fehler: \(m)"
         }

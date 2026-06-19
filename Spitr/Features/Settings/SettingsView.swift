@@ -25,6 +25,9 @@ struct SettingsView: View {
             DictionarySettingsView(dictionary: dictionary)
                 .tabItem { Label("Wörterbuch", systemImage: "character.book.closed") }
 
+            CommandsSettingsView(settings: settings, history: history, dictionary: dictionary)
+                .tabItem { Label("Befehle", systemImage: "command") }
+
             HistorySettingsView(history: history)
                 .tabItem { Label("Verlauf", systemImage: "clock.arrow.circlepath") }
         }
@@ -135,6 +138,41 @@ private struct GeneralSettingsView: View {
             inputDevices = AudioDeviceService.inputDevices()
             launchAtLogin = LaunchAtLogin.isEnabled
         }
+    }
+}
+
+private struct CommandsSettingsView: View {
+    @ObservedObject var settings: SettingsStore
+    @ObservedObject var history: HistoryStore
+    @ObservedObject var dictionary: DictionaryStore
+
+    private var commands: [VoiceCommand] {
+        VoiceCommandInterpreter().commands(settings: settings, history: history, dictionary: dictionary)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Halte die Aufnahme-Taste **mit ⇧** und sprich einen Befehl, statt zu diktieren. Der Text wird dann nicht eingefügt.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(12)
+
+            Divider()
+
+            List {
+                ForEach(commands) { command in
+                    HStack {
+                        Text(command.title)
+                        Spacer()
+                        Text("»\(command.example)«")
+                            .foregroundStyle(.secondary)
+                            .font(.body.monospaced())
+                    }
+                }
+            }
+            .listStyle(.inset)
+        }
+        .frame(height: 360)
     }
 }
 

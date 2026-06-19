@@ -64,6 +64,10 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(hasCompletedOnboarding, forKey: Keys.onboarding) }
     }
 
+    /// Transient (not persisted): when paused, dictation is ignored until
+    /// resumed. Command mode still works, so it can be toggled by voice.
+    @Published var isPaused: Bool = false
+
     var locale: Locale { Locale(identifier: localeIdentifier) }
 
     private let defaults: UserDefaults

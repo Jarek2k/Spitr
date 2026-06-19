@@ -40,6 +40,8 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Custom Vocabulary | 🧪 | Eigennamen/Fachbegriffe vorgeben, damit die Erkennung sie nicht verhört | Vokabular-Tab |
 | Personal Dictionary | 🧪 | Wort-Ersetzungen nach der Erkennung (Erkannt → Ersetzung); abschaltbar, default aus | Wörterbuch-Tab |
 | Diktat-History | 🧪 | Lokale, löschbare Liste der letzten Transkripte; abschaltbar | Verlauf-Tab |
+| Sprachbefehl-Modus | 🧪 | Aufnahme-Taste **+ ⇧** → Gesprochenes wird als Befehl ausgeführt statt eingefügt | Befehle-Tab (Liste) |
+| Pausieren | 🧪 | Diktat pausieren/fortsetzen (Menü oder Sprachbefehl »pause«/»weiter«) | Menü |
 
 ## Datenschutz & Onboarding
 
@@ -53,6 +55,10 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 
 | Feature | Status | Notiz |
 |---|---|---|
+| Aufnahme abbrechen (Esc) | 🔜 | Esc während Halten → nichts transkribieren/einfügen; gegen Versprecher |
+| Engine-Prewarm beim Start | 🔜 | erstes Diktat ohne Lade-Latenz |
+| Letztes Diktat rückgängig / erneut einfügen | 🔜 | Recovery bei falschem Fokus; baut auf History |
+| Smart-Spacing beim Einfügen | 🔜 | autom. Leerzeichen/Doppel-Space-Vermeidung |
 | Toggle-/Lock-Aufnahmemodus | 🔜 | Tap-Start/Tap-Stopp; berührt „Mikro nur bei Taste"-Regel → Entscheidung offen |
 | Statistik (Wörter / Zeitersparnis) | 🔜 | rein lokal |
 | Insertion-Fallback „tippen" | 🔜 | für Secure-Felder/Apps, die Cmd+V blocken |

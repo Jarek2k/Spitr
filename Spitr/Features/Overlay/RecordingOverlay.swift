@@ -18,21 +18,54 @@ struct RecordingOverlay: View {
         self.settings = controller.settings
     }
 
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "mic.fill")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.red)
+    private var isCommand: Bool { controller.mode == .command }
 
-            waveform
-                .frame(maxWidth: .infinity)
-                .id(controller.sessionID)
+    var body: some View {
+        Group {
+            if let feedback = controller.commandFeedback, controller.state != .recording {
+                commandResult(feedback)
+            } else {
+                recordingContent
+            }
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)
         .frame(width: 240, height: 64)
         .background(.black.opacity(0.78), in: Capsule())
         .overlay(Capsule().strokeBorder(.white.opacity(0.12)))
+    }
+
+    private var recordingContent: some View {
+        HStack(spacing: 12) {
+            Image(systemName: isCommand ? "command.circle.fill" : "mic.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(isCommand ? .yellow : .red)
+
+            if isCommand {
+                Text("Befehl…")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                waveform
+                    .frame(maxWidth: .infinity)
+                    .id(controller.sessionID)
+            }
+        }
+    }
+
+    private func commandResult(_ text: String) -> some View {
+        let recognized = controller.lastCommandRecognized
+        return HStack(spacing: 10) {
+            Image(systemName: recognized ? "checkmark.circle.fill" : "questionmark.circle.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(recognized ? .green : .orange)
+            Text(text)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     @ViewBuilder
