@@ -31,8 +31,8 @@ final class AudioCaptureService: @unchecked Sendable {
     /// dBFS window mapped onto the 0…1 waveform level. Below the floor → 0 (calm),
     /// at/above the ceiling → 1 (full swell). Raise the floor to make quiet speech
     /// register smaller; lower the ceiling to reach full scale more easily.
-    static let levelFloorDb: Double = -20
-    static let levelCeilingDb: Double = -7
+    static let levelFloorDb: Double = -24
+    static let levelCeilingDb: Double = -8
 
     private let engine = AVAudioEngine()
 
