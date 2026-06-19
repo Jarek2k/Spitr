@@ -31,8 +31,8 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 
 | Feature | Status | Nutzer-Sicht | Einstellung |
 |---|---|---|---|
-| Engine-Auswahl + Override | 🧪 | Engine manuell wählbar | Engine (Allgemein) |
-| WhisperKit-Modellwahl | 🧪 | base / small / large-v3 | Modell (Allgemein) |
+| Engine-Auswahl + Override | 🧪 | Engine manuell wählbar; aktive Engine/Modell im Menü sichtbar | Engine (Allgemein) |
+| WhisperKit-Modellwahl | 🧪 | base / small / large-v3; Modell wird beim Umschalten vorgewärmt | Modell (Allgemein) |
 | Sprachauswahl | 🧪 | Erkennungssprache (DE/EN/…) | Sprache (Allgemein) |
 | Konfigurierbare Aufnahme-Taste | 🧪 | Hold-to-Talk-Taste umschaltbar (⌥/⌃/fn), persistiert | Aufnahme-Taste (Allgemein) |
 | Mikrofon-Auswahl | 🧪 | Eingabegerät wählbar; Systemstandard + Fallback | Mikrofon (Allgemein) |
@@ -56,7 +56,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Feature | Status | Notiz |
 |---|---|---|
 | Aufnahme abbrechen (Esc) | 🔜 | Esc während Halten → nichts transkribieren/einfügen; gegen Versprecher |
-| Engine-Prewarm beim Start | 🔜 | erstes Diktat ohne Lade-Latenz |
+| Engine-Prewarm beim Start | 🔜 | erstes Diktat ohne Lade-Latenz (Wechsel wärmt bereits vor) |
 | Letztes Diktat rückgängig / erneut einfügen | 🔜 | Recovery bei falschem Fokus; baut auf History |
 | Smart-Spacing beim Einfügen | 🔜 | autom. Leerzeichen/Doppel-Space-Vermeidung |
 | Toggle-/Lock-Aufnahmemodus | 🔜 | Tap-Start/Tap-Stopp; berührt „Mikro nur bei Taste"-Regel → Entscheidung offen |

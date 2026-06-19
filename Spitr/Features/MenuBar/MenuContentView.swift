@@ -88,8 +88,13 @@ struct MenuContentView: View {
         HStack(spacing: 8) {
             Image(systemName: controller.menuBarSymbol)
                 .foregroundStyle(.tint)
-            Text(controller.statusText)
-                .font(.headline)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(controller.statusText)
+                    .font(.headline)
+                Text(controller.activeEngineLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Spacer()
         }
         .padding(.horizontal, 12)

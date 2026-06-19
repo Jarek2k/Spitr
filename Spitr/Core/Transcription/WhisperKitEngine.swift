@@ -11,6 +11,7 @@
 
 import Foundation
 import WhisperKit
+import CoreML
 import os
 
 private let log = Logger(subsystem: "com.jarek.Spitr", category: "whisperkit")
@@ -46,11 +47,20 @@ final class WhisperKitEngine: TranscriptionEngine {
 
     func prepare() async throws {
         guard pipe == nil else { return }
+        let t0 = Date()
         do {
+            // Pin inference to the Neural Engine (CPU as fallback for unsupported
+            // ops) so we never silently degrade to a slow CPU/GPU path.
+            let compute = ModelComputeOptions(
+                melCompute: .cpuAndNeuralEngine,
+                audioEncoderCompute: .cpuAndNeuralEngine,
+                textDecoderCompute: .cpuAndNeuralEngine
+            )
             // Downloads the model on first run, then loads + prewarms it.
-            let config = WhisperKitConfig(model: model)
+            let config = WhisperKitConfig(model: model, computeOptions: compute)
             pipe = try await WhisperKit(config)
-            log.info("WhisperKit ready (model: \(self.model, privacy: .public))")
+            let ms = Int(Date().timeIntervalSince(t0) * 1000)
+            log.info("WhisperKit ready (model: \(self.model, privacy: .public)) in \(ms) ms")
         } catch {
             throw TranscriptionError.underlying(error)
         }
@@ -70,8 +80,12 @@ final class WhisperKitEngine: TranscriptionEngine {
         )
 
         do {
+            let t0 = Date()
             let results = try await pipe.transcribe(audioArray: audio.samples,
                                                      decodeOptions: options)
+            let ms = Int(Date().timeIntervalSince(t0) * 1000)
+            let audioSec = Double(audio.samples.count) / audio.sampleRate
+            log.info("transcribe \(String(format: "%.1f", audioSec), privacy: .public)s audio in \(ms) ms (model: \(self.model, privacy: .public))")
             let text = results.map(\.text).joined(separator: " ")
             return text.trimmingCharacters(in: .whitespacesAndNewlines)
         } catch {

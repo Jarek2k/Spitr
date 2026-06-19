@@ -72,6 +72,9 @@ final class RecordingController: ObservableObject {
     private let selector = EngineSelector()
     private var engine: TranscriptionEngine
     private var enginePrepared = false
+    /// In-flight prepare(), so a proactive prewarm and a recording that needs the
+    /// engine share one load instead of racing into two concurrent inits.
+    private var prepareTask: Task<Void, Error>?
 
     private var overlay: OverlayController?
     private var levelTask: Task<Void, Never>?
@@ -126,11 +129,37 @@ final class RecordingController: ObservableObject {
     /// still works so the user can resume by voice.
     func togglePause() { settings.isPaused.toggle() }
 
-    /// Rebuilds the transcription engine from current settings. Prepare() is
-    /// deferred to the next recording, so switching engines/models is cheap.
+    /// Rebuilds the transcription engine from current settings and proactively
+    /// prewarms it, so the model load happens while the user is still in Settings
+    /// rather than stalling the first recording after a switch.
     private func rebuildEngine() {
+        // Abandon any in-flight load for the engine we're replacing, so a heavy
+        // model (e.g. large-v3) doesn't keep churning after the user switches away.
+        prepareTask?.cancel()
         engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
         enginePrepared = false
+        prepareTask = nil
+        Task { try? await ensurePrepared() }
+    }
+
+    /// Loads the engine model once, deduplicating concurrent callers (prewarm vs.
+    /// an actual recording) onto a single in-flight prepare().
+    private func ensurePrepared() async throws {
+        if enginePrepared { return }
+        if let task = prepareTask {
+            try await task.value
+            return
+        }
+        let engine = self.engine
+        let task = Task { try await engine.prepare() }
+        prepareTask = task
+        do {
+            try await task.value
+            enginePrepared = true
+        } catch {
+            prepareTask = nil
+            throw error
+        }
     }
 
     /// Called once at launch: begin listening for the hotkey and read permissions.
@@ -207,10 +236,7 @@ final class RecordingController: ObservableObject {
             media.resumeIfPaused()
             log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
             do {
-                if !enginePrepared {
-                    try await engine.prepare()
-                    enginePrepared = true
-                }
+                try await ensurePrepared()
                 let text = try await engine.transcribe(buffer, locale: settings.locale, vocabulary: settings.vocabulary)
                 if mode == .command {
                     handleCommand(text)
@@ -287,6 +313,16 @@ final class RecordingController: ObservableObject {
         case .recording:    return mode == .command ? "Befehl…" : "Aufnahme läuft…"
         case .transcribing: return "Wandle um…"
         case .error(let m): return "Fehler: \(m)"
+        }
+    }
+
+    /// Human-readable label for the engine/model in use, so the menu can show
+    /// exactly what's active (e.g. "WhisperKit · large-v3") — no guessing after
+    /// a switch.
+    var activeEngineLabel: String {
+        switch settings.engineKind {
+        case .apple:      return EngineKind.apple.displayName
+        case .whisperKit: return "\(EngineKind.whisperKit.displayName) · \(settings.whisperModel)"
         }
     }
 
