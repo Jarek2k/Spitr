@@ -28,11 +28,13 @@ final class AudioCaptureService: @unchecked Sendable {
     /// Engines like Apple Speech and Whisper expect 16 kHz mono Float PCM.
     static let targetSampleRate: Double = 16_000
 
-    /// dBFS window mapped onto the 0…1 waveform level. Below the floor → 0 (calm),
-    /// at/above the ceiling → 1 (full swell). Raise the floor to make quiet speech
-    /// register smaller; lower the ceiling to reach full scale more easily.
-    static let levelFloorDb: Double = -24
-    static let levelCeilingDb: Double = -8
+    /// Starting guesses for the adaptive level range (dBFS). These self-calibrate
+    /// at runtime to whatever mic is in use, so no per-mic tuning is needed.
+    static let initialFloorDb: Double = -50
+    static let initialPeakDb: Double = -20
+    /// Never normalize over less than this span, so ambient noise alone doesn't
+    /// drive the meter to full scale when nothing loud has happened.
+    static let minRangeDb: Double = 15
 
     private let engine = AVAudioEngine()
 
@@ -46,6 +48,11 @@ final class AudioCaptureService: @unchecked Sendable {
     /// Envelope follower for the level meter: fast attack, slow release, so the
     /// gaps between syllables don't collapse the waveform to a dot.
     private var levelEnvelope: Float = 0
+
+    /// Adaptive loudness range (dBFS), tracked across recordings so the meter
+    /// fits any microphone: a slow noise floor and a recent-peak ceiling.
+    private var noiseFloorDb: Double = AudioCaptureService.initialFloorDb
+    private var peakDb: Double = AudioCaptureService.initialPeakDb
 
     private var converter: AVAudioConverter?
     private var targetFormat: AVAudioFormat?
@@ -167,11 +174,16 @@ final class AudioCaptureService: @unchecked Sendable {
         var sumSquares: Float = 0
         for s in chunk { sumSquares += s * s }
         let rms = sqrt(sumSquares / Float(count))
-        // Map loudness in dBFS, linear in dB (perceptual). Floor/ceiling chosen so
-        // quiet speech sits near the bottom and only loud speech approaches 1 —
-        // see Self.levelFloorDb / levelCeilingDb to tune sensitivity.
         let db = 20 * log10(max(Double(rms), 1e-7))
-        let level = Float(max(0, min(1, (db - Self.levelFloorDb) / (Self.levelCeilingDb - Self.levelFloorDb))))
+
+        // Adaptive gain: the noise floor falls quickly to new quiet and creeps
+        // back up slowly; the peak jumps to new loud and decays slowly. The
+        // current level is then placed within that self-calibrating range, so
+        // loud → near 1 and quiet → near 0 on any microphone.
+        noiseFloorDb += (db - noiseFloorDb) * (db < noiseFloorDb ? 0.3 : 0.0008)
+        peakDb += (db - peakDb) * (db > peakDb ? 0.5 : 0.004)
+        let span = max(peakDb - noiseFloorDb, Self.minRangeDb)
+        let level = Float(max(0, min(1, (db - noiseFloorDb) / span)))
 
         // Envelope follower: jump up to louder input immediately, ease back down
         // fast enough that word/syllable structure stays visible but a single
