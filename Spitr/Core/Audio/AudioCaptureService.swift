@@ -174,8 +174,9 @@ final class AudioCaptureService: @unchecked Sendable {
         let level = Float(max(0, min(1, (db - Self.levelFloorDb) / (Self.levelCeilingDb - Self.levelFloorDb))))
 
         // Envelope follower: jump up to louder input immediately, ease back down
-        // slowly so brief inter-syllable dips don't collapse the meter.
-        let coeff: Float = level > levelEnvelope ? 0.6 : 0.12
+        // fast enough that word/syllable structure stays visible but a single
+        // block-sized dip doesn't collapse the meter to a dot.
+        let coeff: Float = level > levelEnvelope ? 0.7 : 0.35
         levelEnvelope += (level - levelEnvelope) * coeff
         levelContinuation.yield(levelEnvelope)
     }
