@@ -45,8 +45,10 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     // just whether there is any. The level arrives sqrt-compressed (~0.45–0.9 for
     // speech); gate ambient at the bottom, use the real speech span, expand a
     // touch. No saturating boost → soft vs. loud stay distinguishable.
-    float v = clamp((level - 0.16) / 0.74, 0.0, 1.0);
-    v = pow(v, 1.4);   // expand: soft stays small, loud grows → wider range
+    // Steep response so soft speech stays clearly smaller than loud — the
+    // mid-range should visibly track the voice, not sit pinned high.
+    float v = clamp((level - 0.20) / 0.66, 0.0, 1.0);
+    v = pow(v, 1.8);
 
     // Aspect-correct centred coords (Y flipped to GL convention).
     float xn = clamp(position.x / size.x, 0.0, 1.0);
@@ -60,8 +62,8 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     // Separation dominates → louder voice pushes the strands apart (one up, one
     // centred, one down). The weave is a smaller undulation on each band, kept
     // below the gap so adjacent strands never cross / overlap.
-    float separation = v * 0.26;
-    float weaveAmp   = v * 0.10;
+    float separation = v * 0.22;
+    float weaveAmp   = v * 0.08;
 
     // Spindle: concentrated in the centre, tapering to a point at the tips.
     float env = pow(sin(xn * PI), 1.8);
@@ -101,7 +103,7 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     col = max(mix(float3(gray), col, uSaturation), 0.0);
 
     // Fade at top/bottom so the bloom never hits the panel edge.
-    float vEdge = smoothstep(0.5, 0.46, abs(uy));
+    float vEdge = smoothstep(0.5, 0.34, abs(uy));
 
     float lum = max(max(col.r, col.g), col.b);
     float cover = smoothstep(0.03, 0.18, lum);     // kill faint haze → true transparency
