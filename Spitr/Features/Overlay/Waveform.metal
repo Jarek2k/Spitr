@@ -2,12 +2,13 @@
 //  Waveform.metal
 //  Spitr
 //
-//  "Strands" waveform — a Metal port of the reactbits.dev WebGL effect
-//  (https://reactbits.dev/animations/strands). Glowing, multi-coloured threads
-//  with an additive bloom. Amplitude, intensity and speed are driven by the
-//  live audio level so the motion follows the voice. Used as a SwiftUI
-//  colorEffect; output is premultiplied so the glow composites over the dark
-//  overlay.
+//  "Strands" waveform — Metal port of the reactbits.dev effect, adapted so the
+//  motion tracks the voice the way the bar waveform does: it reads the same
+//  recent-level history buffer and modulates each thread's amplitude/brightness
+//  *per x position*, so loud moments bulge and travel left as new samples come
+//  in. Quiet input → calm, dim, near-flat threads (with a noise gate so idle
+//  mic hiss doesn't make it twitch). Used as a SwiftUI colorEffect; output is
+//  premultiplied and fades at all four edges so the floating panel shows no box.
 //
 
 #include <metal_stdlib>
@@ -15,6 +16,7 @@
 using namespace metal;
 
 constant float PI = 3.14159265;
+constant int kCount = 48;   // must match MetalWaveformView.count
 
 // Default reactbits palette: red, violet, cyan, amber.
 constant float3 kPalette[4] = {
@@ -34,69 +36,64 @@ static float3 samplePalette(float t) {
 }
 
 [[ stitchable ]]
-half4 strands(float2 position, half4 color, float2 size, float time, float level) {
-    // Fixed look (reactbits defaults).
+half4 strands(float2 position, half4 color, float2 size, float time,
+              device const float *levels) {
     const int   strandCount = 3;
-    const float uWaviness   = 1.0;
     const float uThickness  = 0.7;
-    const float uGlow       = 2.6;
-    const float uTaper      = 3.0;
-    const float uSpread     = 1.0;
-    const float uHueShift   = 0.0;
-    const float uSaturation = 1.5;
-    const float uScale      = 1.5;
-    const float uOpacity    = 1.0;
+    const float uGlow       = 2.4;
+    const float uSaturation = 1.4;
 
-    // Audio-reactive: at rest the threads are calm and dim; the voice drives
-    // amplitude, brightness and speed. `level` is boosted because RMS is small.
-    float lvl = clamp(level * 1.6, 0.0, 1.0);
-    float uIntensity = clamp(0.05 + lvl * 1.1, 0.0, 1.0);
-    float uAmplitude = 0.08 + lvl * 2.6;
-    float uSpeed     = 0.5 + lvl * 1.6;
+    float xn = clamp(position.x / size.x, 0.0, 1.0);   // 0 left … 1 right (newest)
 
-    // Aspect-correct, centred UV (flip Y: SwiftUI is top-down, GL bottom-up).
-    float2 frag = float2(position.x, size.y - position.y);
-    float2 uv = (frag - 0.5 * size) / size.y;
-    uv /= max(uScale, 0.0001);
+    // Local voice loudness from the history buffer, interpolated and gated so
+    // idle noise reads as zero.
+    float fidx = xn * float(kCount - 1);
+    int i0 = int(floor(fidx));
+    int i1 = min(i0 + 1, kCount - 1);
+    float fr = fidx - float(i0);
+    float lvl = mix(levels[i0], levels[i1], fr);
+    lvl = clamp((lvl - 0.04) / 0.96, 0.0, 1.0);        // noise gate
+    lvl = clamp(lvl * 1.7, 0.0, 1.0);                  // RMS is small → boost
 
-    float e = 0.06 + uIntensity * 0.94;
-    float env = pow(max(cos(uv.x * PI * 1.3), 0.0), uTaper);
+    // Centred vertical coord (-0.5 … 0.5), Y flipped to GL convention.
+    float uy = ((size.y - position.y) - 0.5 * size.y) / size.y;
 
+    float env = pow(sin(xn * PI), 1.1);                // horizontal arch → 0 at L/R
+
+    float e = 0.08 + lvl * 0.92;
     float3 col = float3(0.0);
+
     for (int i = 0; i < strandCount; i++) {
         float fi = float(i);
-        float ph = fi * 1.7 * uSpread;
-        float freq = (2.0 + fi * 0.35) * uWaviness;
-        float spd = 1.4 + fi * 1.2;
-        float tt = time * uSpeed;
+        float ph = fi * 1.7;
+        float freq = 2.2 + fi * 0.6;
+        float spd = 1.0 + fi * 0.5;
 
-        float w = sin(uv.x * freq + tt * spd + ph) * 0.60
-                + sin(uv.x * freq * 1.1 - tt * spd * 0.7 + ph * 1.7) * 0.40;
+        float w = sin(xn * freq * 6.2831 + time * spd + ph) * 0.6
+                + sin(xn * freq * 6.9   - time * spd * 0.7 + ph * 1.7) * 0.4;
 
-        float amp = (0.1 + 0.02 * e) * env * uAmplitude;
+        float amp = (0.03 + lvl * 0.28) * env;          // local amplitude
         float y = w * amp;
 
-        float d = abs(uv.y - y);
-        float thick = (0.001 + 0.05 * e) * (0.35 + env) * uThickness;
-        float g = thick / (d + thick * 0.45);
+        float d = abs(uy - y);
+        float thick = (0.004 + 0.02 * e) * uThickness;
+        float g = thick / (d + thick * 0.5);
         g = g * g;
 
-        float h = fi / float(strandCount) + uv.x * 0.30 + time * 0.04 + uHueShift;
-        col += samplePalette(h) * g * env;
+        float h = fi / float(strandCount) + xn * 0.30 + time * 0.04;
+        col += samplePalette(h) * g * env * (0.22 + 0.9 * lvl);
     }
 
-    col *= 0.45 + 0.7 * e;
-    col = 1.0 - exp(-col * uGlow);              // tonemap → soft glow
-
+    col = 1.0 - exp(-col * uGlow);                      // tonemap → soft glow
     float gray = dot(col, float3(0.2126, 0.7152, 0.0722));
     col = max(mix(float3(gray), col, uSaturation), 0.0);
 
-    float lum = max(max(col.r, col.g), col.b);
-    // Cut the faint glow tail so the panel stays truly transparent (no visible
-    // rectangle edge); the floating overlay has no dark background to hide it.
-    float cover = smoothstep(0.04, 0.20, lum);
-    float alpha = clamp(lum, 0.0, 1.0) * cover * uOpacity;
+    // Fade to fully transparent at top/bottom so the glow never hits the edge.
+    float vEdge = smoothstep(0.5, 0.30, abs(uy));
 
-    // Premultiplied output (matches reactbits ONE / ONE_MINUS_SRC_ALPHA blend).
-    return half4(half3(col * cover * uOpacity), half(alpha));
+    float lum = max(max(col.r, col.g), col.b);
+    float cover = smoothstep(0.05, 0.22, lum);          // kill faint haze tail
+    float a = clamp(lum, 0.0, 1.0) * cover * vEdge;
+
+    return half4(half3(col * cover * vEdge), half(a));
 }
