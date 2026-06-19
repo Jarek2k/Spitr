@@ -57,8 +57,11 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
     // with loudness, so at rest the three threads sit on the centre line (one
     // strand) and only fan apart as the voice gets louder.
     float e = 0.12 + v * 0.88;
-    float separation = v * 0.14;   // gentle static ordering of the bands
-    float weaveAmp   = v * 0.30;   // the travelling weave — dominant when loud
+    // Separation dominates → louder voice pushes the strands apart (one up, one
+    // centred, one down). The weave is a smaller undulation on each band, kept
+    // below the gap so adjacent strands never cross / overlap.
+    float separation = v * 0.26;
+    float weaveAmp   = v * 0.10;
 
     // Spindle: concentrated in the centre, tapering to a point at the tips.
     float env = pow(sin(xn * PI), 1.8);
@@ -72,7 +75,7 @@ half4 strands(float2 position, half4 color, float2 size, float time, float level
         // Mid frequency + two counter-travelling sines per strand → the curve
         // weaves up and down across the width (down/over/up/down), and each
         // strand moves at its own pace.
-        float freq = 1.6 + fi * 0.4;
+        float freq = 1.3 + fi * 0.3;
         float spd = 1.4 + fi * 1.2;
         float tt = time;
 
