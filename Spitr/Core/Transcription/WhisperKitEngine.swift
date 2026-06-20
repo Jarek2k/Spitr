@@ -28,8 +28,14 @@ final class WhisperKitEngine: TranscriptionEngine {
     static let selectableModels: [(id: String, name: String)] = [
         ("base", "Base — schnell, klein"),
         ("small", "Small — bessere Genauigkeit"),
-        ("large-v3-turbo", "Large v3 Turbo — beste Genauigkeit, schnell (~954 MB)"),
+        ("large-v3", "Large v3 — beste Genauigkeit, groß"),
     ]
+
+    /// True if `model` is one we actually offer. Used to sanitize a stale
+    /// persisted value (e.g. an old model id that no longer resolves).
+    static func isSelectable(_ model: String) -> Bool {
+        selectableModels.contains { $0.id == model }
+    }
 
     private let model: String
 

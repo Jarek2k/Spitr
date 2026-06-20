@@ -114,7 +114,10 @@ final class SettingsStore: ObservableObject {
         self.localeIdentifier = defaults.string(forKey: Keys.locale) ?? "de-DE"
         let storedHotkey = defaults.object(forKey: Keys.hotkey) as? Int
         self.hotkeyKeyCode = storedHotkey.map(UInt16.init) ?? HotkeyConfig.rightOption.keyCode
-        self.whisperModel = defaults.string(forKey: Keys.whisperModel) ?? WhisperKitEngine.defaultModel
+        // Fall back to the default if the stored model id is no longer offered
+        // (e.g. a removed/renamed model that WhisperKit can't resolve anymore).
+        let storedModel = defaults.string(forKey: Keys.whisperModel) ?? WhisperKitEngine.defaultModel
+        self.whisperModel = WhisperKitEngine.isSelectable(storedModel) ? storedModel : WhisperKitEngine.defaultModel
         self.inputDeviceUID = defaults.string(forKey: Keys.inputDevice) ?? ""
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
