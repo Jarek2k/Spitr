@@ -15,7 +15,7 @@ struct MenuContentView: View {
         VStack(alignment: .leading, spacing: 0) {
             statusRow
 
-            Divider()
+            Divider().padding(.horizontal, 10)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Halte \(controller.hotkeyConfig.displayName) und sprich.")
@@ -28,58 +28,54 @@ struct MenuContentView: View {
             .padding(.vertical, 6)
 
             if !controller.allPermissionsGranted {
-                Divider()
+                Divider().padding(.horizontal, 10)
                 permissionSection
             }
 
-            Divider()
+            Divider().padding(.horizontal, 10)
 
-            Button(controller.paused ? "Fortsetzen" : "Pausieren") {
-                controller.togglePause()
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-
-            Button {
-                controller.reinsertLast()
-            } label: {
-                HStack {
-                    Text("Letztes Diktat erneut einfügen")
-                    Spacer()
-                    Text(controller.reinsertShortcutLabel)
-                        .foregroundStyle(.tertiary)
+            VStack(alignment: .leading, spacing: 1) {
+                MenuButton { controller.togglePause() } label: { hl in
+                    Text(controller.paused ? "Fortsetzen" : "Pausieren")
+                        .foregroundStyle(hl ? Color.white : Color.primary)
                 }
-            }
-            .buttonStyle(.plain)
-            .disabled(controller.lastInsertedText == nil)
-            .help("Fügt das zuletzt erkannte Diktat erneut ins fokussierte Feld ein — z. B. wenn der Fokus vorher falsch war. Geht überall per \(controller.reinsertShortcutLabel).")
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
 
-            Button("Einrichtung…") {
-                NotificationCenter.default.post(name: .showOnboarding, object: nil)
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+                MenuButton { controller.reinsertLast() } label: { hl in
+                    HStack {
+                        Text("Letztes Diktat erneut einfügen")
+                        Spacer()
+                        Text(controller.reinsertShortcutLabel)
+                            .foregroundStyle(hl ? Color.white.opacity(0.7) : Color.secondary)
+                    }
+                    .foregroundStyle(hl ? Color.white : Color.primary)
+                }
+                .disabled(controller.lastInsertedText == nil)
+                .help("Fügt das zuletzt erkannte Diktat erneut ins fokussierte Feld ein — z. B. wenn der Fokus vorher falsch war. Geht überall per \(controller.reinsertShortcutLabel).")
 
-            SettingsLink {
-                Text("Einstellungen…")
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut(",")
-            // SettingsLink creates the window, but a menu-bar-only app runs as an
-            // accessory, so it opens hidden. Activate and surface it explicitly.
-            .simultaneousGesture(TapGesture().onEnded { surfaceSettingsWindow() })
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+                MenuButton {
+                    NotificationCenter.default.post(name: .showOnboarding, object: nil)
+                } label: { hl in
+                    Text("Einrichtung…")
+                        .foregroundStyle(hl ? Color.white : Color.primary)
+                }
 
-            Button("Beenden") { NSApp.terminate(nil) }
-                .keyboardShortcut("q")
+                // SettingsLink creates the window, but a menu-bar-only app runs as
+                // an accessory, so it opens hidden. Activate and surface it after.
+                SettingsLink {
+                    Text("Einstellungen…")
+                }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .keyboardShortcut(",")
+                .modifier(MenuRowStyle())
+                .simultaneousGesture(TapGesture().onEnded { surfaceSettingsWindow() })
+
+                MenuButton { NSApp.terminate(nil) } label: { hl in
+                    Text("Spitr beenden")
+                        .foregroundStyle(hl ? Color.white : Color.primary)
+                }
+                .keyboardShortcut("q")
+            }
+            .padding(.horizontal, 5)
         }
         .padding(.vertical, 6)
         .frame(width: 260)
@@ -170,5 +166,58 @@ struct MenuContentView: View {
                     .controlSize(.small)
             }
         }
+    }
+}
+
+/// A full-width menu row that highlights on hover like a native AppKit menu
+/// item — accent fill with white text. The label closure receives the current
+/// highlight state so nested text (e.g. a trailing shortcut) can recolor too.
+/// Disabled rows dim and never highlight.
+private struct MenuButton<Label: View>: View {
+    let action: () -> Void
+    @ViewBuilder var label: (Bool) -> Label
+
+    @State private var hovering = false
+    @Environment(\.isEnabled) private var isEnabled
+    private var highlighted: Bool { hovering && isEnabled }
+
+    var body: some View {
+        Button(action: action) {
+            label(highlighted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 5)
+                .fill(highlighted ? Color.accentColor : .clear)
+        )
+        .opacity(isEnabled ? 1 : 0.35)
+        .onHover { hovering = $0 }
+    }
+}
+
+/// Same hover/highlight chrome as `MenuButton`, but as a modifier so it can wrap
+/// controls that aren't plain Buttons (e.g. `SettingsLink`).
+private struct MenuRowStyle: ViewModifier {
+    @State private var hovering = false
+    @Environment(\.isEnabled) private var isEnabled
+    private var highlighted: Bool { hovering && isEnabled }
+
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+            .foregroundStyle(highlighted ? Color.white : Color.primary)
+            .background(
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(highlighted ? Color.accentColor : .clear)
+            )
+            .opacity(isEnabled ? 1 : 0.35)
+            .onHover { hovering = $0 }
     }
 }

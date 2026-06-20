@@ -163,7 +163,7 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
-                Toggle("Beim Anmelden starten", isOn: $launchAtLogin)
+                Toggle("Beim Anmelden öffnen", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
                         LaunchAtLogin.setEnabled(enabled)
                         // Re-read in case the request failed, so the UI never lies.
@@ -189,28 +189,22 @@ private struct CommandsSettingsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Halte die Aufnahme-Taste **mit ⇧** und sprich einen Befehl, statt zu diktieren. Der Text wird dann nicht eingefügt.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(12)
-
-            Divider()
-
-            List {
+        Form {
+            Section {
                 ForEach(commands) { command in
-                    HStack {
-                        Text(command.title)
-                        Spacer()
+                    LabeledContent(command.title) {
                         Text("»\(command.example)«")
                             .foregroundStyle(.secondary)
                             .font(.body.monospaced())
                     }
                 }
+            } footer: {
+                Text("Halte die Aufnahme-Taste **mit ⇧** und sprich einen Befehl, statt zu diktieren. Der Text wird dann nicht eingefügt.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .listStyle(.inset)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .formStyle(.grouped)
     }
 }
 
@@ -219,23 +213,21 @@ private struct VocabularySettingsView: View {
     @State private var newTerm = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Eigennamen und Fachbegriffe als **Hinweis** an die Erkennung — tippe einen Begriff und drücke Enter. Hilft oft, aber nicht garantiert. Trifft die Erkennung ein Wort nie, trag es im **Wörterbuch** als feste Ersetzung ein.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+        Form {
+            Section {
+                TextField("Begriff hinzufügen", text: $newTerm)
+                    .onSubmit(addTerm)
+            } footer: {
+                Text("Eigennamen und Fachbegriffe als **Hinweis** an die Erkennung — tippe einen Begriff und drücke Enter. Hilft oft, aber nicht garantiert. Trifft die Erkennung ein Wort nie, trag es im **Wörterbuch** als feste Ersetzung ein.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
-            TextField("Begriff hinzufügen …", text: $newTerm)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit(addTerm)
-
-            ScrollView {
+            Section("Begriffe") {
                 if settings.vocabulary.isEmpty {
                     Text("Beispiel: Claude, Xcode, SwiftUI, Parnas")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 4)
                 } else {
                     FlowLayout(spacing: 6) {
                         ForEach(settings.vocabulary, id: \.self) { term in
@@ -243,13 +235,10 @@ private struct VocabularySettingsView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 2)
                 }
             }
-            .frame(maxHeight: .infinity)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .formStyle(.grouped)
     }
 
     private func addTerm() {
@@ -332,54 +321,40 @@ private struct DictionarySettingsView: View {
     @ObservedObject var dictionary: DictionaryStore
 
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Toggle("Wörterbuch anwenden", isOn: $dictionary.isEnabled)
-                    Spacer()
-                    Button {
-                        dictionary.add()
-                    } label: {
-                        Label("Regel", systemImage: "plus")
-                    }
-                }
+        Form {
+            Section {
+                Toggle("Wörterbuch anwenden", isOn: $dictionary.isEnabled)
+            } footer: {
                 Text("Feste Ersetzung **nach** der Erkennung — der harte Weg, wenn ein Wort über das **Vokabular** nicht zuverlässig ankommt. Ganzes Wort, Groß-/Kleinschreibung egal.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(12)
 
-            Divider()
-
-            if dictionary.rules.isEmpty {
-                Spacer()
-                Text("Noch keine Regeln. „Erkannt“ wird durch „Ersetzung“ getauscht.")
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                Spacer()
-            } else {
-                HStack {
-                    Text("Erkannt").frame(maxWidth: .infinity, alignment: .leading)
-                    Text("Ersetzung").frame(maxWidth: .infinity, alignment: .leading)
-                    Spacer().frame(width: 24)
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-
-                List {
+            Section {
+                if dictionary.rules.isEmpty {
+                    Text("Noch keine Regeln. „Erkannt“ wird durch „Ersetzung“ getauscht.")
+                        .foregroundStyle(.secondary)
+                } else {
                     ForEach(dictionary.rules) { rule in
                         RuleRow(rule: rule, dictionary: dictionary)
                     }
                 }
-                .listStyle(.inset)
+
+                Button {
+                    dictionary.add()
+                } label: {
+                    Label("Regel hinzufügen", systemImage: "plus")
+                }
+            } header: {
+                HStack {
+                    Text("Erkannt").frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Ersetzung").frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer().frame(width: 20)
+                }
             }
+            .opacity(dictionary.isEnabled ? 1 : 0.55)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .opacity(dictionary.isEnabled ? 1 : 0.55)
+        .formStyle(.grouped)
     }
 }
 
@@ -432,24 +407,16 @@ private struct HistorySettingsView: View {
     }()
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
+        Form {
+            Section {
                 Toggle("Verlauf aufzeichnen", isOn: $history.isEnabled)
-                Spacer()
-                Button("Verlauf löschen", role: .destructive) { history.clear() }
-                    .disabled(history.entries.isEmpty)
             }
-            .padding(12)
 
-            Divider()
-
-            if history.entries.isEmpty {
-                Spacer()
-                Text("Noch keine Diktate.")
-                    .foregroundStyle(.secondary)
-                Spacer()
-            } else {
-                List {
+            Section {
+                if history.entries.isEmpty {
+                    Text("Noch keine Diktate.")
+                        .foregroundStyle(.secondary)
+                } else {
                     ForEach(history.entries) { entry in
                         HistoryRow(
                             entry: entry,
@@ -458,10 +425,17 @@ private struct HistorySettingsView: View {
                         )
                     }
                 }
-                .listStyle(.inset)
+            } header: {
+                HStack {
+                    Text("Letzte Diktate")
+                    Spacer()
+                    Button("Verlauf löschen", role: .destructive) { history.clear() }
+                        .buttonStyle(.borderless)
+                        .disabled(history.entries.isEmpty)
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .formStyle(.grouped)
     }
 }
 

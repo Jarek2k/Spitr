@@ -390,7 +390,7 @@ final class RecordingController: ObservableObject {
         switch state {
         case .idle:         return "Bereit"
         case .recording:    return mode == .command ? "Befehl…" : "Aufnahme läuft…"
-        case .transcribing: return "Wandle um…"
+        case .transcribing: return "Wird umgewandelt…"
         case .error(let m): return "Fehler: \(m)"
         }
     }
