@@ -24,7 +24,6 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Menüleisten-App | ✅ | Lebt in der Menüleiste, kein Dock-Icon; Icon zeigt idle/recording/processing | — |
 | Aufnahme-Overlay | 🧪 | Schwebende Kapsel mit Mikro + Wellenform, nur während Aufnahme | — |
 | Wellenform-Stil wählbar | 🧪 | „Balken" (Canvas), „Strähnen" (Metal-Shader) oder „KITT" (rote LED-Voice-Box); erweiterbar | Wellenform (Allgemein) |
-| Medien-Pause während Aufnahme | 🧪 | Laufende Musik/Video pausiert beim Aufnehmen, läuft danach weiter | — |
 | App-Icon | 🧪 | Eigenes Icon in Finder/About/App-Switcher | — |
 
 ## Konfiguration
@@ -58,6 +57,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Aufnahme abbrechen (Esc) | 🔜 | Esc während Halten → nichts transkribieren/einfügen; gegen Versprecher |
 | Engine-Prewarm beim Start | 🔜 | erstes Diktat ohne Lade-Latenz (Wechsel wärmt bereits vor) |
 | Letztes Diktat rückgängig / erneut einfügen | 🔜 | Recovery bei falschem Fokus; baut auf History |
+| Korrektur via Dienste-Menü | 🔜 | v3: falsches Wort markieren → Rechtsklick → Dienste → „Spitr: Ersetzung anlegen" → Wörterbuch-Regel ohne Settings-Umweg (NSServices + Mini-Popup) |
 | Smart-Spacing beim Einfügen | 🔜 | autom. Leerzeichen/Doppel-Space-Vermeidung |
 | Toggle-/Lock-Aufnahmemodus | 🔜 | Tap-Start/Tap-Stopp; berührt „Mikro nur bei Taste"-Regel → Entscheidung offen |
 | Statistik (Wörter / Zeitersparnis) | 🔜 | rein lokal |
