@@ -77,3 +77,16 @@ machen, sondern in einer dedizierten Polish-Runde.
 - **Menü ausdünnen.** Das Standard-AppKit-Menü bringt viele Punkte mit, die eine
   schlanke Menüleisten-App nicht braucht (Services, Hide Others, …). Auf das Nötige
   reduzieren und sinnvoll strukturieren.
+
+---
+
+## Bekannte Dev-Build-Einschränkungen (kein Bug, kein Fix nötig)
+
+- **Platzhalter-Icon in systemseitigen Anzeigen** (Anmeldeobjekte in den System-
+  einstellungen, ggf. Finder/Spotlight). Ursache: veralteter macOS-LaunchServices-Icon-
+  Cache beim Lauf aus `DerivedData` mit Personal-Team-Signatur. **Nicht per App-Code
+  behebbar** — diese Panels rendern das Icon selbst aus dem registrierten Bundle, es
+  gibt keine API zum Überschreiben (anders als das eigene „Über"-Panel, das wir fixen
+  konnten). Verschwindet bei der signierten, in `/Applications` installierten Release-App.
+  Falls im Dev-Build doch erzwungen werden soll: `sudo`-IconServices-Cache-Reset oder App
+  nach `/Applications` kopieren + `lsregister -f`.
