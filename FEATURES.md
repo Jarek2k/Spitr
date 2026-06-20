@@ -4,7 +4,7 @@ Lebende Liste aller umgesetzten Features. Quelle für die spätere Nutzer-Doku.
 Bei jedem neuen Feature **hier eine Zeile ergänzen** (Status, kurze Nutzer-Sicht,
 relevante Einstellung). Reihenfolge grob nach Nutzer-Reise.
 
-Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
+Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relevant · 🔜 geplant
 
 ## Kern (Diktat-Durchstich)
 
@@ -14,11 +14,11 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | On-device-Transkription | ✅ | Spracherkennung läuft lokal, ohne Cloud/Netz | Engine (Allgemein) |
 | Apple-Speech-Engine | ✅ | Standard-Engine, kein Download | Engine = Apple Speech |
 | WhisperKit-Engine | ✅ | Alternative Engine, lädt Modell einmalig, beste DE-Genauigkeit | Engine = WhisperKit, Modell |
-| Aufnahme abbrechen (Esc) | 🧪 | Esc während die Aufnahmetaste gehalten wird → nichts wird transkribiert/eingefügt; gegen Versprecher | — |
-| Engine-Prewarm beim Start | 🧪 | Modell wird beim App-Start im Hintergrund geladen, damit das erste Diktat nicht auf den Kaltstart wartet | — |
+| Aufnahme abbrechen (Esc) | ✅ | Esc während die Aufnahmetaste gehalten wird → nichts wird transkribiert/eingefügt; gegen Versprecher | — |
+| Engine-Prewarm beim Start | ✅ | Modell wird beim App-Start im Hintergrund geladen, damit das erste Diktat nicht auf den Kaltstart wartet | — |
 | Text-Insertion mit Clipboard-Restore | 🧪 | Einfügen via Cmd+V; Zwischenablage wird vorher gesichert und danach wiederhergestellt | — |
-| Intelligente Leerzeichen | 🧪 | Fasst doppelte Leerzeichen zusammen + setzt bei Bedarf ein Leerzeichen vor den Text (Kontext via Accessibility; entfällt in Electron); abschaltbar | Toggle (Allgemein) |
-| AppleScript-Fallback (Nicht-QWERTY) | 🧪 | Einfügen funktioniert auch bei nicht-QWERTY-Layouts | — |
+| Intelligente Leerzeichen | ✅ | Fasst doppelte Leerzeichen zusammen + setzt bei Bedarf ein Leerzeichen vor den Text (Kontext via Accessibility; entfällt in Electron); abschaltbar | Toggle (Allgemein) |
+| AppleScript-Fallback (Nicht-QWERTY) | ➖ | Sonderfall für Nicht-QWERTY-Layouts (Dvorak/AZERTY); bei QWERTZ nie aktiv → für Jareks Setup nicht relevant, nicht weiter verfolgt | — |
 
 ## Bedienung & Anzeige
 
@@ -43,7 +43,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Custom Vocabulary | ✅ | Eigennamen/Fachbegriffe als Bias (hilft oft, nicht garantiert — Engine-Grenze) | Vokabular-Tab |
 | Personal Dictionary | ✅ | Wort-Ersetzungen nach der Erkennung (Erkannt → Ersetzung); abschaltbar, default aus | Wörterbuch-Tab |
 | Diktat-History | ✅ | Lokale, löschbare Liste der letzten Transkripte; Hover-Aktionen; abschaltbar | Verlauf-Tab |
-| Letztes Diktat erneut einfügen | 🧪 | Globaler Hotkey (Standard ⌃⌥⌘V, in Einstellungen frei belegbar) + Menü-Aktion: letztes Diktat erneut ins fokussierte Feld einfügen (Rettung bei falschem Fokus); auch bei ausgeschalteter History | Erneut-einfügen-Kürzel (Allgemein) / Menü |
+| Letztes Diktat erneut einfügen | ✅ | Globaler Hotkey (Standard ⌃⌥⌘V, in Einstellungen frei belegbar) + Menü-Aktion: letztes Diktat erneut ins fokussierte Feld einfügen (Rettung bei falschem Fokus); auch bei ausgeschalteter History | Erneut-einfügen-Kürzel (Allgemein) / Menü |
 | Sprachbefehl-Modus | ✅ | Aufnahme-Taste **+ ⇧** → Gesprochenes wird als Befehl ausgeführt statt eingefügt | Befehle-Tab (Liste) |
 | Pausieren | ✅ | Diktat pausieren/fortsetzen (Menü oder Sprachbefehl »pause«/»weiter«) | Menü |
 
