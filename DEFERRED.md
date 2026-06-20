@@ -51,3 +51,25 @@ Apple Music** ab, **nicht** YouTube/Browser-Videos (dafür kein sauberer Weg meh
   Mediensteuerung läuft über andere APIs (z.B. `GlobalSystemMediaTransportControls`).
   Das Feature könnte dort regulär funktionieren — beim Port neu bewerten.
 - Falls Apple Now-Playing für Dritt-Apps je wieder öffnet.
+
+---
+
+## UI-Polish (eigene Ausbaustufe, am Ende gebündelt)
+
+Sammelpunkt für visuelles Feinschliff-Zeug, das wir bewusst nicht im MVP-Durchstich
+machen, sondern in einer dedizierten Polish-Runde.
+
+- **Neues, schöneres App-Icon gestalten.** Das aktuelle (blau-lila Squircle + Mikrofon)
+  gefällt nicht. Nur die *Gestaltung* ist offen — das Asset ist vollständig und wird
+  korrekt geladen.
+  (Erledigt 2026-06-20: Das graue Gittermuster war **nicht** das Asset, sondern der
+  macOS-LaunchServices-Icon-Cache, der für `.accessory`-Apps im „Über"-Panel/Dock einen
+  Platzhalter liefert. Fix in `SpitrApp.swift`: „Über"-Panel via `CommandGroup(replacing:
+  .appInfo)` + `orderFrontStandardAboutPanel` mit explizit übergebenem Icon; Dock-Icon
+  via erneutes `applicationIconImage`-Setzen nach dem `.regular`-Wechsel.)
+- **App-Menü (Apple-/Spitr-Menü) eindeutschen.** Eigene UI (Settings, Menüleisten-
+  Symbol) ist durchgängig deutsch, das Standard-App-Menü (About/Settings/Quit/Services/
+  Hide …) bleibt englisch → Bruch. Lokalisieren oder gezielt benennen.
+- **Menü ausdünnen.** Das Standard-AppKit-Menü bringt viele Punkte mit, die eine
+  schlanke Menüleisten-App nicht braucht (Services, Hide Others, …). Auf das Nötige
+  reduzieren und sinnvoll strukturieren.
