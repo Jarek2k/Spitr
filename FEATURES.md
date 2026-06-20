@@ -17,6 +17,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Aufnahme abbrechen (Esc) | 🧪 | Esc während die Aufnahmetaste gehalten wird → nichts wird transkribiert/eingefügt; gegen Versprecher | — |
 | Engine-Prewarm beim Start | 🧪 | Modell wird beim App-Start im Hintergrund geladen, damit das erste Diktat nicht auf den Kaltstart wartet | — |
 | Text-Insertion mit Clipboard-Restore | 🧪 | Einfügen via Cmd+V; Zwischenablage wird vorher gesichert und danach wiederhergestellt | — |
+| Intelligente Leerzeichen | 🧪 | Fasst doppelte Leerzeichen zusammen + setzt bei Bedarf ein Leerzeichen vor den Text (Kontext via Accessibility; entfällt in Electron); abschaltbar | Toggle (Allgemein) |
 | AppleScript-Fallback (Nicht-QWERTY) | 🧪 | Einfügen funktioniert auch bei nicht-QWERTY-Layouts | — |
 
 ## Bedienung & Anzeige
@@ -60,7 +61,6 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 |---|---|---|
 | Letztes Diktat rückgängig | 🔜 | Eingefügten Text wieder entfernen (Gegenstück zum erneuten Einfügen) |
 | Schnell-Korrektur (Wörterbuch-Regel) | 🔜 | NSServices verworfen 2026-06-20: Dienste-Menü gibt es nur in nativen AppKit-Apps, NICHT in Electron/Chromium (VS Code, Claude Code, Browser) = Jareks Haupt-Workflow → kein Mehrwert. Falls je wieder: app-unabhängig über Spitrs History (Menü/Hotkey „letztes Diktat korrigieren"), nicht über die Ziel-App. |
-| Smart-Spacing beim Einfügen | 🔜 | autom. Leerzeichen/Doppel-Space-Vermeidung |
 | Toggle-/Lock-Aufnahmemodus | 🔜 | Tap-Start/Tap-Stopp; berührt „Mikro nur bei Taste"-Regel → Entscheidung offen |
 | Statistik (Wörter / Zeitersparnis) | 🔜 | rein lokal |
 | Insertion-Fallback „tippen" | 🔜 | für Secure-Felder/Apps, die Cmd+V blocken |

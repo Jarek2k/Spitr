@@ -145,6 +145,14 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
+                Toggle("Intelligente Leerzeichen", isOn: $settings.smartSpacing)
+            } footer: {
+                Text("Fasst doppelte Leerzeichen zusammen und setzt automatisch ein Leerzeichen vor den Text, wenn er sonst am vorigen Wort klebt. Das Leerzeichen davor klappt nur in Apps, die ihren Textkontext freigeben (native Apps; in Electron wie VS Code/Browser entfällt es).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 LabeledContent("Erneut einfügen") {
                     ShortcutRecorderField(combo: $settings.reinsertShortcut)
                 }

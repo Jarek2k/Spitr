@@ -73,6 +73,12 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(playReadyChime, forKey: Keys.readyChime) }
     }
 
+    /// Normalize spacing on insert and add a leading space when the text would
+    /// otherwise stick to the preceding word.
+    @Published var smartSpacing: Bool {
+        didSet { defaults.set(smartSpacing, forKey: Keys.smartSpacing) }
+    }
+
     /// Set once the user has seen the permission onboarding, so it shows only
     /// on first launch.
     @Published var hasCompletedOnboarding: Bool {
@@ -98,6 +104,7 @@ final class SettingsStore: ObservableObject {
         static let vocabulary = "vocabularyText"
         static let readyChime = "playReadyChime"
         static let reinsert = "reinsertShortcut"
+        static let smartSpacing = "smartSpacing"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -111,6 +118,7 @@ final class SettingsStore: ObservableObject {
         self.inputDeviceUID = defaults.string(forKey: Keys.inputDevice) ?? ""
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
+        self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true
         let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.bars.rawValue
         self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .bars
         self.vocabularyText = defaults.string(forKey: Keys.vocabulary) ?? ""

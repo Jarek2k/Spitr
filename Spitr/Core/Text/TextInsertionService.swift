@@ -15,6 +15,7 @@
 //
 
 import AppKit
+import ApplicationServices
 import Carbon.HIToolbox
 import os
 
@@ -28,14 +29,22 @@ final class TextInsertionService {
     /// time to read the paste.
     private let restoreDelay: TimeInterval = 0.15
 
+    /// When on, normalize spacing and add a leading space if the text would
+    /// otherwise butt up against the preceding word. Set from Settings.
+    var smartSpacing = true
+
     func insert(_ text: String) {
         guard !text.isEmpty else { return }
+
+        // Read cursor context *before* touching the clipboard/focus.
+        let prepared = smartSpacing ? smartSpaced(text) : text
+        guard !prepared.isEmpty else { return }
 
         let pasteboard = NSPasteboard.general
         let saved = snapshot(pasteboard)
 
         pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+        pasteboard.setString(prepared, forType: .string)
 
         if cgEventPasteIsLayoutSafe() {
             pasteViaCGEvent()
@@ -47,6 +56,54 @@ final class TextInsertionService {
         DispatchQueue.main.asyncAfter(deadline: .now() + restoreDelay) { [weak self] in
             self?.restore(saved, to: pasteboard)
         }
+    }
+
+    // MARK: - Smart spacing
+
+    /// Collapses runs of spaces/tabs, then prepends a space when the text would
+    /// otherwise stick to the preceding word (decided from the caret context).
+    private func smartSpaced(_ text: String) -> String {
+        let collapsed = text.replacingOccurrences(of: "[ \\t]{2,}", with: " ", options: .regularExpression)
+        return leadingSpaceNeeded(for: collapsed) ? " " + collapsed : collapsed
+    }
+
+    private func leadingSpaceNeeded(for text: String) -> Bool {
+        guard let first = text.first, !first.isWhitespace else { return false }
+        // Punctuation that attaches to the previous word should never get a space.
+        if ".,;:!?)]}".contains(first) { return false }
+        guard let prev = precedingCharacter() else { return false }   // unknown → don't guess
+        if prev.isWhitespace { return false }
+        // Don't separate from an opening bracket/quote either.
+        if "([{".contains(prev) || "\u{201C}\u{201E}\u{2018}\u{00AB}".unicodeScalars.contains(where: { prev.unicodeScalars.contains($0) }) {
+            return false
+        }
+        return true
+    }
+
+    /// Best-effort read of the character immediately before the caret in the
+    /// focused text element, via Accessibility. Returns nil when unavailable —
+    /// many Electron/Chromium editors don't expose text ranges, in which case we
+    /// skip context-aware spacing rather than guessing wrong.
+    private func precedingCharacter() -> Character? {
+        let system = AXUIElementCreateSystemWide()
+        var focused: AnyObject?
+        guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
+              let focused else { return nil }
+        let element = focused as! AXUIElement
+
+        var rangeValue: AnyObject?
+        guard AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &rangeValue) == .success,
+              let rangeValue, CFGetTypeID(rangeValue) == AXValueGetTypeID() else { return nil }
+        var selected = CFRange()
+        guard AXValueGetValue(rangeValue as! AXValue, .cfRange, &selected), selected.location > 0 else { return nil }
+
+        var before = CFRange(location: selected.location - 1, length: 1)
+        guard let beforeValue = AXValueCreate(.cfRange, &before) else { return nil }
+        var substring: AnyObject?
+        guard AXUIElementCopyParameterizedAttributeValue(
+                element, kAXStringForRangeParameterizedAttribute as CFString, beforeValue, &substring) == .success,
+              let str = substring as? String else { return nil }
+        return str.last
     }
 
     // MARK: - Paste

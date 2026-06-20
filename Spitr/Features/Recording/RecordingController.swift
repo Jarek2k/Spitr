@@ -109,6 +109,7 @@ final class RecordingController: ObservableObject {
         hotkey.onCancel = { [weak self] in self?.cancelRecording() }
         hotkey.onReinsert = { [weak self] in self?.reinsertLast() }
         hotkey.updateReinsert(settings.reinsertShortcut)
+        insertion.smartSpacing = settings.smartSpacing
 
         // Chime the moment the mic is genuinely capturing, so the user knows when
         // to speak and doesn't clip the first word.
@@ -140,6 +141,12 @@ final class RecordingController: ObservableObject {
         settings.$reinsertShortcut
             .dropFirst()
             .sink { [weak self] combo in self?.hotkey.updateReinsert(combo) }
+            .store(in: &cancellables)
+
+        // Apply the smart-spacing toggle live.
+        settings.$smartSpacing
+            .dropFirst()
+            .sink { [weak self] on in self?.insertion.smartSpacing = on }
             .store(in: &cancellables)
 
         // Apply a new mic choice on the next recording.
