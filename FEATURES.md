@@ -35,7 +35,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Feature | Status | Nutzer-Sicht | Einstellung |
 |---|---|---|---|
 | Engine-Auswahl + Override | ✅ | Engine manuell wählbar; aktive Engine/Modell im Menü sichtbar | Engine (Allgemein) |
-| WhisperKit-Modellwahl | ✅ | base / small / large-v3; Modell wird beim Umschalten vorgewärmt (Base verifiziert) | Modell (Allgemein) |
+| WhisperKit-Modellwahl | ✅ | base / small / large-v3-turbo; Modell wird beim Umschalten vorgewärmt (alle drei verifiziert; large-v3-turbo brachte für DE keinen Vorteil) | Modell (Allgemein) |
 | Sprachauswahl | ✅ | Erkennungssprache (DE/EN/…) | Sprache (Allgemein) |
 | Konfigurierbare Aufnahme-Taste | ✅ | Hold-to-Talk-Taste umschaltbar (⌥/⌃; fn nur MacBook-Tastatur), persistiert | Aufnahme-Taste (Allgemein) |
 | Mikrofon-Auswahl | ✅ | Eingabegerät wählbar; Systemstandard + Fallback | Mikrofon (Allgemein) |

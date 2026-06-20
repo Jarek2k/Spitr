@@ -28,7 +28,7 @@ final class WhisperKitEngine: TranscriptionEngine {
     static let selectableModels: [(id: String, name: String)] = [
         ("base", "Base — schnell, klein"),
         ("small", "Small — bessere Genauigkeit"),
-        ("large-v3", "Large v3 — beste Genauigkeit, groß"),
+        ("large-v3-turbo", "Large v3 Turbo — beste Genauigkeit, schnell (~954 MB)"),
     ]
 
     private let model: String
