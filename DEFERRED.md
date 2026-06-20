@@ -67,6 +67,10 @@ machen, sondern in einer dedizierten Polish-Runde.
   Platzhalter liefert. Fix in `SpitrApp.swift`: „Über"-Panel via `CommandGroup(replacing:
   .appInfo)` + `orderFrontStandardAboutPanel` mit explizit übergebenem Icon; Dock-Icon
   via erneutes `applicationIconImage`-Setzen nach dem `.regular`-Wechsel.)
+- **Wellenform-Stile feinschleifen oder reduzieren.** Alle drei (Balken, Strähnen,
+  KITT) laufen technisch sauber (auch der Metal-Shader, kein Stitching-Crash), aber
+  keiner überzeugt Jarek ästhetisch ganz. In der Polish-Runde entscheiden: welcher wird
+  Default, welche werden nachpoliert, welche evtl. entfernt. (Favorit noch offen.)
 - **App-Menü (Apple-/Spitr-Menü) eindeutschen.** Eigene UI (Settings, Menüleisten-
   Symbol) ist durchgängig deutsch, das Standard-App-Menü (About/Settings/Quit/Services/
   Hide …) bleibt englisch → Bruch. Lokalisieren oder gezielt benennen.

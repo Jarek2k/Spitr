@@ -62,16 +62,11 @@ struct RecordingOverlay: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(isCommand ? .yellow : .red)
 
-            if isCommand {
-                Text("Befehl…")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                WaveformView(level: controller.inputLevel)
-                    .frame(maxWidth: .infinity)
-                    .id(controller.sessionID)
-            }
+            // Both modes show the audio-reactive waveform so it's always clear
+            // recording is live; command mode tints it yellow to stay distinct.
+            WaveformView(level: controller.inputLevel, tint: isCommand ? .yellow : .white.opacity(0.9))
+                .frame(maxWidth: .infinity)
+                .id(controller.sessionID)
         }
     }
 

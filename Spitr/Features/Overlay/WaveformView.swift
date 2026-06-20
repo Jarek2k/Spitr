@@ -15,6 +15,9 @@ struct WaveformView: View {
     /// Latest normalized RMS level (0…1) from the audio tap.
     var level: Float
 
+    /// Bar colour — yellow in command mode keeps that mode visually distinct.
+    var tint: Color = .white.opacity(0.9)
+
     private static let barCount = 40
     @State private var history = [Float](repeating: 0, count: WaveformView.barCount)
 
@@ -34,7 +37,7 @@ struct WaveformView: View {
                 let rect = CGRect(x: x, y: midY - height / 2, width: barWidth, height: height)
                 ctx.fill(
                     Path(roundedRect: rect, cornerRadius: barWidth / 2),
-                    with: .color(.white.opacity(0.9))
+                    with: .color(tint)
                 )
             }
         }
