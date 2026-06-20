@@ -39,6 +39,11 @@ final class RecordingController: ObservableObject {
     /// Whether the last command was recognized (drives the feedback icon).
     @Published private(set) var lastCommandRecognized = false
 
+    /// The most recent dictation we inserted, kept independently of the (optional)
+    /// history so "re-insert last" works even with history recording switched off.
+    /// nil disables the menu action.
+    @Published private(set) var lastInsertedText: String?
+
     /// Mirrors `settings.isPaused` so the menu/status update reactively.
     @Published private(set) var paused = false
 
@@ -58,6 +63,9 @@ final class RecordingController: ObservableObject {
 
     /// Current Hold-to-Talk key, derived from settings for the menu hint.
     var hotkeyConfig: HotkeyConfig { HotkeyConfig.named(keyCode: settings.hotkeyKeyCode) }
+
+    /// Display string of the re-insert chord, for the menu hint.
+    var reinsertShortcutLabel: String { settings.reinsertShortcut.displayString }
 
     /// Shared preferences; exposed so the overlay can observe the waveform style.
     let settings: SettingsStore
@@ -81,6 +89,11 @@ final class RecordingController: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var activated = false
 
+    /// The last non-Spitr app that was frontmost, so a menu-triggered re-insert
+    /// can hand focus back to it before pasting (opening our menu takes focus).
+    private var lastExternalApp: NSRunningApplication?
+    private var activationObserver: NSObjectProtocol?
+
     init(settings: SettingsStore, history: HistoryStore, dictionary: DictionaryStore) {
         self.settings = settings
         self.history = history
@@ -94,6 +107,8 @@ final class RecordingController: ObservableObject {
         hotkey.onPress = { [weak self] command in self?.startRecording(command: command) }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
         hotkey.onCancel = { [weak self] in self?.cancelRecording() }
+        hotkey.onReinsert = { [weak self] in self?.reinsertLast() }
+        hotkey.updateReinsert(settings.reinsertShortcut)
 
         // Chime the moment the mic is genuinely capturing, so the user knows when
         // to speak and doesn't clip the first word.
@@ -121,6 +136,12 @@ final class RecordingController: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Swap the re-insert chord live when changed in Settings.
+        settings.$reinsertShortcut
+            .dropFirst()
+            .sink { [weak self] combo in self?.hotkey.updateReinsert(combo) }
+            .store(in: &cancellables)
+
         // Apply a new mic choice on the next recording.
         settings.$inputDeviceUID
             .dropFirst()
@@ -136,6 +157,22 @@ final class RecordingController: ObservableObject {
     /// Toggles pause; while paused, plain dictation is ignored but command mode
     /// still works so the user can resume by voice.
     func togglePause() { settings.isPaused.toggle() }
+
+    /// Re-inserts the last dictation into the currently intended field — recovery
+    /// for when the original insert went to the wrong place. Opening our menu
+    /// stole key focus, so hand it back to the previous app before pasting.
+    func reinsertLast() {
+        guard let text = lastInsertedText else { return }
+        let target = lastExternalApp
+        Task { @MainActor in
+            target?.activate()
+            // Give the app a beat to become frontmost and restore its first
+            // responder before the synthetic Cmd+V lands.
+            try? await Task.sleep(for: .milliseconds(150))
+            insertion.insert(text)
+            log.info("re-inserted last dictation (\(text.count) chars)")
+        }
+    }
 
     /// Rebuilds the transcription engine from current settings and proactively
     /// prewarms it, so the model load happens while the user is still in Settings
@@ -178,6 +215,16 @@ final class RecordingController: ObservableObject {
         // Prewarm the engine at launch so the first dictation doesn't stall on a
         // cold model load (later engine/model switches already prewarm via rebuild).
         Task { try? await ensurePrepared() }
+        // Track the frontmost non-Spitr app so re-insert can restore its focus.
+        activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                  app.bundleIdentifier != Bundle.main.bundleIdentifier else { return }
+            MainActor.assumeIsolated { self?.lastExternalApp = app }
+        }
         refreshPermissions()
         overlay = OverlayController(controller: self)
         levelTask = Task { [weak self] in
@@ -272,6 +319,7 @@ final class RecordingController: ObservableObject {
                 if !trimmed.isEmpty {
                     insertion.insert(trimmed)
                     history.record(trimmed)
+                    lastInsertedText = trimmed
                     log.info("inserted transcript (\(trimmed.count) chars)")
                 } else {
                     log.warning("empty transcript, nothing inserted")

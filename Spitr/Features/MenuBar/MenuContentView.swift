@@ -41,6 +41,22 @@ struct MenuContentView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
 
+            Button {
+                controller.reinsertLast()
+            } label: {
+                HStack {
+                    Text("Letztes Diktat erneut einfügen")
+                    Spacer()
+                    Text(controller.reinsertShortcutLabel)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(controller.lastInsertedText == nil)
+            .help("Fügt das zuletzt erkannte Diktat erneut ins fokussierte Feld ein — z. B. wenn der Fokus vorher falsch war. Geht überall per \(controller.reinsertShortcutLabel).")
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+
             Button("Einrichtung…") {
                 NotificationCenter.default.post(name: .showOnboarding, object: nil)
             }

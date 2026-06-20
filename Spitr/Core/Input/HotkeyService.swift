@@ -51,15 +51,23 @@ final class HotkeyService {
     /// Fires when Escape is pressed while the cancel watch is active (during a
     /// recording), so the controller can discard it instead of transcribing.
     var onCancel: (() -> Void)?
+    /// Fires on the global re-insert shortcut (⌃⌥⌘V), independent of recording.
+    var onReinsert: (() -> Void)?
 
     /// Escape (kVK_Escape) — the abort key while holding to talk.
     private static let escapeKeyCode: UInt16 = 53
+
+    /// User-configurable chord that re-inserts the last dictation. Defaults to
+    /// ⌃⌥⌘V; changed live from Settings via `updateReinsert`.
+    private var reinsertCombo: KeyCombo = .reinsertDefault
 
     private(set) var config: HotkeyConfig
     private var globalMonitor: Any?
     private var localMonitor: Any?
     private var cancelGlobalMonitor: Any?
     private var cancelLocalMonitor: Any?
+    private var reinsertMonitor: Any?
+    private var reinsertLocalMonitor: Any?
     private var isHeld = false
     private let log = Logger(subsystem: "com.jarek.Spitr", category: "hotkey")
 
@@ -80,15 +88,37 @@ final class HotkeyService {
             self?.handle(event)
             return event
         }
+        // Re-insert shortcut: always active (used after a mis-targeted insert),
+        // both while other apps (global) and Spitr (local) are focused.
+        reinsertMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.isReinsert(event) else { return }
+            self.onReinsert?()
+        }
+        reinsertLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.isReinsert(event) else { return event }
+            self.onReinsert?()
+            return nil
+        }
     }
 
     func stop() {
         if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
+        if let reinsertMonitor { NSEvent.removeMonitor(reinsertMonitor) }
+        if let reinsertLocalMonitor { NSEvent.removeMonitor(reinsertLocalMonitor) }
         globalMonitor = nil
         localMonitor = nil
+        reinsertMonitor = nil
+        reinsertLocalMonitor = nil
         endCancelWatch()
         isHeld = false
+    }
+
+    /// Swaps the re-insert chord live (called from Settings).
+    func updateReinsert(_ combo: KeyCombo) { reinsertCombo = combo }
+
+    private func isReinsert(_ event: NSEvent) -> Bool {
+        reinsertCombo.matches(event)
     }
 
     /// Starts watching for Escape, only while a recording is in flight. Installed

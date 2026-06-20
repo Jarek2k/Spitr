@@ -44,6 +44,15 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(waveformStyle.rawValue, forKey: Keys.waveform) }
     }
 
+    /// Global chord that re-inserts the last dictation. Persisted as JSON.
+    @Published var reinsertShortcut: KeyCombo {
+        didSet {
+            if let data = try? JSONEncoder().encode(reinsertShortcut) {
+                defaults.set(data, forKey: Keys.reinsert)
+            }
+        }
+    }
+
     /// Custom recognition vocabulary, one term per line. Fed to the engine as a
     /// bias hint so names/jargon aren't misheard.
     @Published var vocabularyText: String {
@@ -88,6 +97,7 @@ final class SettingsStore: ObservableObject {
         static let waveform = "waveformStyle"
         static let vocabulary = "vocabularyText"
         static let readyChime = "playReadyChime"
+        static let reinsert = "reinsertShortcut"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -104,5 +114,11 @@ final class SettingsStore: ObservableObject {
         let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.bars.rawValue
         self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .bars
         self.vocabularyText = defaults.string(forKey: Keys.vocabulary) ?? ""
+        if let data = defaults.data(forKey: Keys.reinsert),
+           let combo = try? JSONDecoder().decode(KeyCombo.self, from: data) {
+            self.reinsertShortcut = combo
+        } else {
+            self.reinsertShortcut = .reinsertDefault
+        }
     }
 }

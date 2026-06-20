@@ -145,6 +145,16 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
+                LabeledContent("Erneut einfügen") {
+                    ShortcutRecorderField(combo: $settings.reinsertShortcut)
+                }
+            } footer: {
+                Text("Globaler Kurzbefehl, der das letzte Diktat erneut ins fokussierte Feld einfügt. Mindestens ein ⌘/⌃/⌥ nötig.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 Toggle("Beim Anmelden starten", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
                         LaunchAtLogin.setEnabled(enabled)
@@ -507,6 +517,52 @@ private struct HistoryRow: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             justCopied = false
         }
+    }
+}
+
+/// A click-to-record shortcut field: tap to arm, then press a chord. Captures
+/// the next key-down (with modifiers) via a local event monitor and stores it as
+/// a KeyCombo. Escape cancels; invalid chords (no ⌘/⌃/⌥) are ignored so it keeps
+/// waiting. The monitor consumes the event so it doesn't leak into the form.
+private struct ShortcutRecorderField: View {
+    @Binding var combo: KeyCombo
+    @State private var recording = false
+    @State private var monitor: Any?
+
+    var body: some View {
+        Button {
+            recording ? stop() : start()
+        } label: {
+            Text(recording ? "Tastenkombination drücken…" : combo.displayString)
+                .monospaced()
+                .frame(minWidth: 130)
+        }
+        .buttonStyle(.bordered)
+        .help(recording ? "Drücke die gewünschte Kombination, Esc bricht ab." : "Klicken, dann Kombination drücken.")
+        .onDisappear(perform: stop)
+    }
+
+    private func start() {
+        recording = true
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { stop(); return nil }   // Escape cancels
+            guard let chars = event.charactersIgnoringModifiers,
+                  let scalar = chars.unicodeScalars.first, scalar.value >= 0x20 else { return nil }
+            let candidate = KeyCombo(
+                keyCode: event.keyCode,
+                modifiers: event.modifierFlags.intersection(KeyCombo.relevantMask),
+                label: chars
+            )
+            guard candidate.isValid else { return nil }       // keep waiting
+            combo = candidate
+            stop()
+            return nil
+        }
+    }
+
+    private func stop() {
+        recording = false
+        if let monitor { NSEvent.removeMonitor(monitor); self.monitor = nil }
     }
 }
 
