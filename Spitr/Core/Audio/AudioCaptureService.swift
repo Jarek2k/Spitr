@@ -42,8 +42,14 @@ final class AudioCaptureService: @unchecked Sendable {
     /// Set by RecordingController from Settings; applied on the next start().
     var preferredDeviceUID: String?
 
+    /// Fires on the main thread the moment the first buffer is delivered after a
+    /// start(), i.e. when the mic is *genuinely* capturing (engine.start()
+    /// returns earlier, before hardware warm-up completes). Used to cue the user.
+    var onCaptureStarted: (() -> Void)?
+
     private let lock = NSLock()
     private var samples: [Float] = []
+    private var didSignalStart = false
 
     /// Envelope follower for the level meter: fast attack, slow release, so the
     /// gaps between syllables don't collapse the waveform to a dot.
@@ -74,6 +80,7 @@ final class AudioCaptureService: @unchecked Sendable {
 
         lock.lock()
         samples.removeAll(keepingCapacity: true)
+        didSignalStart = false
         lock.unlock()
         levelEnvelope = 0
 
@@ -169,7 +176,13 @@ final class AudioCaptureService: @unchecked Sendable {
 
         lock.lock()
         samples.append(contentsOf: chunk)
+        let firstBuffer = !didSignalStart
+        if firstBuffer { didSignalStart = true }
         lock.unlock()
+
+        if firstBuffer, let onCaptureStarted {
+            DispatchQueue.main.async(execute: onCaptureStarted)
+        }
 
         var sumSquares: Float = 0
         for s in chunk { sumSquares += s * s }

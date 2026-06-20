@@ -68,6 +68,7 @@ final class RecordingController: ObservableObject {
     private let hotkey: HotkeyService
     private let audio = AudioCaptureService()
     private let insertion = TextInsertionService()
+    private let feedback = FeedbackSoundService()
     private let selector = EngineSelector()
     private var engine: TranscriptionEngine
     private var enginePrepared = false
@@ -92,6 +93,13 @@ final class RecordingController: ObservableObject {
 
         hotkey.onPress = { [weak self] command in self?.startRecording(command: command) }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
+
+        // Chime the moment the mic is genuinely capturing, so the user knows when
+        // to speak and doesn't clip the first word.
+        audio.onCaptureStarted = { [weak self] in
+            guard let self, self.settings.playReadyChime else { return }
+            self.feedback.playReady()
+        }
 
         // Rebuild the engine when the override or WhisperKit model changes;
         // defer prepare() to the next recording so switching is cheap.

@@ -137,6 +137,14 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
+                Toggle("Ton bei Aufnahmebereitschaft", isOn: $settings.playReadyChime)
+            } footer: {
+                Text("Kurzer Ton, sobald das Mikro wirklich aufnimmt — so verlierst du das erste Wort nicht.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 Toggle("Beim Anmelden starten", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
                         LaunchAtLogin.setEnabled(enabled)

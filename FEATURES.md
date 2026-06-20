@@ -25,6 +25,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Aufnahme-Overlay | ✅ | Schwebende Kapsel mit Mikro + Wellenform, nur während Aufnahme | — |
 | Wellenform-Stil wählbar | ✅ | „Balken" (Canvas), „Strähnen" (Metal-Shader) oder „KITT" (rote LED-Voice-Box); erweiterbar | Wellenform (Allgemein) |
 | App-Icon | ✅ | Eigenes Icon in About/Dock (systemseitige Anzeige korrekt erst in Release-Build) | — |
+| Ton bei Aufnahmebereitschaft | 🧪 | Kurzer Ton, sobald das Mikro wirklich aufnimmt (erster echter Buffer) — verhindert verlorenes erstes Wort; abschaltbar | Toggle (Allgemein) |
 
 ## Konfiguration
 
@@ -64,5 +65,5 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Insertion-Fallback „tippen" | 🔜 | für Secure-Felder/Apps, die Cmd+V blocken |
 | History-Suche + erneut einfügen | 🔜 | baut auf Diktat-History auf |
 | VAD / Stille-Trimmer | 🔜 | v3, regelkonform (nur aufgenommenes Audio trimmen) |
-| Audio-Feedback (Start/Stop-Sound) | 🔜 | v3 |
+| Audio-Feedback: Stop-/Fertig-Sound | 🔜 | Ready-Ton ist da; optionaler Ton bei Aufnahme-Ende/Einfügen noch offen |
 | Lokales LLM-Cleanup | 🔜 | v3, optional/abschaltbar |
