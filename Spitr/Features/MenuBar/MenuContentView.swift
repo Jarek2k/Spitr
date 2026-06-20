@@ -75,12 +75,34 @@ struct MenuContentView: View {
     /// and Cmd-Tab entry, then we activate and order it front once SwiftUI has
     /// had a run-loop turn to create it.
     private func surfaceSettingsWindow() {
-        NSApp.setActivationPolicy(.regular)
-        DispatchQueue.main.async {
+        Task { @MainActor in
+            NSApp.setActivationPolicy(.regular)
+            // macOS resets the Dock icon to the (stale) bundle icon on the policy
+            // switch, so re-apply our bundled icon now that a Dock icon exists.
+            if let icon = AppDelegate.bundleIcon() {
+                NSApp.applicationIconImage = icon
+            }
+
+            // A single run-loop hop isn't enough: macOS needs real delays to let
+            // SwiftUI create the settings window before we can surface it.
+            try? await Task.sleep(for: .milliseconds(100))
             NSApp.activate(ignoringOtherApps: true)
+            try? await Task.sleep(for: .milliseconds(200))
             let window = NSApp.windows.first(where: AppDelegate.isSettingsWindow)
             window?.makeKeyAndOrderFront(nil)
             window?.orderFrontRegardless()
+
+            // Known macOS bug: after switching an accessory app to .regular, the
+            // app menu stays unclickable/missing until focus leaves the app and
+            // returns. Force that by briefly activating the Dock, then ourselves.
+            // (See ar.al unclickable-app-menu workaround.)
+            if let dock = NSRunningApplication.runningApplications(
+                withBundleIdentifier: "com.apple.dock").first {
+                dock.activate(options: [])
+                try? await Task.sleep(for: .milliseconds(200))
+                NSApp.activate(ignoringOtherApps: true)
+                window?.makeKeyAndOrderFront(nil)
+            }
         }
     }
 

@@ -26,6 +26,20 @@ struct SpitrApp: App {
             MenuBarLabel(controller: appDelegate.controller)
         }
         .menuBarExtraStyle(.window)
+        .commands {
+            // The standard About panel pulls its icon from LaunchServices, which
+            // ignores applicationIconImage and shows a stale/placeholder icon for
+            // accessory apps. Pass the bundled icon explicitly to fix that.
+            CommandGroup(replacing: .appInfo) {
+                Button("Über Spitr") {
+                    var options: [NSApplication.AboutPanelOptionKey: Any] = [:]
+                    if let icon = AppDelegate.bundleIcon() {
+                        options[.applicationIcon] = icon
+                    }
+                    NSApp.orderFrontStandardAboutPanel(options: options)
+                }
+            }
+        }
 
         Settings {
             SettingsView(settings: appDelegate.settings, history: appDelegate.history, dictionary: appDelegate.dictionary)
@@ -42,7 +56,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var onboardingWindow: NSWindow?
 
+    /// Loads the bundled app icon directly, bypassing the LaunchServices icon
+    /// cache that otherwise hands back a stale placeholder for accessory apps.
+    static func bundleIcon() -> NSImage? {
+        NSImage(named: "AppIcon")
+            ?? Bundle.main.url(forResource: "AppIcon", withExtension: "icns").flatMap(NSImage.init(contentsOf:))
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Drives the Dock icon while the app is briefly .regular (settings open).
+        if let icon = Self.bundleIcon() {
+            NSApp.applicationIconImage = icon
+        }
+
         controller.activate()
         // Stay a menu-bar accessory by default (no Dock icon, no Cmd-Tab entry).
         NSApp.setActivationPolicy(.accessory)
