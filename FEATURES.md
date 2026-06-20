@@ -58,7 +58,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · 🔜 geplant
 | Aufnahme abbrechen (Esc) | 🔜 | Esc während Halten → nichts transkribieren/einfügen; gegen Versprecher |
 | Engine-Prewarm beim Start | 🔜 | erstes Diktat ohne Lade-Latenz (Wechsel wärmt bereits vor) |
 | Letztes Diktat rückgängig / erneut einfügen | 🔜 | Recovery bei falschem Fokus; baut auf History |
-| Korrektur via Dienste-Menü | 🔜 | v3: falsches Wort markieren → Rechtsklick → Dienste → „Spitr: Ersetzung anlegen" → Wörterbuch-Regel ohne Settings-Umweg (NSServices + Mini-Popup) |
+| Schnell-Korrektur (Wörterbuch-Regel) | 🔜 | NSServices verworfen 2026-06-20: Dienste-Menü gibt es nur in nativen AppKit-Apps, NICHT in Electron/Chromium (VS Code, Claude Code, Browser) = Jareks Haupt-Workflow → kein Mehrwert. Falls je wieder: app-unabhängig über Spitrs History (Menü/Hotkey „letztes Diktat korrigieren"), nicht über die Ziel-App. |
 | Smart-Spacing beim Einfügen | 🔜 | autom. Leerzeichen/Doppel-Space-Vermeidung |
 | Toggle-/Lock-Aufnahmemodus | 🔜 | Tap-Start/Tap-Stopp; berührt „Mikro nur bei Taste"-Regel → Entscheidung offen |
 | Statistik (Wörter / Zeitersparnis) | 🔜 | rein lokal |
