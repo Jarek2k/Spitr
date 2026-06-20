@@ -9,6 +9,13 @@
 
 import SwiftUI
 
+/// Shared window metrics so every tab is the same size — otherwise the window
+/// height jumps when switching tabs.
+private enum SettingsLayout {
+    static let width: CGFloat = 460
+    static let height: CGFloat = 440
+}
+
 struct SettingsView: View {
     @ObservedObject var settings: SettingsStore
     @ObservedObject var history: HistoryStore
@@ -31,7 +38,7 @@ struct SettingsView: View {
             HistorySettingsView(history: history)
                 .tabItem { Label("Verlauf", systemImage: "clock.arrow.circlepath") }
         }
-        .frame(width: 460)
+        .frame(width: SettingsLayout.width, height: SettingsLayout.height)
     }
 }
 
@@ -112,6 +119,12 @@ private struct GeneralSettingsView: View {
                     }
                 }
 
+                if settings.hotkeyKeyCode == HotkeyConfig.function.keyCode {
+                    Text("Die fn-Taste wird nur von der MacBook-Tastatur erkannt, nicht von externen Tastaturen.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Picker("Wellenform", selection: $settings.waveformStyle) {
                     ForEach(WaveformStyle.allCases) { style in
                         Text(style.displayName).tag(style)
@@ -133,7 +146,6 @@ private struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .fixedSize(horizontal: false, vertical: true)
         .onAppear {
             inputDevices = AudioDeviceService.inputDevices()
             launchAtLogin = LaunchAtLogin.isEnabled
@@ -172,33 +184,121 @@ private struct CommandsSettingsView: View {
             }
             .listStyle(.inset)
         }
-        .frame(height: 360)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 private struct VocabularySettingsView: View {
     @ObservedObject var settings: SettingsStore
+    @State private var newTerm = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Eigennamen und Fachbegriffe — ein Begriff pro Zeile. Die Erkennung wird darauf vorbereitet, damit sie nicht verhört werden.")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Eigennamen und Fachbegriffe als **Hinweis** an die Erkennung — tippe einen Begriff und drücke Enter. Hilft oft, aber nicht garantiert. Trifft die Erkennung ein Wort nie, trag es im **Wörterbuch** als feste Ersetzung ein.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
-            TextEditor(text: $settings.vocabularyText)
-                .font(.body.monospaced())
-                .frame(minHeight: 240)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .strokeBorder(.quaternary)
-                )
+            TextField("Begriff hinzufügen …", text: $newTerm)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit(addTerm)
 
-            Text("Beispiel: Claude, Xcode, SwiftUI, Parnas")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            ScrollView {
+                if settings.vocabulary.isEmpty {
+                    Text("Beispiel: Claude, Xcode, SwiftUI, Parnas")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 4)
+                } else {
+                    FlowLayout(spacing: 6) {
+                        ForEach(settings.vocabulary, id: \.self) { term in
+                            VocabularyChip(term: term) { removeTerm(term) }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 2)
+                }
+            }
+            .frame(maxHeight: .infinity)
         }
-        .padding(16)
-        .frame(height: 360)
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func addTerm() {
+        let trimmed = newTerm.trimmingCharacters(in: .whitespaces)
+        newTerm = ""
+        guard !trimmed.isEmpty,
+              !settings.vocabulary.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame })
+        else { return }
+        settings.vocabularyText = (settings.vocabulary + [trimmed]).joined(separator: "\n")
+    }
+
+    private func removeTerm(_ term: String) {
+        settings.vocabularyText = settings.vocabulary
+            .filter { $0.caseInsensitiveCompare(term) != .orderedSame }
+            .joined(separator: "\n")
+    }
+}
+
+/// A vocabulary term rendered as a removable capsule.
+private struct VocabularyChip: View {
+    let term: String
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(term)
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .imageScale(.small)
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.borderless)
+            .help("Entfernen")
+        }
+        .padding(.leading, 10)
+        .padding(.trailing, 6)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(Color.secondary.opacity(0.15)))
+    }
+}
+
+/// Left-to-right wrapping layout for the vocabulary chips.
+private struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        arrange(subviews: subviews, maxWidth: proposal.width ?? .infinity).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        let positions = arrange(subviews: subviews, maxWidth: bounds.width).positions
+        for (index, position) in positions.enumerated() {
+            subviews[index].place(
+                at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y),
+                proposal: .unspecified
+            )
+        }
+    }
+
+    private func arrange(subviews: Subviews, maxWidth: CGFloat) -> (positions: [CGPoint], size: CGSize) {
+        var positions: [CGPoint] = []
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0, maxX: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > maxWidth && x > 0 {
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            positions.append(CGPoint(x: x, y: y))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+            maxX = max(maxX, x - spacing)
+        }
+        return (positions, CGSize(width: maxX, height: y + rowHeight))
     }
 }
 
@@ -207,14 +307,20 @@ private struct DictionarySettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Toggle("Wörterbuch anwenden", isOn: $dictionary.isEnabled)
-                Spacer()
-                Button {
-                    dictionary.add()
-                } label: {
-                    Label("Regel", systemImage: "plus")
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Toggle("Wörterbuch anwenden", isOn: $dictionary.isEnabled)
+                    Spacer()
+                    Button {
+                        dictionary.add()
+                    } label: {
+                        Label("Regel", systemImage: "plus")
+                    }
                 }
+                Text("Feste Ersetzung **nach** der Erkennung — der harte Weg, wenn ein Wort über das **Vokabular** nicht zuverlässig ankommt. Ganzes Wort, Groß-/Kleinschreibung egal.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(12)
 
@@ -228,15 +334,17 @@ private struct DictionarySettingsView: View {
                     .padding()
                 Spacer()
             } else {
-                List {
-                    HStack {
-                        Text("Erkannt").frame(maxWidth: .infinity, alignment: .leading)
-                        Text("Ersetzung").frame(maxWidth: .infinity, alignment: .leading)
-                        Spacer().frame(width: 24)
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack {
+                    Text("Erkannt").frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Ersetzung").frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer().frame(width: 24)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
 
+                List {
                     ForEach(dictionary.rules) { rule in
                         RuleRow(rule: rule, dictionary: dictionary)
                     }
@@ -244,7 +352,7 @@ private struct DictionarySettingsView: View {
                 .listStyle(.inset)
             }
         }
-        .frame(height: 360)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(dictionary.isEnabled ? 1 : 0.55)
     }
 }
@@ -278,6 +386,7 @@ private struct RuleRow: View {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
+            .help("Regel löschen")
         }
     }
 
@@ -316,28 +425,80 @@ private struct HistorySettingsView: View {
             } else {
                 List {
                     ForEach(history.entries) { entry in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(entry.text)
-                                .textSelection(.enabled)
-                                .lineLimit(4)
-                            Text(Self.timestamp.string(from: entry.date))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, 2)
-                        .contextMenu {
-                            Button("Kopieren") {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(entry.text, forType: .string)
-                            }
-                            Button("Löschen", role: .destructive) { history.delete(entry) }
-                        }
+                        HistoryRow(
+                            entry: entry,
+                            timestamp: Self.timestamp.string(from: entry.date),
+                            onDelete: { history.delete(entry) }
+                        )
                     }
                 }
                 .listStyle(.inset)
             }
         }
-        .frame(height: 360)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// One dictation entry. Copy/delete are revealed on hover (discoverable without
+/// a right-click) and mirrored in a context menu for keyboard/Power users.
+private struct HistoryRow: View {
+    let entry: HistoryStore.Entry
+    let timestamp: String
+    let onDelete: () -> Void
+
+    @State private var isHovering = false
+    @State private var justCopied = false
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.text)
+                    .textSelection(.enabled)
+                    .lineLimit(4)
+                Text(timestamp)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 8)
+
+            // Always in the layout so the text never reflows on hover — only the
+            // visibility toggles. Copy briefly turns into a checkmark (same width).
+            HStack(spacing: 2) {
+                Button(action: copy) {
+                    Image(systemName: justCopied ? "checkmark" : "doc.on.doc")
+                }
+                .help("Kopieren")
+                Button(role: .destructive, action: onDelete) {
+                    Image(systemName: "trash")
+                }
+                .help("Löschen")
+            }
+            .buttonStyle(.borderless)
+            .imageScale(.medium)
+            .opacity(isHovering || justCopied ? 1 : 0)
+            .allowsHitTesting(isHovering || justCopied)
+            .animation(.easeInOut(duration: 0.12), value: isHovering)
+            .animation(.easeInOut(duration: 0.12), value: justCopied)
+        }
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            isHovering = hovering
+        }
+        .contextMenu {
+            Button("Kopieren", action: copy)
+            Button("Löschen", role: .destructive, action: onDelete)
+        }
+    }
+
+    private func copy() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(entry.text, forType: .string)
+        justCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            justCopied = false
+        }
     }
 }
 
