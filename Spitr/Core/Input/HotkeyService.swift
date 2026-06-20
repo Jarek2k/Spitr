@@ -48,10 +48,18 @@ final class HotkeyService {
     /// instant — the gesture that turns dictation into a voice command.
     var onPress: ((_ commandMode: Bool) -> Void)?
     var onRelease: (() -> Void)?
+    /// Fires when Escape is pressed while the cancel watch is active (during a
+    /// recording), so the controller can discard it instead of transcribing.
+    var onCancel: (() -> Void)?
+
+    /// Escape (kVK_Escape) — the abort key while holding to talk.
+    private static let escapeKeyCode: UInt16 = 53
 
     private(set) var config: HotkeyConfig
     private var globalMonitor: Any?
     private var localMonitor: Any?
+    private var cancelGlobalMonitor: Any?
+    private var cancelLocalMonitor: Any?
     private var isHeld = false
     private let log = Logger(subsystem: "com.jarek.Spitr", category: "hotkey")
 
@@ -79,7 +87,32 @@ final class HotkeyService {
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
         globalMonitor = nil
         localMonitor = nil
+        endCancelWatch()
         isHeld = false
+    }
+
+    /// Starts watching for Escape, only while a recording is in flight. Installed
+    /// on demand (not always-on) so we don't observe every keystroke system-wide
+    /// outside of an active recording.
+    func beginCancelWatch() {
+        guard cancelGlobalMonitor == nil else { return }
+        cancelGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == Self.escapeKeyCode else { return }
+            self?.onCancel?()
+        }
+        // When Spitr itself is focused, also swallow the Escape so it doesn't ring.
+        cancelLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == Self.escapeKeyCode else { return event }
+            self?.onCancel?()
+            return nil
+        }
+    }
+
+    func endCancelWatch() {
+        if let cancelGlobalMonitor { NSEvent.removeMonitor(cancelGlobalMonitor) }
+        if let cancelLocalMonitor { NSEvent.removeMonitor(cancelLocalMonitor) }
+        cancelGlobalMonitor = nil
+        cancelLocalMonitor = nil
     }
 
     func update(config: HotkeyConfig) {

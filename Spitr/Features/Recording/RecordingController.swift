@@ -93,6 +93,7 @@ final class RecordingController: ObservableObject {
 
         hotkey.onPress = { [weak self] command in self?.startRecording(command: command) }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
+        hotkey.onCancel = { [weak self] in self?.cancelRecording() }
 
         // Chime the moment the mic is genuinely capturing, so the user knows when
         // to speak and doesn't clip the first word.
@@ -174,6 +175,9 @@ final class RecordingController: ObservableObject {
         guard !activated else { return }
         activated = true
         hotkey.start()
+        // Prewarm the engine at launch so the first dictation doesn't stall on a
+        // cold model load (later engine/model switches already prewarm via rebuild).
+        Task { try? await ensurePrepared() }
         refreshPermissions()
         overlay = OverlayController(controller: self)
         levelTask = Task { [weak self] in
@@ -223,14 +227,29 @@ final class RecordingController: ObservableObject {
             inputLevel = 0
             sessionID += 1
             state = .recording
+            // Listen for Escape so the user can abort this recording.
+            hotkey.beginCancelWatch()
         } catch {
             state = .error(error.localizedDescription)
             scheduleIdleReset()
         }
     }
 
+    /// Aborts the in-flight recording: discard the audio, transcribe nothing,
+    /// insert nothing. Triggered by Escape while holding the record key.
+    private func cancelRecording() {
+        guard state == .recording else { return }
+        hotkey.endCancelWatch()
+        _ = audio.stop()
+        inputLevel = 0
+        mode = .dictation
+        state = .idle
+        log.info("recording cancelled (Esc)")
+    }
+
     private func finishRecording() {
         guard state == .recording else { return }
+        hotkey.endCancelWatch()
         inputLevel = 0
         state = .transcribing
 
