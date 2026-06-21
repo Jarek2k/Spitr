@@ -61,6 +61,7 @@ final class AudioCaptureService: @unchecked Sendable {
     private var peakDb: Double = AudioCaptureService.initialPeakDb
 
     private var converter: AVAudioConverter?
+    private var converterInputFormat: AVAudioFormat?
     private var targetFormat: AVAudioFormat?
 
     /// 0…1 normalized RMS per processed block. Consumed by the overlay's waveform.
@@ -86,7 +87,6 @@ final class AudioCaptureService: @unchecked Sendable {
 
         let input = engine.inputNode
         applyPreferredDevice(to: input)
-        let inputFormat = input.outputFormat(forBus: 0)
 
         guard let target = AVAudioFormat(commonFormat: .pcmFormatFloat32,
                                          sampleRate: Self.targetSampleRate,
@@ -95,9 +95,16 @@ final class AudioCaptureService: @unchecked Sendable {
             throw AudioCaptureError.formatUnavailable
         }
         self.targetFormat = target
-        self.converter = AVAudioConverter(from: inputFormat, to: target)
+        // Build the converter lazily from the first tap buffer's *actual* format
+        // (see converter(for:)). Reading the node format here is unreliable right
+        // after pinning a device — a Bluetooth mic (HFP, 24 kHz) can report a
+        // stale rate, and installing the tap with a mismatched explicit format
+        // throws an uncatchable ObjC exception. format: nil lets AVAudioEngine use
+        // the node's real hardware format, so any sample rate works without a crash.
+        self.converter = nil
+        self.converterInputFormat = nil
 
-        input.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { [weak self] buffer, _ in
+        input.installTap(onBus: 0, bufferSize: 1024, format: nil) { [weak self] buffer, _ in
             self?.handleTap(buffer)
         }
 
@@ -117,6 +124,7 @@ final class AudioCaptureService: @unchecked Sendable {
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         converter = nil
+        converterInputFormat = nil
         targetFormat = nil
 
         lock.lock()
@@ -150,8 +158,20 @@ final class AudioCaptureService: @unchecked Sendable {
         }
     }
 
+    /// Returns a converter from the given hardware format to the 16 kHz target,
+    /// rebuilding it only when the input format actually changes (the tap delivers
+    /// the same format buffer after buffer, so this is built once per recording).
+    private func converter(for inputFormat: AVAudioFormat) -> AVAudioConverter? {
+        if let converter, converterInputFormat == inputFormat { return converter }
+        guard let targetFormat else { return nil }
+        let made = AVAudioConverter(from: inputFormat, to: targetFormat)
+        converter = made
+        converterInputFormat = inputFormat
+        return made
+    }
+
     private func handleTap(_ input: AVAudioPCMBuffer) {
-        guard let converter, let targetFormat else { return }
+        guard let targetFormat, let converter = converter(for: input.format) else { return }
 
         let ratio = targetFormat.sampleRate / input.format.sampleRate
         let capacity = AVAudioFrameCount(Double(input.frameLength) * ratio + 1024)
