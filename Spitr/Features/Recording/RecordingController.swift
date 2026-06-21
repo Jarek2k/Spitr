@@ -89,6 +89,24 @@ final class RecordingController: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var activated = false
 
+    /// True while the audio engine is in use for a capture (including the short
+    /// trailing tail after release). Gates a fresh recording so two captures
+    /// never fight over the single audio engine — *not* tied to `state`, so a
+    /// new press can record while the previous clip is still being transcribed.
+    private var isCapturing = false
+
+    /// One finished recording waiting to be (or being) transcribed.
+    private struct TranscriptionJob {
+        let buffer: AudioBuffer
+        let mode: Mode
+        let session: Int
+    }
+    /// Pending clips. Transcriptions run strictly one at a time (the engine isn't
+    /// re-entrant), but recording is decoupled from them — so holding the key
+    /// always starts a capture, even while an earlier clip is still transcribing.
+    private var transcriptionJobs: [TranscriptionJob] = []
+    private var draining = false
+
     /// The last non-Spitr app that was frontmost, so a menu-triggered re-insert
     /// can hand focus back to it before pasting (opening our menu takes focus).
     private var lastExternalApp: NSRunningApplication?
@@ -281,7 +299,9 @@ final class RecordingController: ObservableObject {
     // MARK: - Recording lifecycle
 
     private func startRecording(command: Bool = false) {
-        guard state == .idle else { return }
+        // Gate on the audio engine, not on `state`: we may still be transcribing
+        // the previous clip, but that mustn't swallow this press.
+        guard !isCapturing else { return }
         // While paused, ignore dictation — but command mode still works so the
         // user can say "weiter" to resume.
         guard command || !settings.isPaused else { return }
@@ -289,6 +309,7 @@ final class RecordingController: ObservableObject {
         commandFeedback = nil
         do {
             try audio.start()
+            isCapturing = true
             inputLevel = 0
             sessionID += 1
             state = .recording
@@ -306,9 +327,11 @@ final class RecordingController: ObservableObject {
         guard state == .recording else { return }
         hotkey.endCancelWatch()
         _ = audio.stop()
+        isCapturing = false
         inputLevel = 0
         mode = .dictation
-        state = .idle
+        // Don't drop to idle if earlier clips are still queued/transcribing.
+        state = (draining || !transcriptionJobs.isEmpty) ? .transcribing : .idle
         log.info("recording cancelled (Esc)")
     }
 
@@ -317,38 +340,74 @@ final class RecordingController: ObservableObject {
         hotkey.endCancelWatch()
         inputLevel = 0
         state = .transcribing
+        let session = sessionID
+        let jobMode = mode
 
         Task {
             // Keep capturing briefly so trailing audio (input latency) isn't
             // clipped when the key is released right after the last word.
             try? await Task.sleep(for: .milliseconds(180))
             let buffer = audio.stop()
+            // Audio engine is free again — a new press can start recording now,
+            // even while this clip transcribes.
+            isCapturing = false
             log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
+            enqueueTranscription(TranscriptionJob(buffer: buffer, mode: jobMode, session: session))
+        }
+    }
+
+    /// Adds a finished clip to the serial transcription queue and kicks the
+    /// worker. Recording and transcription are decoupled: many clips may be
+    /// queued, but only one is transcribed at a time.
+    private func enqueueTranscription(_ job: TranscriptionJob) {
+        transcriptionJobs.append(job)
+        drainTranscriptions()
+    }
+
+    /// Transcribes queued clips one at a time. Never touches `state` while a new
+    /// recording is in flight, so finishing an old clip can't hide the overlay of
+    /// a recording the user just started.
+    private func drainTranscriptions() {
+        guard !draining, !transcriptionJobs.isEmpty else { return }
+        draining = true
+        let job = transcriptionJobs.removeFirst()
+
+        Task {
             do {
                 try await ensurePrepared()
-                let text = try await engine.transcribe(buffer, locale: settings.locale, vocabulary: settings.vocabulary)
-                if mode == .command {
+                let text = try await engine.transcribe(job.buffer, locale: settings.locale, vocabulary: settings.vocabulary)
+                if job.mode == .command {
                     handleCommand(text)
-                    state = .idle
-                    return
-                }
-                let corrected = replacement.apply(dictionary.activeRules, to: text)
-                let trimmed = corrected.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmed.isEmpty {
-                    insertion.insert(trimmed)
-                    history.record(trimmed)
-                    lastInsertedText = trimmed
-                    if settings.playDoneChime { feedback.playDone() }
-                    log.info("inserted transcript (\(trimmed.count) chars)")
                 } else {
-                    log.warning("empty transcript, nothing inserted")
+                    let corrected = replacement.apply(dictionary.activeRules, to: text)
+                    let trimmed = corrected.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty {
+                        insertion.insert(trimmed)
+                        history.record(trimmed)
+                        lastInsertedText = trimmed
+                        if settings.playDoneChime { feedback.playDone() }
+                        log.info("inserted transcript (\(trimmed.count) chars)")
+                    } else {
+                        log.warning("empty transcript, nothing inserted")
+                    }
                 }
-                state = .idle
             } catch {
                 log.error("transcription failed: \(error.localizedDescription, privacy: .public)")
-                state = .error(error.localizedDescription)
-                scheduleIdleReset()
+                // Only surface the error if nothing else is going on, so it can't
+                // stomp on a fresh recording or pending clips.
+                if state != .recording, transcriptionJobs.isEmpty {
+                    state = .error(error.localizedDescription)
+                    scheduleIdleReset()
+                }
             }
+
+            draining = false
+            // Settle to idle only when the queue is drained and the user isn't
+            // recording or showing an error.
+            if transcriptionJobs.isEmpty, state == .transcribing {
+                state = .idle
+            }
+            drainTranscriptions()
         }
     }
 
