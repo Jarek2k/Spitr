@@ -36,7 +36,9 @@ final class AudioCaptureService: @unchecked Sendable {
     /// drive the meter to full scale when nothing loud has happened.
     static let minRangeDb: Double = 15
 
-    private let engine = AVAudioEngine()
+    /// Recreated per recording (see start()), so no tap/format/device state
+    /// carries over between sessions.
+    private var engine = AVAudioEngine()
 
     /// UID of the microphone to capture from. Empty/nil → system default input.
     /// Set by RecordingController from Settings; applied on the next start().
@@ -79,6 +81,13 @@ final class AudioCaptureService: @unchecked Sendable {
     func start() throws {
         guard !engine.isRunning else { return }
 
+        // Start from a clean engine every time. A reused engine accumulates state
+        // across device switches — most damagingly a tap that survives the engine
+        // stopping itself after a HAL error (Bluetooth/USB mic), which then makes
+        // the next installTap crash with "nullptr == Tap()". A fresh instance has
+        // no tap, no stale format, and re-applies the device pin below.
+        engine = AVAudioEngine()
+
         lock.lock()
         samples.removeAll(keepingCapacity: true)
         didSignalStart = false
@@ -104,6 +113,10 @@ final class AudioCaptureService: @unchecked Sendable {
         self.converter = nil
         self.converterInputFormat = nil
 
+        // Defensive: never install over an existing tap (that throws an
+        // uncatchable ObjC exception). A fresh engine has none, but this also
+        // covers any reuse path.
+        input.removeTap(onBus: 0)
         input.installTap(onBus: 0, bufferSize: 1024, format: nil) { [weak self] buffer, _ in
             self?.handleTap(buffer)
         }
