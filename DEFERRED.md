@@ -71,11 +71,13 @@ machen, sondern in einer dedizierten Polish-Runde.
   KITT) laufen technisch sauber (auch der Metal-Shader, kein Stitching-Crash), aber
   keiner überzeugt Jarek ästhetisch ganz. In der Polish-Runde entscheiden: welcher wird
   Default, welche werden nachpoliert, welche evtl. entfernt. (Favorit noch offen.)
-- **App-Menü (Apple-/Spitr-Menü) eindeutschen.** *(2026-06-21 weitgehend erledigt.)*
-  Das eigene Menüleisten-Popover ist durchgängig deutsch („Spitr beenden", „Spitr-Hilfe").
-  Das Standard-AppKit-App-Menü (oben, nur sichtbar solange ein Fenster offen ist) wird
-  vom System nach der macOS-Sprache lokalisiert — bei deutschem System deutsch. Offen
-  nur noch, falls einzelne verbleibende Standard-Einträge gezielt umbenannt werden sollen.
+- ~~**App-Menü (Apple-/Spitr-Menü) eindeutschen.**~~ *(2026-06-21 erledigt.)* Das eigene
+  Popover war schon deutsch. Das Standard-AppKit-App-Menü (Bearbeiten/Fenster/Hilfe,
+  Ausblenden/Beenden) blieb englisch, weil die App nur `en` als Bundle-Sprache deklarierte.
+  Fix: `Localizable.xcstrings` mit deutscher Lokalisierung + `de` in `knownRegions` → macOS
+  rendert die eingebauten Menü-Strings jetzt in der Systemsprache (deutsch auf deutschem
+  System, englisch auf englischem). Eigene UI bleibt hart deutsch — echte Volllokalisierung
+  (alle App-Strings übersetzbar) wäre ein eigenes Thema.
 - ~~**Menü ausdünnen.**~~ *(2026-06-21 erledigt.)* „Dienste"-Untermenü via
   `CommandGroup(replacing: .systemServices) {}` entfernt, totes Standard-Hilfe-Item durch
   eigene „Spitr-Hilfe" ersetzt. Menüleisten-Popover auf Sinnvolles reduziert.
