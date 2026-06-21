@@ -115,20 +115,25 @@ final class AudioCaptureService: @unchecked Sendable {
             throw AudioCaptureError.formatUnavailable
         }
         self.targetFormat = target
-        // Build the converter lazily from the first tap buffer's *actual* format
-        // (see converter(for:)). Reading the node format here is unreliable right
-        // after pinning a device — a Bluetooth mic (HFP, 24 kHz) can report a
-        // stale rate, and installing the tap with a mismatched explicit format
-        // throws an uncatchable ObjC exception. format: nil lets AVAudioEngine use
-        // the node's real hardware format, so any sample rate works without a crash.
+        // Build the converter lazily from the first tap buffer's actual format
+        // (see converter(for:)), so any input rate downsamples to 16 kHz.
         self.converter = nil
         self.converterInputFormat = nil
+
+        // Tap with the node's *input* (hardware) format, not nil. nil uses the
+        // node's output format, which after pinning a device can stay stale at the
+        // default rate (e.g. 48 kHz) while the real hardware is 24 kHz (Bluetooth
+        // HFP). The engine then can't reconcile the graph ("formats don't match")
+        // and captures nothing. inputFormat(forBus:) reports the true hardware
+        // format, so the tap always matches what the device delivers.
+        let hwFormat = input.inputFormat(forBus: 0)
+        let tapFormat = (hwFormat.sampleRate > 0 && hwFormat.channelCount > 0) ? hwFormat : nil
 
         // Defensive: never install over an existing tap (that throws an
         // uncatchable ObjC exception). A fresh engine has none, but this also
         // covers any reuse path.
         input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: nil) { [weak self] buffer, _ in
+        input.installTap(onBus: 0, bufferSize: 1024, format: tapFormat) { [weak self] buffer, _ in
             self?.handleTap(buffer)
         }
 
