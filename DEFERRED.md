@@ -7,6 +7,30 @@ das wir schon gebaut hatten oder das an einer Plattform-Grenze hängt.
 
 ---
 
+## Bluetooth-Mikrofon (AirPods) als Eingang
+
+**Wunsch:** AirPods o. ä. als Aufnahme-Mikro wählen können.
+
+**Status:** am 2026-06-21 als **nicht unterstützt** zurückgestellt. Eingebautes Mikro und
+USB-Mikros (Yeti verifiziert) funktionieren; AirPods nicht.
+
+**Warum:** Die App pinnt das gewählte Gerät via `kAudioOutputUnitProperty_CurrentDevice`
+auf den `AVAudioEngine.inputNode`. Bei AirPods (Bluetooth HFP/SCO) startet der
+Eingangsstream auf HAL-Ebene nicht: `HALC_ProxyIOContext::_StartIO … error 35` (EAGAIN),
+„captured 0 samples". Die früher vermutete Format-Ursache (24 kHz HW vs 48 kHz Tap) ist
+gefixt (Tap nutzt jetzt `input.inputFormat(forBus:)`) — der verbleibende Block ist das
+SCO-Link-Setup, ein bekanntes macOS-Problem beim Pinnen von BT-Eingängen über AVAudioEngine.
+Geringer Nutzen, da AirPods-Mikro ohnehin nur HFP-„Telefonqualität" liefert.
+
+### Lösungswege für später
+- Retry-Logik: `engine.start()` bei `error 35` ein paar Mal mit kurzer Verzögerung
+  wiederholen, bis der SCO-Link steht (erhöht Latenz beim ersten BT-Diktat).
+- Alternativ Aufnahme über `AVCaptureSession`/`AVCaptureDevice` statt AVAudioEngine —
+  wählt das Gerät zuverlässiger, aber größerer Umbau.
+- Reaktivierung neu bewerten, falls AirPods je gebraucht werden.
+
+---
+
 ## Medien-Pause während der Aufnahme
 
 **Wunsch:** Beim Aufnehmen laufende Wiedergabe (Spotify, Apple Music, YouTube)

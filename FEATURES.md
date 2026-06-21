@@ -46,7 +46,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | WhisperKit-Modellwahl | ✅ | base / small / large-v3; Modell wird beim Umschalten vorgewärmt (alle drei verifiziert; große Modelle brachten für DE keinen Vorteil). large-v3-turbo entfernt: löste in WhisperKits Repo nicht auf → jede Transkription schlug fehl | Modell (Allgemein) |
 | Sprachauswahl | ✅ | Erkennungssprache (DE/EN/…) | Sprache (Allgemein) |
 | Konfigurierbare Aufnahme-Taste | ✅ | Hold-to-Talk-Taste umschaltbar (⌥/⌃; fn nur MacBook-Tastatur), persistiert | Aufnahme-Taste (Allgemein) |
-| Mikrofon-Auswahl | ✅ | Eingabegerät wählbar; Systemstandard + Fallback | Mikrofon (Allgemein) |
+| Mikrofon-Auswahl | ✅ | Eingabegerät wählbar; Systemstandard + Fallback. Eingebautes + USB-Mikros (z. B. Yeti) verifiziert; **Bluetooth-Mikros (AirPods) als Eingang nicht unterstützt** (macOS-HFP/SCO startet nicht zuverlässig — siehe DEFERRED) | Mikrofon (Allgemein) |
 | Beim Anmelden starten | ✅ | Autostart bei Login | Toggle (Allgemein) |
 | Custom Vocabulary | ✅ | Eigennamen/Fachbegriffe als Bias (hilft oft, nicht garantiert — Engine-Grenze) | Vokabular-Tab |
 | Personal Dictionary | ✅ | Wort-Ersetzungen nach der Erkennung (Erkannt → Ersetzung); abschaltbar, default aus | Wörterbuch-Tab |
