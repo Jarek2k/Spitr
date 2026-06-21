@@ -1,0 +1,17 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Spitr" : {
+      "comment" : "App name. Present so the catalog ships a German localization, which makes AppKit render its built-in standard menus (Edit, Window, Help, Hide, Quit, …) in German when macOS runs in German. The value is identical in both languages, so it has no visible effect on our own UI.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
