@@ -10,6 +10,8 @@ import SwiftUI
 
 struct MenuContentView: View {
     @ObservedObject var controller: RecordingController
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var escFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -79,7 +81,22 @@ struct MenuContentView: View {
         }
         .padding(.vertical, 6)
         .frame(width: 260)
-        .onAppear { controller.refreshPermissions() }
+        // Esc closes the popover. The menu-bar popover runs outside the normal
+        // app event chain, so a global monitor never sees the key; we catch it
+        // inside the view. The popover doesn't take keyboard focus until clicked,
+        // so we activate the app and grab focus on appear — without that, Esc
+        // only works after a first click. focusEffectDisabled hides the ring.
+        .focusable()
+        .focusEffectDisabled()
+        .focused($escFocused)
+        .onKeyPress(.escape) { dismiss(); return .handled }
+        .onAppear {
+            controller.refreshPermissions()
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                escFocused = true
+            }
+        }
     }
 
     /// Brings the SwiftUI settings window to the front. It opens hidden because

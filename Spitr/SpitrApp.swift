@@ -123,8 +123,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
+        installHelpShortcutMonitor()
+        installEscCloseMonitor()
+
         if !settings.hasCompletedOnboarding {
             showOnboarding()
+        }
+    }
+
+    private var helpShortcutMonitor: Any?
+    private var escCloseMonitor: Any?
+
+    /// macOS reserves Cmd-? (Cmd-Shift-/) for the Help menu's search field, so a
+    /// plain `.keyboardShortcut("?")` on our menu item never fires — the search
+    /// field swallows it first. We intercept the key down before AppKit routes
+    /// it to Help and open our own guide instead. Layout-robust: matches the
+    /// "?" character however the keyboard produces it.
+    private func installHelpShortcutMonitor() {
+        helpShortcutMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.modifierFlags.contains(.command) else { return event }
+            if event.characters == "?" || event.charactersIgnoringModifiers == "?" {
+                self?.handleShowHelp()
+                return nil // swallow so macOS doesn't open its Help search field
+            }
+            return event
+        }
+    }
+
+    /// Lets Esc close any of our own windows (onboarding, help, settings), which
+    /// AppKit doesn't do for plain titled windows. Scoped to our windows so Esc
+    /// keeps its normal meaning everywhere else.
+    private func installEscCloseMonitor() {
+        escCloseMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return event }
+            guard event.keyCode == 53, // Esc
+                  event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty,
+                  let window = NSApp.keyWindow,
+                  window == self.onboardingWindow || window == self.helpWindow || Self.isSettingsWindow(window)
+            else { return event }
+            window.performClose(nil)
+            return nil
         }
     }
 
