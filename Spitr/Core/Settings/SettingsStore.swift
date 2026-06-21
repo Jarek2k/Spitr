@@ -10,6 +10,12 @@
 import Foundation
 import Combine
 
+/// The Settings window's tabs. Lives here so non-UI code (the controller) can
+/// request a specific tab when opening Settings.
+enum SettingsTab: String, CaseIterable {
+    case general, vocabulary, dictionary, commands, history
+}
+
 @MainActor
 final class SettingsStore: ObservableObject {
 
@@ -73,6 +79,12 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(playReadyChime, forKey: Keys.readyChime) }
     }
 
+    /// Play a short chime once the transcript has been inserted, so the wait
+    /// during transcription has an audible end.
+    @Published var playDoneChime: Bool {
+        didSet { defaults.set(playDoneChime, forKey: Keys.doneChime) }
+    }
+
     /// Normalize spacing on insert and add a leading space when the text would
     /// otherwise stick to the preceding word.
     @Published var smartSpacing: Bool {
@@ -89,6 +101,14 @@ final class SettingsStore: ObservableObject {
     /// resumed. Command mode still works, so it can be toggled by voice.
     @Published var isPaused: Bool = false
 
+    /// Transient: which tab the Settings window shows. Set before opening Settings
+    /// (e.g. from the menu's "correct last dictation") so it lands on the right tab.
+    @Published var requestedTab: SettingsTab = .general
+
+    /// Transient: a history entry id the Verlauf tab should start correcting once
+    /// it appears. Consumed (cleared) by the view after presenting the sheet.
+    @Published var pendingCorrectionID: UUID?
+
     var locale: Locale { Locale(identifier: localeIdentifier) }
 
     private let defaults: UserDefaults
@@ -103,6 +123,7 @@ final class SettingsStore: ObservableObject {
         static let waveform = "waveformStyle"
         static let vocabulary = "vocabularyText"
         static let readyChime = "playReadyChime"
+        static let doneChime = "playDoneChime"
         static let reinsert = "reinsertShortcut"
         static let smartSpacing = "smartSpacing"
     }
@@ -121,6 +142,7 @@ final class SettingsStore: ObservableObject {
         self.inputDeviceUID = defaults.string(forKey: Keys.inputDevice) ?? ""
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
+        self.playDoneChime = defaults.object(forKey: Keys.doneChime) as? Bool ?? true
         self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true
         let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.bars.rawValue
         self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .bars

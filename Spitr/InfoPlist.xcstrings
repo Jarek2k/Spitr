@@ -1,88 +1,112 @@
 {
-  "sourceLanguage": "de",
-  "strings": {
-    "NSMicrophoneUsageDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr nimmt nur auf, solange du die Aufnahmetaste hältst."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr records only while you hold the recording key."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr n'enregistre que tant que tu maintiens la touche d'enregistrement."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr solo graba mientras mantienes la tecla de grabación."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr registra solo mentre tieni premuto il tasto di registrazione."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr nagrywa tylko, gdy trzymasz klawisz nagrywania."
+  "sourceLanguage" : "de",
+  "strings" : {
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spitr"
           }
         }
       }
     },
-    "NSSpeechRecognitionUsageDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr wandelt deine Aufnahme on-device in Text um."
+    "NSHumanReadableCopyright" : {
+      "comment" : "Copyright (human-readable)",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Copyright © 2026 Jarek. Alle Rechte vorbehalten."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr nimmt nur auf, solange du die Aufnahmetaste hältst."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr converts your recording to text on-device."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr records only while you hold the recording key."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr convertit ton enregistrement en texte sur l'appareil."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr solo graba mientras mantienes la tecla de grabación."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr convierte tu grabación en texto en el dispositivo."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr n'enregistre que tant que tu maintiens la touche d'enregistrement."
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr converte la tua registrazione in testo on-device."
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr registra solo mentre tieni premuto il tasto di registrazione."
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spitr zamienia nagranie na tekst na urządzeniu."
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr nagrywa tylko, gdy trzymasz klawisz nagrywania."
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr wandelt deine Aufnahme on-device in Text um."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr converts your recording to text on-device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr convierte tu grabación en texto en el dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr convertit ton enregistrement en texte sur l'appareil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr converte la tua registrazione in testo on-device."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spitr zamienia nagranie na tekst na urządzeniu."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

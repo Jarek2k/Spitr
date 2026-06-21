@@ -60,6 +60,24 @@ struct HistoryStoreTests {
         #expect(h.entries.map(\.text) == ["b"])
     }
 
+    @Test func updateChangesTextKeepingIdentity() {
+        let h = HistoryStore(defaults: makeDefaults())
+        h.record("Klode")
+        let original = h.entries.first!
+        h.update(original, newText: "  Claude  ")
+        let updated = h.entries.first!
+        #expect(updated.text == "Claude")      // trimmed
+        #expect(updated.id == original.id)      // same entry
+        #expect(updated.date == original.date)
+    }
+
+    @Test func updateIgnoresEmptyText() {
+        let h = HistoryStore(defaults: makeDefaults())
+        h.record("bleibt")
+        h.update(h.entries.first!, newText: "   ")
+        #expect(h.entries.first?.text == "bleibt")
+    }
+
     @Test func clearEmptiesEverything() {
         let h = HistoryStore(defaults: makeDefaults())
         h.record("a"); h.record("b")

@@ -32,6 +32,28 @@ struct DictionaryStoreTests {
         #expect(d.rules[0].id == id)
     }
 
+    @Test func addPopulatedAppendsTrimmedRule() {
+        let d = DictionaryStore(defaults: makeDefaults())
+        d.add(pattern: "  Klode ", replacement: " Claude ")
+        #expect(d.rules.count == 1)
+        #expect(d.rules[0].pattern == "Klode")
+        #expect(d.rules[0].replacement == "Claude")
+    }
+
+    @Test func addPopulatedUpdatesExistingPatternCaseInsensitively() {
+        let d = DictionaryStore(defaults: makeDefaults())
+        d.add(pattern: "klode", replacement: "Claude")
+        d.add(pattern: "KLODE", replacement: "Cloud")
+        #expect(d.rules.count == 1)               // upsert, no duplicate
+        #expect(d.rules[0].replacement == "Cloud")
+    }
+
+    @Test func addPopulatedIgnoresEmptyPattern() {
+        let d = DictionaryStore(defaults: makeDefaults())
+        d.add(pattern: "   ", replacement: "x")
+        #expect(d.rules.isEmpty)
+    }
+
     @Test func deleteRemovesRule() {
         let d = DictionaryStore(defaults: makeDefaults())
         d.add(); d.add()

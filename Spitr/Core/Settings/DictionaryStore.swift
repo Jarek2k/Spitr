@@ -42,6 +42,21 @@ final class DictionaryStore: ObservableObject {
         persist()
     }
 
+    /// Adds (or updates) a populated rule — used by the history correction flow
+    /// to turn a fix into a permanent replacement. Matching an existing pattern
+    /// (case-insensitively) updates it in place rather than adding a duplicate.
+    func add(pattern: String, replacement: String) {
+        let p = pattern.trimmingCharacters(in: .whitespaces)
+        let r = replacement.trimmingCharacters(in: .whitespaces)
+        guard !p.isEmpty else { return }
+        if let idx = rules.firstIndex(where: { $0.pattern.caseInsensitiveCompare(p) == .orderedSame }) {
+            rules[idx] = ReplacementRule(id: rules[idx].id, pattern: p, replacement: r)
+        } else {
+            rules.append(ReplacementRule(pattern: p, replacement: r))
+        }
+        persist()
+    }
+
     func update(_ rule: ReplacementRule) {
         guard let idx = rules.firstIndex(where: { $0.id == rule.id }) else { return }
         rules[idx] = rule

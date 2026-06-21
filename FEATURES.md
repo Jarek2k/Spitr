@@ -6,7 +6,7 @@ relevante Einstellung). Reihenfolge grob nach Nutzer-Reise.
 
 Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relevant · 🔜 geplant
 
-## Kern (Diktat-Durchstich)
+## Kern (Spracheingabe-Durchstich)
 
 | Feature | Status | Nutzer-Sicht | Einstellung |
 |---|---|---|---|
@@ -15,7 +15,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | Apple-Speech-Engine | ✅ | Standard-Engine, kein Download | Engine = Apple Speech |
 | WhisperKit-Engine | ✅ | Alternative Engine, lädt Modell einmalig, beste DE-Genauigkeit | Engine = WhisperKit, Modell |
 | Aufnahme abbrechen (Esc) | ✅ | Esc während die Aufnahmetaste gehalten wird → nichts wird transkribiert/eingefügt; gegen Versprecher | — |
-| Engine-Prewarm beim Start | ✅ | Modell wird beim App-Start im Hintergrund geladen, damit das erste Diktat nicht auf den Kaltstart wartet | — |
+| Engine-Prewarm beim Start | ✅ | Modell wird beim App-Start im Hintergrund geladen, damit die erste Spracheingabe nicht auf den Kaltstart wartet | — |
 | Text-Insertion mit Clipboard-Restore | ✅ | Einfügen via Cmd+V; Zwischenablage wird vorher gesichert und danach wiederhergestellt | — |
 | Intelligente Leerzeichen | ✅ | Fasst doppelte Leerzeichen zusammen + setzt bei Bedarf ein Leerzeichen vor den Text (Kontext via Accessibility; entfällt in Electron); abschaltbar | Toggle (Allgemein) |
 | AppleScript-Fallback (Nicht-QWERTY) | ➖ | Sonderfall für Nicht-QWERTY-Layouts (Dvorak/AZERTY); bei QWERTZ nie aktiv → für Jareks Setup nicht relevant, nicht weiter verfolgt | — |
@@ -35,6 +35,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | Mehrsprachige Oberfläche | ✅ | Komplette App **und** Standard-macOS-Menüs folgen der Systemsprache: Deutsch, Englisch, Französisch, Spanisch, Italienisch, Polnisch (Quellsprache DE, Fallback EN). Per-App-Sprache via macOS-Override möglich. Übersetzungen aus `Scripts/gen_localization.py`, abgesichert durch Tests gegen vergessene Strings | — |
 | Aufgeräumtes App-Menü | ✅ | „Dienste"-Untermenü entfernt (Spitr bietet keine an); App-Menü auf Sinnvolles reduziert | — |
 | Ton bei Aufnahmebereitschaft | ✅ | Kurzer Ton, sobald das Mikro wirklich aufnimmt (erster echter Buffer) — verhindert verlorenes erstes Wort; abschaltbar | Toggle (Allgemein) |
+| Ton bei Aufnahme-Ende | 🧪 | Kurzer abgesetzter Ton (zwei absteigende Noten), sobald der Text eingefügt wurde — markiert das Ende der Umwandlung, hilft bei langsameren Engines; eigener, separat abschaltbarer Toggle | Toggle (Allgemein) |
 
 ## Konfiguration
 
@@ -49,10 +50,11 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | Beim Anmelden starten | ✅ | Autostart bei Login | Toggle (Allgemein) |
 | Custom Vocabulary | ✅ | Eigennamen/Fachbegriffe als Bias (hilft oft, nicht garantiert — Engine-Grenze) | Vokabular-Tab |
 | Personal Dictionary | ✅ | Wort-Ersetzungen nach der Erkennung (Erkannt → Ersetzung); abschaltbar, default aus | Wörterbuch-Tab |
-| Diktat-History | ✅ | Lokale, löschbare Liste der letzten Transkripte; Hover-Aktionen; abschaltbar | Verlauf-Tab |
-| Letztes Diktat erneut einfügen | ✅ | Globaler Hotkey (Standard ⌃⌥⌘V, in Einstellungen frei belegbar) + Menü-Aktion: letztes Diktat erneut ins fokussierte Feld einfügen (Rettung bei falschem Fokus); auch bei ausgeschalteter History | Erneut-einfügen-Kürzel (Allgemein) / Menü |
+| Spracheingabe-Verlauf | ✅ | Lokale, löschbare Liste der letzten Transkripte; Hover-Aktionen; abschaltbar | Verlauf-Tab |
+| Spracheingabe-Korrektur | 🧪 | Falsch erkanntes Wort fix zur Wörterbuch-Regel machen (Verlauf-Tab Hover/Kontextmenü oder Menü „Letzte Spracheingabe korrigieren…"): falsches Wort antippen → Ersetzung eingeben → „Regel sichern". Wörterbuch wird dabei aktiviert, der betroffene Eintrag gleich mit korrigiert; die Regel gilt künftig automatisch. App-unabhängig über den Verlauf — funktioniert auch dort, wo ein Dienste-Menü nicht greift (Electron) | Verlauf-Tab / Menü |
+| Letzte Spracheingabe erneut einfügen | ✅ | Globaler Hotkey (Standard ⌃⌥⌘V, in Einstellungen frei belegbar) + Menü-Aktion: letzte Spracheingabe erneut ins fokussierte Feld einfügen (Rettung bei falschem Fokus); auch bei ausgeschaltetem Verlauf | Erneut-einfügen-Kürzel (Allgemein) / Menü |
 | Sprachbefehl-Modus | ✅ | Aufnahme-Taste **+ ⇧** → Gesprochenes wird als Befehl ausgeführt statt eingefügt | Befehle-Tab (Liste) |
-| Pausieren | ✅ | Diktat pausieren/fortsetzen (Menü oder Sprachbefehl »pause«/»weiter«) | Menü |
+| Pausieren | ✅ | Spracheingabe pausieren/fortsetzen (Menü oder Sprachbefehl »pause«/»weiter«) | Menü |
 
 ## Datenschutz & Onboarding
 
@@ -64,9 +66,5 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 
 ## Geplant (Auswahl)
 
-| Feature | Status | Notiz |
-|---|---|---|
-| Schnell-Korrektur (Wörterbuch-Regel) | 🔜 | NSServices verworfen 2026-06-20: Dienste-Menü gibt es nur in nativen AppKit-Apps, NICHT in Electron/Chromium (VS Code, Claude Code, Browser) = Jareks Haupt-Workflow → kein Mehrwert. Falls je wieder: app-unabhängig über Spitrs History (Menü/Hotkey „letztes Diktat korrigieren"), nicht über die Ziel-App. |
-| VAD / Stille-Trimmer | 🔜 | v3, regelkonform (nur aufgenommenes Audio trimmen) |
-| Audio-Feedback: Stop-/Fertig-Sound | 🔜 | Ready-Ton ist da; optionaler Ton bei Aufnahme-Ende/Einfügen noch offen |
-| Lokales LLM-Cleanup | 🔜 | v3, optional/abschaltbar |
+Aktuell keine offenen MVP-Features mehr eingeplant. Zurückgestellte/geparkte
+Punkte (Medien-Pause, UI-Polish) stehen in [DEFERRED.md](DEFERRED.md).

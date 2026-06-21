@@ -44,7 +44,7 @@ struct MenuContentView: View {
 
                 MenuButton { controller.reinsertLast() } label: { hl in
                     HStack {
-                        Text("Letztes Diktat erneut einfügen")
+                        Text("Letzte Spracheingabe erneut einfügen")
                         Spacer()
                         Text(controller.reinsertShortcutLabel)
                             .foregroundStyle(hl ? Color.white.opacity(0.7) : Color.secondary)
@@ -52,7 +52,23 @@ struct MenuContentView: View {
                     .foregroundStyle(hl ? Color.white : Color.primary)
                 }
                 .disabled(controller.lastInsertedText == nil)
-                .help("Fügt das zuletzt erkannte Diktat erneut ins fokussierte Feld ein — z. B. wenn der Fokus vorher falsch war. Geht überall per \(controller.reinsertShortcutLabel).")
+                .help("Fügt die zuletzt erkannte Spracheingabe erneut ins fokussierte Feld ein — z. B. wenn der Fokus vorher falsch war. Geht überall per \(controller.reinsertShortcutLabel).")
+
+                if controller.canCorrectHistory {
+                    // Opens Settings on the Verlauf tab and starts correcting the
+                    // newest dictation — app-independent (works where a Services
+                    // menu wouldn't, e.g. Electron apps).
+                    SettingsLink {
+                        Text("Letzte Spracheingabe korrigieren…")
+                    }
+                    .buttonStyle(.plain)
+                    .modifier(MenuRowStyle())
+                    .simultaneousGesture(TapGesture().onEnded {
+                        controller.beginCorrectLastDictation()
+                        surfaceSettingsWindow()
+                    })
+                    .help("Letzte Spracheingabe ausbessern und die Korrektur optional als feste Wörterbuch-Regel sichern.")
+                }
 
                 MenuButton {
                     NotificationCenter.default.post(name: .showOnboarding, object: nil)

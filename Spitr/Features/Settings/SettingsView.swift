@@ -22,21 +22,27 @@ struct SettingsView: View {
     @ObservedObject var dictionary: DictionaryStore
 
     var body: some View {
-        TabView {
+        TabView(selection: $settings.requestedTab) {
             GeneralSettingsView(settings: settings)
                 .tabItem { Label("Allgemein", systemImage: "gearshape") }
+                .tag(SettingsTab.general)
 
             VocabularySettingsView(settings: settings)
                 .tabItem { Label("Vokabular", systemImage: "text.word.spacing") }
+                .tag(SettingsTab.vocabulary)
 
             DictionarySettingsView(dictionary: dictionary)
                 .tabItem { Label("Wörterbuch", systemImage: "character.book.closed") }
+                .tag(SettingsTab.dictionary)
 
             CommandsSettingsView(settings: settings, history: history, dictionary: dictionary)
                 .tabItem { Label("Befehle", systemImage: "command") }
+                .tag(SettingsTab.commands)
 
-            HistorySettingsView(history: history)
+            HistorySettingsView(history: history, dictionary: dictionary,
+                                pendingCorrectionID: $settings.pendingCorrectionID)
                 .tabItem { Label("Verlauf", systemImage: "clock.arrow.circlepath") }
+                .tag(SettingsTab.history)
         }
         .frame(width: SettingsLayout.width, height: SettingsLayout.height)
     }
@@ -138,8 +144,9 @@ private struct GeneralSettingsView: View {
 
             Section {
                 Toggle("Ton bei Aufnahmebereitschaft", isOn: $settings.playReadyChime)
+                Toggle("Ton bei Aufnahme-Ende", isOn: $settings.playDoneChime)
             } footer: {
-                Text("Kurzer Ton, sobald das Mikro wirklich aufnimmt — so verlierst du das erste Wort nicht.")
+                Text("Kurze Töne, wenn das Mikro wirklich aufnimmt (Beginn) und wenn der Text eingefügt wurde (Ende) — so verlierst du das erste Wort nicht und weißt, wann die Umwandlung fertig ist.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -157,7 +164,7 @@ private struct GeneralSettingsView: View {
                     ShortcutRecorderField(combo: $settings.reinsertShortcut)
                 }
             } footer: {
-                Text("Globaler Kurzbefehl, der das letzte Diktat erneut ins fokussierte Feld einfügt. Mindestens ein ⌘/⌃/⌥ nötig.")
+                Text("Globaler Kurzbefehl, der die letzte Spracheingabe erneut ins fokussierte Feld einfügt. Mindestens ein ⌘/⌃/⌥ nötig.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -398,6 +405,11 @@ private struct RuleRow: View {
 
 private struct HistorySettingsView: View {
     @ObservedObject var history: HistoryStore
+    @ObservedObject var dictionary: DictionaryStore
+    /// Set from outside (menu → "correct last dictation") to auto-open the sheet.
+    @Binding var pendingCorrectionID: UUID?
+
+    @State private var correctingEntry: HistoryStore.Entry?
 
     private static let timestamp: DateFormatter = {
         let f = DateFormatter()
@@ -414,20 +426,21 @@ private struct HistorySettingsView: View {
 
             Section {
                 if history.entries.isEmpty {
-                    Text("Noch keine Diktate.")
+                    Text("Noch keine Spracheingaben.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(history.entries) { entry in
                         HistoryRow(
                             entry: entry,
                             timestamp: Self.timestamp.string(from: entry.date),
+                            onCorrect: { correctingEntry = entry },
                             onDelete: { history.delete(entry) }
                         )
                     }
                 }
             } header: {
                 HStack {
-                    Text("Letzte Diktate")
+                    Text("Letzte Spracheingaben")
                     Spacer()
                     Button("Verlauf löschen", role: .destructive) { history.clear() }
                         .buttonStyle(.borderless)
@@ -436,6 +449,129 @@ private struct HistorySettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .sheet(item: $correctingEntry) { entry in
+            CorrectionSheet(entry: entry, history: history, dictionary: dictionary)
+        }
+        .onAppear(perform: consumePending)
+        .onChange(of: pendingCorrectionID) { _, _ in consumePending() }
+    }
+
+    /// Opens the correction sheet for an externally requested entry, then clears
+    /// the request so it fires only once.
+    private func consumePending() {
+        guard let id = pendingCorrectionID,
+              let entry = history.entries.first(where: { $0.id == id }) else { return }
+        correctingEntry = entry
+        pendingCorrectionID = nil
+    }
+}
+
+/// Turn a misrecognized word into a permanent dictionary rule — the
+/// app-independent fix (works regardless of the target app, unlike a Services
+/// menu). Tap the wrong word, type the replacement, save: the rule then applies
+/// to all future voice input, and this entry is corrected too.
+private struct CorrectionSheet: View {
+    let entry: HistoryStore.Entry
+    @ObservedObject var history: HistoryStore
+    @ObservedObject var dictionary: DictionaryStore
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var wrongWord = ""
+    @State private var replacement = ""
+    @FocusState private var replacementFocused: Bool
+
+    /// Distinct recognized words (punctuation trimmed), in order — the tap targets
+    /// that fill the "wrong word" field without retyping.
+    private var words: [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for token in entry.text.split(whereSeparator: \.isWhitespace) {
+            let word = Self.trimPunctuation(String(token))
+            guard !word.isEmpty, seen.insert(word.lowercased()).inserted else { continue }
+            result.append(word)
+        }
+        return result
+    }
+
+    private var canSave: Bool {
+        !wrongWord.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !replacement.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Spracheingabe korrigieren")
+                .font(.headline)
+            Text("Tippe das falsch erkannte Wort an und gib ein, wodurch es ersetzt werden soll. Die Regel gilt dann automatisch für alle künftigen Spracheingaben.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            FlowLayout(spacing: 6) {
+                ForEach(words, id: \.self) { word in
+                    let selected = word.caseInsensitiveCompare(wrongWord) == .orderedSame
+                    Button {
+                        wrongWord = word
+                        replacementFocused = true
+                    } label: {
+                        Text(word)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(selected ? Color.accentColor : Color.secondary.opacity(0.15)))
+                            .foregroundStyle(selected ? Color.white : Color.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 8) {
+                GridRow {
+                    Text("Falsch erkannt")
+                        .gridColumnAlignment(.trailing)
+                        .foregroundStyle(.secondary)
+                    TextField("Wort", text: $wrongWord)
+                        .textFieldStyle(.roundedBorder)
+                }
+                GridRow {
+                    Text("Ersetzen durch")
+                        .gridColumnAlignment(.trailing)
+                        .foregroundStyle(.secondary)
+                    TextField("richtiges Wort", text: $replacement)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($replacementFocused)
+                }
+            }
+
+            HStack {
+                Spacer()
+                Button("Abbrechen") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button("Regel sichern", action: save)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(!canSave)
+            }
+        }
+        .padding(20)
+        .frame(width: 420)
+    }
+
+    private func save() {
+        let from = wrongWord.trimmingCharacters(in: .whitespaces)
+        let to = replacement.trimmingCharacters(in: .whitespaces)
+        guard !from.isEmpty, !to.isEmpty else { return }
+        dictionary.add(pattern: from, replacement: to)
+        // A rule only takes effect while the dictionary is applied; the user just
+        // asked for one, so make sure it's on.
+        if !dictionary.isEnabled { dictionary.isEnabled = true }
+        // Fix this entry too, so the history reflects the correction.
+        let corrected = TextReplacementService()
+            .apply([ReplacementRule(pattern: from, replacement: to)], to: entry.text)
+        history.update(entry, newText: corrected)
+        dismiss()
+    }
+
+    private static func trimPunctuation(_ word: String) -> String {
+        word.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
     }
 }
 
@@ -444,6 +580,7 @@ private struct HistorySettingsView: View {
 private struct HistoryRow: View {
     let entry: HistoryStore.Entry
     let timestamp: String
+    let onCorrect: () -> Void
     let onDelete: () -> Void
 
     @State private var isHovering = false
@@ -465,6 +602,10 @@ private struct HistoryRow: View {
             // Always in the layout so the text never reflows on hover — only the
             // visibility toggles. Copy briefly turns into a checkmark (same width).
             HStack(spacing: 2) {
+                Button(action: onCorrect) {
+                    Image(systemName: "pencil")
+                }
+                .help("Korrigieren")
                 Button(action: copy) {
                     Image(systemName: justCopied ? "checkmark" : "doc.on.doc")
                 }
@@ -487,6 +628,7 @@ private struct HistoryRow: View {
             isHovering = hovering
         }
         .contextMenu {
+            Button("Korrigieren", action: onCorrect)
             Button("Kopieren", action: copy)
             Button("Löschen", role: .destructive, action: onDelete)
         }

@@ -115,22 +115,13 @@ Cloud-Engines, Streaming-Live-Preview, Auto-Updates.
 **v2 — Komfort & Robustheit** ✅ (weitgehend umgesetzt)
 - AppleScript-Paste-Fallback (Nicht-QWERTY-Layouts) ✅
 - Modell-Manager-UI (base / small / large-v3-turbo-q5) ✅
-- Diktat-History (lokal, löschbar) ✅
+- Spracheingabe-Verlauf (lokal, löschbar) ✅
 - Medien-Pause während Aufnahme ✅
 - Personal Dictionary / Wort-Ersetzungen ✅ (default aus)
 - Launch-at-Login ✅
 - „strands"-artige Wellenform als Metal-Shader ✅ (Stil wählbar)
 - Audio-Feedback (Start/Stop-Sound) → auf v3 verschoben
 - Auto-Spracherkennung → offen
-
-**v3 — Stufe 2: lokales LLM-Cleanup (optional, abschaltbar)**
-- `EnhancementService` hinter Protokoll: **Apple Foundation Models** (on-device,
-  macOS 26, gratis) / MLX / Ollama. Toggle pro Diktat.
-- Modi: Bereinigung (Füllwörter/Interpunktion) vs. Umformulierung
-- app-/URL-spezifische Modes; Write- vs. Command-Mode
-- Audio-Feedback (Start/Stop-Sound)
-- VAD / Stille-Trimmer (regelkonform: nur das per Taste aufgenommene Audio trimmen,
-  **kein** Auto-Start/Dauer-Listening). Erst energie-/RMS-basiert; Silero-Modell optional.
 
 **Später**
 - AppIntents/Shortcuts, Stats, Cloud-Engine-Option (opt-in), Parakeet (Low-Latency, nur

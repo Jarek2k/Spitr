@@ -165,6 +165,17 @@ final class RecordingController: ObservableObject {
     /// still works so the user can resume by voice.
     func togglePause() { settings.isPaused.toggle() }
 
+    /// Whether there's a recorded dictation to correct (drives the menu item).
+    var canCorrectHistory: Bool { !history.entries.isEmpty }
+
+    /// Routes the Settings window to the Verlauf tab and asks it to start
+    /// correcting the most recent dictation. The menu opens Settings alongside.
+    func beginCorrectLastDictation() {
+        guard let latest = history.entries.first else { return }
+        settings.requestedTab = .history
+        settings.pendingCorrectionID = latest.id
+    }
+
     /// Re-inserts the last dictation into the currently intended field — recovery
     /// for when the original insert went to the wrong place. Opening our menu
     /// stole key focus, so hand it back to the previous app before pasting.
@@ -327,6 +338,7 @@ final class RecordingController: ObservableObject {
                     insertion.insert(trimmed)
                     history.record(trimmed)
                     lastInsertedText = trimmed
+                    if settings.playDoneChime { feedback.playDone() }
                     log.info("inserted transcript (\(trimmed.count) chars)")
                 } else {
                     log.warning("empty transcript, nothing inserted")

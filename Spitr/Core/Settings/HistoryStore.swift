@@ -23,6 +23,13 @@ final class HistoryStore: ObservableObject {
             self.text = text
             self.date = date
         }
+
+        /// Preserves an existing id/date — used when correcting an entry in place.
+        init(id: UUID, text: String, date: Date) {
+            self.id = id
+            self.text = text
+            self.date = date
+        }
     }
 
     /// Most recent first.
@@ -57,6 +64,16 @@ final class HistoryStore: ObservableObject {
         guard isEnabled, !trimmed.isEmpty else { return }
         entries.insert(Entry(text: trimmed), at: 0)
         if entries.count > limit { entries.removeLast(entries.count - limit) }
+        persist()
+    }
+
+    /// Replaces an entry's text in place (keeps id and date). No-op when the new
+    /// text is empty or the entry is gone.
+    func update(_ entry: Entry, newText: String) {
+        let trimmed = newText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              let idx = entries.firstIndex(where: { $0.id == entry.id }) else { return }
+        entries[idx] = Entry(id: entry.id, text: trimmed, date: entry.date)
         persist()
     }
 
