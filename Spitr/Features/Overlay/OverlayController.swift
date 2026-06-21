@@ -43,6 +43,8 @@ final class OverlayController {
     private static let capsuleSize = NSSize(width: 240, height: 64)
     private static let strandsSize = NSSize(width: 300, height: 100)
     private static let kittSize = NSSize(width: 150, height: 116)
+    /// Bare signal bars: narrower than the capsule, close to the site animation.
+    private static let signalBareSize = NSSize(width: 196, height: 52)
 
     private func show() {
         let panel = panel ?? makePanel()
@@ -50,7 +52,11 @@ final class OverlayController {
         let chromeless = controller.overlayIsChromeless
         let size: NSSize
         if chromeless {
-            size = controller.settings.waveformStyle == .kitt ? Self.kittSize : Self.strandsSize
+            switch controller.settings.waveformStyle {
+            case .signalBare: size = Self.signalBareSize
+            case .kitt:       size = Self.kittSize
+            default:          size = Self.strandsSize
+            }
         } else {
             size = Self.capsuleSize
         }

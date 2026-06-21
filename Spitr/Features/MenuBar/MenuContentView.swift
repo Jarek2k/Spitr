@@ -39,7 +39,7 @@ struct MenuContentView: View {
             VStack(alignment: .leading, spacing: 1) {
                 MenuButton { controller.togglePause() } label: { hl in
                     Text(controller.paused ? "Fortsetzen" : "Pausieren")
-                        .foregroundStyle(hl ? Color.white : Color.primary)
+                        .foregroundStyle(hl ? SpitrTheme.onBrand : Color.primary)
                 }
 
                 MenuButton { controller.reinsertLast() } label: { hl in
@@ -47,9 +47,9 @@ struct MenuContentView: View {
                         Text("Letzte Spracheingabe erneut einfügen")
                         Spacer()
                         Text(controller.reinsertShortcutLabel)
-                            .foregroundStyle(hl ? Color.white.opacity(0.7) : Color.secondary)
+                            .foregroundStyle(hl ? SpitrTheme.onBrand.opacity(0.7) : Color.secondary)
                     }
-                    .foregroundStyle(hl ? Color.white : Color.primary)
+                    .foregroundStyle(hl ? SpitrTheme.onBrand : Color.primary)
                 }
                 .disabled(controller.lastInsertedText == nil)
                 .help("Fügt die zuletzt erkannte Spracheingabe erneut ins fokussierte Feld ein — z. B. wenn der Fokus vorher falsch war. Geht überall per \(controller.reinsertShortcutLabel).")
@@ -74,7 +74,7 @@ struct MenuContentView: View {
                     NotificationCenter.default.post(name: .showOnboarding, object: nil)
                 } label: { hl in
                     Text("Einrichtung…")
-                        .foregroundStyle(hl ? Color.white : Color.primary)
+                        .foregroundStyle(hl ? SpitrTheme.onBrand : Color.primary)
                 }
 
                 // SettingsLink creates the window, but a menu-bar-only app runs as
@@ -89,7 +89,7 @@ struct MenuContentView: View {
 
                 MenuButton { NSApp.terminate(nil) } label: { hl in
                     Text("Spitr beenden")
-                        .foregroundStyle(hl ? Color.white : Color.primary)
+                        .foregroundStyle(hl ? SpitrTheme.onBrand : Color.primary)
                 }
                 .keyboardShortcut("q")
             }
@@ -203,7 +203,8 @@ struct MenuContentView: View {
 }
 
 /// A full-width menu row that highlights on hover like a native AppKit menu
-/// item — accent fill with white text. The label closure receives the current
+/// item — brand-green fill with dark ink text (white reads poorly on the bright
+/// green, so we use SpitrTheme.onBrand). The label closure receives the current
 /// highlight state so nested text (e.g. a trailing shortcut) can recolor too.
 /// Disabled rows dim and never highlight.
 private struct MenuButton<Label: View>: View {
@@ -245,7 +246,7 @@ private struct MenuRowStyle: ViewModifier {
             .padding(.horizontal, 7)
             .padding(.vertical, 4)
             .contentShape(Rectangle())
-            .foregroundStyle(highlighted ? Color.white : Color.primary)
+            .foregroundStyle(highlighted ? SpitrTheme.onBrand : Color.primary)
             .background(
                 RoundedRectangle(cornerRadius: 5)
                     .fill(highlighted ? Color.accentColor : .clear)

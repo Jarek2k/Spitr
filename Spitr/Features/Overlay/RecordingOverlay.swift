@@ -34,8 +34,9 @@ struct RecordingOverlay: View {
     @ViewBuilder
     private var chromelessAnimation: some View {
         switch settings.waveformStyle {
-        case .kitt: KittWaveformView(level: controller.inputLevel)
-        default:    MetalWaveformView(level: controller.inputLevel)
+        case .signalBare: SignalWaveformView(level: controller.inputLevel)
+        case .kitt:       KittWaveformView(level: controller.inputLevel)
+        default:          MetalWaveformView(level: controller.inputLevel)
         }
     }
 
@@ -60,13 +61,31 @@ struct RecordingOverlay: View {
         HStack(spacing: 12) {
             Image(systemName: isCommand ? "command.circle.fill" : "mic.fill")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(isCommand ? .yellow : .red)
+                .foregroundStyle(glyphTint)
 
             // Both modes show the audio-reactive waveform so it's always clear
             // recording is live; command mode tints it yellow to stay distinct.
-            WaveformView(level: controller.inputLevel, tint: isCommand ? .yellow : .white.opacity(0.9))
+            waveform
                 .frame(maxWidth: .infinity)
                 .id(controller.sessionID)
+        }
+    }
+
+    /// Mic/command glyph tint: yellow in command mode, otherwise brand green for
+    /// the signal style and the familiar red for the other capsule styles.
+    private var glyphTint: Color {
+        if isCommand { return .yellow }
+        return settings.waveformStyle == .signal ? SpitrTheme.brand : .red
+    }
+
+    /// The capsule's waveform. Signal dictation uses the green centred bars; the
+    /// classic `bars` style and command mode keep the scrolling mirrored bars.
+    @ViewBuilder
+    private var waveform: some View {
+        if !isCommand, settings.waveformStyle == .signal {
+            SignalWaveformView(level: controller.inputLevel)
+        } else {
+            WaveformView(level: controller.inputLevel, tint: isCommand ? .yellow : .white.opacity(0.9))
         }
     }
 

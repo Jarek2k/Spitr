@@ -144,8 +144,8 @@ final class SettingsStore: ObservableObject {
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
         self.playDoneChime = defaults.object(forKey: Keys.doneChime) as? Bool ?? true
         self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true
-        let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.bars.rawValue
-        self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .bars
+        let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.signalBare.rawValue
+        self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .signalBare
         self.vocabularyText = defaults.string(forKey: Keys.vocabulary) ?? ""
         if let data = defaults.data(forKey: Keys.reinsert),
            let combo = try? JSONDecoder().decode(KeyCombo.self, from: data) {

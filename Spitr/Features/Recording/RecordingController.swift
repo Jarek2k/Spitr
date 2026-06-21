@@ -424,7 +424,11 @@ final class RecordingController: ObservableObject {
     /// True when the overlay should show a bare, chrome-free animation — no
     /// capsule, no mic glyph (strands and KITT). Only for plain dictation.
     var overlayIsChromeless: Bool {
-        (settings.waveformStyle == .strands || settings.waveformStyle == .kitt)
-            && mode == .dictation && commandFeedback == nil
+        switch settings.waveformStyle {
+        case .signalBare, .strands, .kitt:
+            return mode == .dictation && commandFeedback == nil
+        case .signal, .bars:
+            return false
+        }
     }
 }
