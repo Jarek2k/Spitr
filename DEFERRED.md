@@ -71,13 +71,14 @@ machen, sondern in einer dedizierten Polish-Runde.
   KITT) laufen technisch sauber (auch der Metal-Shader, kein Stitching-Crash), aber
   keiner überzeugt Jarek ästhetisch ganz. In der Polish-Runde entscheiden: welcher wird
   Default, welche werden nachpoliert, welche evtl. entfernt. (Favorit noch offen.)
-- ~~**App-Menü (Apple-/Spitr-Menü) eindeutschen.**~~ *(2026-06-21 erledigt.)* Das eigene
-  Popover war schon deutsch. Das Standard-AppKit-App-Menü (Bearbeiten/Fenster/Hilfe,
-  Ausblenden/Beenden) blieb englisch, weil die App nur `en` als Bundle-Sprache deklarierte.
-  Fix: `Localizable.xcstrings` mit deutscher Lokalisierung + `de` in `knownRegions` → macOS
-  rendert die eingebauten Menü-Strings jetzt in der Systemsprache (deutsch auf deutschem
-  System, englisch auf englischem). Eigene UI bleibt hart deutsch — echte Volllokalisierung
-  (alle App-Strings übersetzbar) wäre ein eigenes Thema.
+- ~~**App-Menü eindeutschen + Volllokalisierung.**~~ *(2026-06-21 erledigt.)* Erst nur die
+  Standard-AppKit-Menüs an die Systemsprache gekoppelt (Bundle-Sprache deklariert), dann
+  direkt **vollständig lokalisiert**: alle UI-Strings über `Localizable.xcstrings` /
+  `InfoPlist.xcstrings` in DE/EN/FR/ES/IT/PL (Quellsprache DE, Fallback EN). Übersetzungen
+  liegen in `Scripts/gen_localization.py` (eine Quelle), `LocalizationCatalogTests` +
+  `Scripts/check_localization.py` verhindern vergessene Strings/Sprachen. Verifikation der
+  nicht-deutschen Sprachen am Gerät steht noch aus (Dev-Build taucht im macOS-Per-App-
+  Sprachoverride nicht auf) → Punkt auf der Liste „kurz vor Produktiv".
 - ~~**Menü ausdünnen.**~~ *(2026-06-21 erledigt.)* „Dienste"-Untermenü via
   `CommandGroup(replacing: .systemServices) {}` entfernt, totes Standard-Hilfe-Item durch
   eigene „Spitr-Hilfe" ersetzt. Menüleisten-Popover auf Sinnvolles reduziert.

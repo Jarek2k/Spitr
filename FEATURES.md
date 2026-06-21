@@ -32,7 +32,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | Über-Spitr-Panel | ✅ | Icon, Version + Build, Copyright und kurze Beschreibung (statt nur Icon/Version) | Menü „Über Spitr" |
 | Hilfe-Menü | ✅ | „Spitr-Hilfe" (⌘?) öffnet on-device Kurzanleitung (Diktieren, Befehle, Vokabular/Wörterbuch, Engines, Datenschutz); ersetzt den toten Standard-Help-Eintrag. ⌘? öffnet direkt (macOS-Hilfe-Suchfeld wird abgefangen) | Menü „Hilfe" |
 | Fenster mit Esc schließen | ✅ | Esc schließt Einstellungen, Hilfe, Einrichtung und das Menüleisten-Popover | — |
-| Lokalisierte System-Menüs | ✅ | Standard-macOS-Menüs (Bearbeiten/Fenster/Hilfe, Ausblenden/Beenden …) folgen der Systemsprache; Deutsch als Bundle-Sprache deklariert. Eigene UI-Texte bleiben deutsch | — |
+| Mehrsprachige Oberfläche | ✅ | Komplette App **und** Standard-macOS-Menüs folgen der Systemsprache: Deutsch, Englisch, Französisch, Spanisch, Italienisch, Polnisch (Quellsprache DE, Fallback EN). Per-App-Sprache via macOS-Override möglich. Übersetzungen aus `Scripts/gen_localization.py`, abgesichert durch Tests gegen vergessene Strings | — |
 | Aufgeräumtes App-Menü | ✅ | „Dienste"-Untermenü entfernt (Spitr bietet keine an); App-Menü auf Sinnvolles reduziert | — |
 | Ton bei Aufnahmebereitschaft | ✅ | Kurzer Ton, sobald das Mikro wirklich aufnimmt (erster echter Buffer) — verhindert verlorenes erstes Wort; abschaltbar | Toggle (Allgemein) |
 
