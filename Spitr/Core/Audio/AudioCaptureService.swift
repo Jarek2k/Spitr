@@ -96,6 +96,17 @@ final class AudioCaptureService: @unchecked Sendable {
 
         let input = engine.inputNode
         applyPreferredDevice(to: input)
+        // Force the engine to (re)build its input graph against the just-pinned
+        // device before reading formats / installing the tap, so the node adopts
+        // that device instead of staying on the default.
+        engine.prepare()
+        log.info("""
+            capture start: device=\(self.preferredDeviceUID ?? "default", privacy: .public) \
+            inHW=\(input.inputFormat(forBus: 0).sampleRate, privacy: .public)Hz/\
+            \(input.inputFormat(forBus: 0).channelCount, privacy: .public)ch \
+            out=\(input.outputFormat(forBus: 0).sampleRate, privacy: .public)Hz/\
+            \(input.outputFormat(forBus: 0).channelCount, privacy: .public)ch
+            """)
 
         guard let target = AVAudioFormat(commonFormat: .pcmFormatFloat32,
                                          sampleRate: Self.targetSampleRate,
@@ -167,7 +178,9 @@ final class AudioCaptureService: @unchecked Sendable {
             &device,
             UInt32(MemoryLayout<AudioDeviceID>.size))
         if status != noErr {
-            log.error("failed to set input device (status \(status)), using default")
+            log.error("failed to set input device \(deviceID) (status \(status)), using default")
+        } else {
+            log.info("pinned input device id=\(deviceID, privacy: .public)")
         }
     }
 
