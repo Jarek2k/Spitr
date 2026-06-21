@@ -18,7 +18,7 @@ struct SettingsStoreTests {
         #expect(s.whisperModel == WhisperKitEngine.defaultModel)
         #expect(s.inputDeviceUID == "")
         #expect(s.hasCompletedOnboarding == false)
-        #expect(s.waveformStyle == .bars)
+        #expect(s.waveformStyle == .signalReactive)
         #expect(s.vocabularyText == "")
         #expect(s.isPaused == false)
     }

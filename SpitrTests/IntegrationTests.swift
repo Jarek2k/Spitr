@@ -55,12 +55,17 @@ struct RecordingControllerWiringTests {
 
     @Test func chromelessTracksStyleAndMode() {
         let (controller, settings) = makeController()
-        #expect(controller.overlayIsChromeless == false)   // default bars → capsule
+        settings.waveformStyle = .signalReactive
+        #expect(controller.overlayIsChromeless == true)    // reactive (default) → chrome-free
+        settings.waveformStyle = .signalBare
+        #expect(controller.overlayIsChromeless == true)    // bare signal → chrome-free
+        settings.waveformStyle = .signal
+        #expect(controller.overlayIsChromeless == false)   // capsule → mic + border
         settings.waveformStyle = .strands
         #expect(controller.overlayIsChromeless == true)    // strands → chrome-free
         settings.waveformStyle = .kitt
         #expect(controller.overlayIsChromeless == true)    // KITT → chrome-free
         settings.waveformStyle = .bars
-        #expect(controller.overlayIsChromeless == false)
+        #expect(controller.overlayIsChromeless == false)   // bars → capsule
     }
 }

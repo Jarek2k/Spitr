@@ -57,6 +57,6 @@ struct StoreRobustnessTests {
     @Test func settingsFallBackOnUnknownWaveformRawValue() {
         let defaults = makeDefaults()
         defaults.set("squiggles", forKey: "waveformStyle")
-        #expect(SettingsStore(defaults: defaults).waveformStyle == .bars)
+        #expect(SettingsStore(defaults: defaults).waveformStyle == .signalReactive)
     }
 }
