@@ -28,6 +28,9 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | Aufnahme-Overlay | ✅ | Schwebende Kapsel mit Mikro + Wellenform, nur während Aufnahme | — |
 | Wellenform-Stil wählbar | ✅ | „Balken" (Canvas), „Strähnen" (Metal-Shader) oder „KITT" (rote LED-Voice-Box); erweiterbar | Wellenform (Allgemein) |
 | App-Icon | ✅ | Eigenes Icon in About/Dock (systemseitige Anzeige korrekt erst in Release-Build) | — |
+| Über-Spitr-Panel | 🧪 | Icon, Version + Build, Copyright und kurze Beschreibung (statt nur Icon/Version) | Menü „Über Spitr" |
+| Hilfe-Menü | 🧪 | „Spitr-Hilfe" (⌘?) öffnet on-device Kurzanleitung (Diktieren, Befehle, Vokabular/Wörterbuch, Engines, Datenschutz); ersetzt den toten Standard-Help-Eintrag | Menü „Hilfe" |
+| Aufgeräumtes App-Menü | 🧪 | „Dienste"-Untermenü entfernt (Spitr bietet keine an); App-Menü auf Sinnvolles reduziert | — |
 | Ton bei Aufnahmebereitschaft | ✅ | Kurzer Ton, sobald das Mikro wirklich aufnimmt (erster echter Buffer) — verhindert verlorenes erstes Wort; abschaltbar | Toggle (Allgemein) |
 
 ## Konfiguration
