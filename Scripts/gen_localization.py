@@ -286,6 +286,7 @@ UI = collections.OrderedDict([
     ("Wörterbuch aus", {"en": "Dictionary off", "fr": "Dictionnaire désactivé", "es": "Diccionario desactivado", "it": "Dizionario disattivato", "pl": "Słownik wył."}),
     ("Verlauf an", {"en": "History on", "fr": "Historique activé", "es": "Historial activado", "it": "Cronologia attiva", "pl": "Historia wł."}),
     ("Verlauf aus", {"en": "History off", "fr": "Historique désactivé", "es": "Historial desactivado", "it": "Cronologia disattivata", "pl": "Historia wył."}),
+    ("Signal (reaktiv)", {"en": "Signal (reactive)", "fr": "Signal (réactif)", "es": "Signal (reactivo)", "it": "Signal (reattivo)", "pl": "Signal (reaktywny)"}),
     ("Signal (randlos)", {"en": "Signal (borderless)", "fr": "Signal (sans cadre)", "es": "Signal (sin borde)", "it": "Signal (senza bordo)", "pl": "Signal (bez ramki)"}),
     ("Signal (Kapsel)", {"en": "Signal (capsule)", "fr": "Signal (capsule)", "es": "Signal (cápsula)", "it": "Signal (capsula)", "pl": "Signal (kapsuła)"}),
     ("Balken", {"en": "Bars", "fr": "Barres", "es": "Barras", "it": "Barre", "pl": "Słupki"}),

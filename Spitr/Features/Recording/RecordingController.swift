@@ -425,7 +425,7 @@ final class RecordingController: ObservableObject {
     /// capsule, no mic glyph (strands and KITT). Only for plain dictation.
     var overlayIsChromeless: Bool {
         switch settings.waveformStyle {
-        case .signalBare, .strands, .kitt:
+        case .signalReactive, .signalBare, .strands, .kitt:
             return mode == .dictation && commandFeedback == nil
         case .signal, .bars:
             return false

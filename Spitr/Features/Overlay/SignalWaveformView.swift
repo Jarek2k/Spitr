@@ -18,18 +18,24 @@ struct SignalWaveformView: View {
 
     var tint: Color = SpitrTheme.brand
 
-    /// Fixed per-bar base heights — deliberately jagged (like the site's
-    /// `nth-child` heights 24/60/90/45/…%), so neighbours differ a lot and the
-    /// row reads as a spiky signal, not a smooth travelling curve.
+    /// Per-bar vertical gradient: bright mint at the top fading to a deeper green
+    /// at the base, matching the two-tone bars in the site animation.
+    private static let barTop = Color(red: 107 / 255, green: 1.0, blue: 188 / 255)
+    private static let barBottom = Color(red: 45 / 255, green: 199 / 255, blue: 140 / 255)
+
+    /// Fixed per-bar base heights — the site's exact `nth-child` values
+    /// (24/60/90/45/75/100/…%). Deliberately jagged so neighbours differ a lot
+    /// and the row reads as a spiky signal, not a smooth travelling curve.
     private static let baseHeights: [Float] = [
-        0.30, 0.62, 0.92, 0.45, 0.78, 1.0, 0.52, 0.85, 0.38, 0.70, 0.95, 0.48, 0.66, 0.34,
-    ]
-    /// Scattered phase offsets (not linear in i) so the bars don't pulse in a
-    /// wave — each rises and falls on its own beat, like staggered CSS delays.
-    private static let phaseOffsets: [Float] = [
-        0.0, 2.1, 4.3, 1.2, 3.6, 5.4, 0.7, 2.8, 4.9, 1.6, 3.1, 5.0, 2.4, 0.4,
+        0.24, 0.60, 0.90, 0.45, 0.75, 1.0, 0.55, 0.80, 0.35, 0.65, 0.90, 0.40,
     ]
     private static var barCount: Int { baseHeights.count }
+
+    /// Per-bar phase stagger, matching the site's 0.06 s animation-delay step
+    /// over its 1.1 s cycle — a gentle ripple, while the fixed heights keep the
+    /// silhouette jagged.
+    private static let cycle: Float = 1.1
+    private static let phaseStep: Float = 0.06 / 1.1 * 2 * .pi
 
     /// Smoothed loudness and a free-running phase that drives the per-bar pulse.
     @State private var amplitude: Float = 0
@@ -41,16 +47,17 @@ struct SignalWaveformView: View {
         Canvas { ctx, size in
             let n = Self.barCount
             let slot = size.width / CGFloat(n)
-            let barWidth = min(slot * 0.5, 6)
+            // Thin bars with airy gaps, like the site (≈5 px bars).
+            let barWidth = min(slot * 0.42, 5)
             let midY = size.height / 2
             let maxH = size.height
+            let omega = 2 * Float.pi / Self.cycle
 
             for i in 0..<n {
-                // Each bar scales between 0.4× and 1× of its OWN fixed height, on
-                // its own phase — the jagged base shape stays; only the height
-                // breathes. (Mirrors the site's scaleY .35→1 keyframe.)
-                let osc = 0.5 + 0.5 * sinf(phase * 4.6 + Self.phaseOffsets[i])
-                let scale = 0.4 + 0.6 * osc
+                // Each bar scales between 0.35× and 1× of its OWN fixed height,
+                // on a staggered phase — exactly the site's scaleY .35→1 keyframe.
+                let osc = 0.5 + 0.5 * sinf(phase * omega - Float(i) * Self.phaseStep)
+                let scale = 0.35 + 0.65 * osc
                 // Idle floor + audio-driven gain: quiet → low shimmer, loud → full.
                 let gain = 0.12 + 0.88 * amplitude
                 let frac = CGFloat(Self.baseHeights[i] * scale * gain)
@@ -58,11 +65,22 @@ struct SignalWaveformView: View {
 
                 let x = CGFloat(i) * slot + (slot - barWidth) / 2
                 let rect = CGRect(x: x, y: midY - height / 2, width: barWidth, height: height)
-                // Alternate bars sit back a touch, like the site's waveform.
-                let opacity = i % 2 == 0 ? 0.55 : 0.95
+
+                // Taller bars glow brighter than short ones (height → opacity),
+                // with a faint odd/even offset so neighbours stay distinct.
+                let bright = 0.45 + 0.55 * CGFloat(scale)
+                let opacity = bright * (i % 2 == 0 ? 0.82 : 1.0)
+                let gradient = Gradient(colors: [
+                    Self.barTop.opacity(opacity),
+                    Self.barBottom.opacity(opacity),
+                ])
                 ctx.fill(
                     Path(roundedRect: rect, cornerRadius: barWidth / 2),
-                    with: .color(tint.opacity(opacity))
+                    with: .linearGradient(
+                        gradient,
+                        startPoint: CGPoint(x: rect.midX, y: rect.minY),
+                        endPoint: CGPoint(x: rect.midX, y: rect.maxY)
+                    )
                 )
             }
         }

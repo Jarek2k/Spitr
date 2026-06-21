@@ -34,9 +34,10 @@ struct RecordingOverlay: View {
     @ViewBuilder
     private var chromelessAnimation: some View {
         switch settings.waveformStyle {
-        case .signalBare: SignalWaveformView(level: controller.inputLevel)
-        case .kitt:       KittWaveformView(level: controller.inputLevel)
-        default:          MetalWaveformView(level: controller.inputLevel)
+        case .signalReactive: SignalReactiveWaveformView(level: controller.inputLevel)
+        case .signalBare:     SignalWaveformView(level: controller.inputLevel)
+        case .kitt:           KittWaveformView(level: controller.inputLevel)
+        default:              MetalWaveformView(level: controller.inputLevel)
         }
     }
 
