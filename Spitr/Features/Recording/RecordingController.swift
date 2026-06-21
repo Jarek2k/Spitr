@@ -354,7 +354,7 @@ final class RecordingController: ObservableObject {
         } else {
             log.info("voice command not recognized")
             lastCommandRecognized = false
-            showCommandFeedback("Befehl nicht erkannt")
+            showCommandFeedback(String(localized: "Befehl nicht erkannt"))
         }
     }
 
@@ -386,12 +386,12 @@ final class RecordingController: ObservableObject {
     }
 
     var statusText: String {
-        if paused, state == .idle { return "Pausiert" }
+        if paused, state == .idle { return String(localized: "Pausiert") }
         switch state {
-        case .idle:         return "Bereit"
-        case .recording:    return mode == .command ? "Befehl…" : "Aufnahme läuft…"
-        case .transcribing: return "Wird umgewandelt…"
-        case .error(let m): return "Fehler: \(m)"
+        case .idle:         return String(localized: "Bereit")
+        case .recording:    return mode == .command ? String(localized: "Befehl…") : String(localized: "Aufnahme läuft…")
+        case .transcribing: return String(localized: "Wird umgewandelt…")
+        case .error(let m): return String(localized: "Fehler: \(m)")
         }
     }
 

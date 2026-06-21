@@ -21,9 +21,9 @@ enum WaveformStyle: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .bars:    return "Balken"
-        case .strands: return "Strähnen (Metal)"
-        case .kitt:    return "KITT (rot)"
+        case .bars:    return String(localized: "Balken")
+        case .strands: return String(localized: "Strähnen (Metal)")
+        case .kitt:    return String(localized: "KITT (rot)")
         }
     }
 }

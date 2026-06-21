@@ -12,8 +12,8 @@ struct HelpView: View {
     private struct Topic: Identifiable {
         let id = UUID()
         let symbol: String
-        let title: String
-        let detail: String
+        let title: LocalizedStringKey
+        let detail: LocalizedStringKey
     }
 
     private let topics: [Topic] = [

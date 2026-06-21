@@ -73,8 +73,8 @@ struct OnboardingView: View {
 
     private func step(
         number: Int,
-        title: String,
-        detail: String,
+        title: LocalizedStringKey,
+        detail: LocalizedStringKey,
         granted: Bool,
         action: @escaping () -> Void
     ) -> some View {

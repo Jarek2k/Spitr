@@ -515,9 +515,15 @@ private struct ShortcutRecorderField: View {
         Button {
             recording ? stop() : start()
         } label: {
-            Text(recording ? "Tastenkombination drücken…" : combo.displayString)
-                .monospaced()
-                .frame(minWidth: 130)
+            Group {
+                if recording {
+                    Text("Tastenkombination drücken…")
+                } else {
+                    Text(verbatim: combo.displayString)
+                }
+            }
+            .monospaced()
+            .frame(minWidth: 130)
         }
         .buttonStyle(.bordered)
         .help(recording ? "Drücke die gewünschte Kombination, Esc bricht ab." : "Klicken, dann Kombination drücken.")

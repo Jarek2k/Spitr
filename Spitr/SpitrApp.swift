@@ -84,7 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let icon = bundleIcon() {
             options[.applicationIcon] = icon
         }
-        let blurb = "On-device Voice-to-Text für macOS.\nTaste halten, sprechen, einfügen — privat, kostenlos, ohne Cloud."
+        let blurb = String(localized: "On-device Voice-to-Text für macOS.\nTaste halten, sprechen, einfügen — privat, kostenlos, ohne Cloud.")
         options[.credits] = NSAttributedString(
             string: blurb,
             attributes: [
@@ -184,7 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.onboardingWindow?.close()
         }
         let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-        window.title = "Willkommen bei Spitr"
+        window.title = String(localized: "Willkommen bei Spitr")
         window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         window.center()
@@ -211,7 +211,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// regular app so it gets a real, focusable window (same as onboarding).
     private func showHelp() {
         let window = NSWindow(contentViewController: NSHostingController(rootView: HelpView()))
-        window.title = "Spitr-Hilfe"
+        window.title = String(localized: "Spitr-Hilfe")
         window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         window.center()

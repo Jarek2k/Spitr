@@ -1,0 +1,338 @@
+#!/usr/bin/env python3
+"""
+Generates Spitr's String Catalogs from one source of truth.
+
+Spitr's source language is German (the strings live verbatim in the Swift code).
+This script holds the translations for every UI string and writes them into
+`Spitr/Localizable.xcstrings` and `Spitr/InfoPlist.xcstrings`.
+
+Workflow when adding a NEW user-facing string:
+  1. Add the German string in code (Text("…"), or String(localized: "…") for
+     non-SwiftUI strings, or LocalizedStringKey fields in data structs).
+  2. Add an entry here with translations for every language in LANGS.
+  3. Run:  python3 Scripts/gen_localization.py
+  4. The LocalizationTests unit test fails if any catalog entry misses a language;
+     Scripts/check_localization.py additionally flags code strings missing here.
+
+Keep the German keys byte-identical to the code (incl. %@, **markdown**, …, ⇧⌘).
+"""
+
+import json
+import collections
+import os
+
+# Target languages every string must be translated into (besides German source).
+LANGS = ["en", "fr", "es", "it", "pl"]
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# German key -> {lang: translation}
+UI = collections.OrderedDict([
+    ("Über Spitr", {"en": "About Spitr", "fr": "À propos de Spitr", "es": "Acerca de Spitr", "it": "Informazioni su Spitr", "pl": "O Spitr"}),
+    ("Spitr-Hilfe", {"en": "Spitr Help", "fr": "Aide Spitr", "es": "Ayuda de Spitr", "it": "Aiuto Spitr", "pl": "Pomoc Spitr"}),
+    ("On-device Voice-to-Text für macOS.\nTaste halten, sprechen, einfügen — privat, kostenlos, ohne Cloud.",
+     {"en": "On-device voice-to-text for macOS.\nHold a key, speak, paste — private, free, no cloud.",
+      "fr": "Reconnaissance vocale sur l'appareil pour macOS.\nMaintiens une touche, parle, colle — privé, gratuit, sans cloud.",
+      "es": "Voz a texto en el dispositivo para macOS.\nMantén una tecla, habla, pega — privado, gratis, sin nube.",
+      "it": "Da voce a testo on-device per macOS.\nTieni premuto un tasto, parla, incolla — privato, gratuito, senza cloud.",
+      "pl": "Zamiana mowy na tekst na urządzeniu dla macOS.\nPrzytrzymaj klawisz, mów, wklej — prywatnie, za darmo, bez chmury."}),
+    ("Willkommen bei Spitr", {"en": "Welcome to Spitr", "fr": "Bienvenue dans Spitr", "es": "Te damos la bienvenida a Spitr", "it": "Benvenuto in Spitr", "pl": "Witaj w Spitr"}),
+    ("Halte %@ und sprich.", {"en": "Hold %@ and speak.", "fr": "Maintiens %@ et parle.", "es": "Mantén %@ y habla.", "it": "Tieni premuto %@ e parla.", "pl": "Przytrzymaj %@ i mów."}),
+    ("Mit ⇧ dazu: Befehlsmodus (z. B. »pause«, »weiter«).",
+     {"en": "Add ⇧: command mode (e.g. »pause«, »resume«).",
+      "fr": "Avec ⇧ : mode commande (p. ex. »pause«, »reprendre«).",
+      "es": "Con ⇧: modo de comandos (p. ej. »pausa«, »continuar«).",
+      "it": "Con ⇧: modalità comandi (es. »pausa«, »riprendi«).",
+      "pl": "Z ⇧: tryb poleceń (np. »pauza«, »dalej«)."}),
+    ("Fortsetzen", {"en": "Resume", "fr": "Reprendre", "es": "Continuar", "it": "Riprendi", "pl": "Wznów"}),
+    ("Pausieren", {"en": "Pause", "fr": "Pause", "es": "Pausar", "it": "Pausa", "pl": "Pauza"}),
+    ("Letztes Diktat erneut einfügen", {"en": "Insert last dictation again", "fr": "Réinsérer la dernière dictée", "es": "Insertar de nuevo el último dictado", "it": "Reinserisci l'ultima dettatura", "pl": "Wstaw ponownie ostatnie dyktowanie"}),
+    ("Fügt das zuletzt erkannte Diktat erneut ins fokussierte Feld ein — z. B. wenn der Fokus vorher falsch war. Geht überall per %@.",
+     {"en": "Inserts the last recognized dictation into the focused field again — e.g. if the focus was wrong before. Works anywhere via %@.",
+      "fr": "Réinsère la dernière dictée reconnue dans le champ actif — p. ex. si le focus était erroné. Fonctionne partout via %@.",
+      "es": "Inserta de nuevo el último dictado reconocido en el campo enfocado — p. ej. si el foco era incorrecto. Funciona en cualquier lugar con %@.",
+      "it": "Reinserisce l'ultima dettatura riconosciuta nel campo attivo — es. se il focus era sbagliato. Funziona ovunque con %@.",
+      "pl": "Ponownie wstawia ostatnie rozpoznane dyktowanie do aktywnego pola — np. gdy fokus był błędny. Działa wszędzie przez %@."}),
+    ("Einrichtung…", {"en": "Setup…", "fr": "Configuration…", "es": "Configuración…", "it": "Configurazione…", "pl": "Konfiguracja…"}),
+    ("Einstellungen…", {"en": "Settings…", "fr": "Réglages…", "es": "Ajustes…", "it": "Impostazioni…", "pl": "Ustawienia…"}),
+    ("Spitr beenden", {"en": "Quit Spitr", "fr": "Quitter Spitr", "es": "Salir de Spitr", "it": "Esci da Spitr", "pl": "Zakończ Spitr"}),
+    ("Berechtigungen", {"en": "Permissions", "fr": "Autorisations", "es": "Permisos", "it": "Autorizzazioni", "pl": "Uprawnienia"}),
+    ("Erlauben", {"en": "Allow", "fr": "Autoriser", "es": "Permitir", "it": "Consenti", "pl": "Zezwól"}),
+    ("Taste halten, sprechen, loslassen — der Text landet im aktiven Fenster. Alles on-device, ohne Cloud.",
+     {"en": "Hold a key, speak, release — the text lands in the active window. All on-device, no cloud.",
+      "fr": "Maintiens une touche, parle, relâche — le texte arrive dans la fenêtre active. Tout sur l'appareil, sans cloud.",
+      "es": "Mantén una tecla, habla, suelta — el texto aparece en la ventana activa. Todo en el dispositivo, sin nube.",
+      "it": "Tieni premuto un tasto, parla, rilascia — il testo arriva nella finestra attiva. Tutto on-device, senza cloud.",
+      "pl": "Przytrzymaj klawisz, mów, puść — tekst trafia do aktywnego okna. Wszystko na urządzeniu, bez chmury."}),
+    ("Mikrofon", {"en": "Microphone", "fr": "Microphone", "es": "Micrófono", "it": "Microfono", "pl": "Mikrofon"}),
+    ("Nimmt nur auf, solange du die Aufnahme-Taste hältst. Kein Dauer-Mithören.",
+     {"en": "Records only while you hold the recording key. No always-on listening.",
+      "fr": "N'enregistre que tant que tu maintiens la touche d'enregistrement. Aucune écoute permanente.",
+      "es": "Solo graba mientras mantienes la tecla de grabación. Sin escucha continua.",
+      "it": "Registra solo mentre tieni premuto il tasto di registrazione. Nessun ascolto continuo.",
+      "pl": "Nagrywa tylko, gdy trzymasz klawisz nagrywania. Bez ciągłego nasłuchiwania."}),
+    ("Spracherkennung", {"en": "Speech recognition", "fr": "Reconnaissance vocale", "es": "Reconocimiento de voz", "it": "Riconoscimento vocale", "pl": "Rozpoznawanie mowy"}),
+    ("Wandelt deine Aufnahme on-device in Text um.",
+     {"en": "Converts your recording to text on-device.",
+      "fr": "Convertit ton enregistrement en texte sur l'appareil.",
+      "es": "Convierte tu grabación en texto en el dispositivo.",
+      "it": "Converte la tua registrazione in testo on-device.",
+      "pl": "Zamienia nagranie na tekst na urządzeniu."}),
+    ("Bedienungshilfen", {"en": "Accessibility", "fr": "Accessibilité", "es": "Accesibilidad", "it": "Accessibilità", "pl": "Dostępność"}),
+    ("Damit Spitr die Aufnahme-Taste global erkennt und den Text einfügt. Schalter in den Systemeinstellungen aktivieren.",
+     {"en": "So Spitr can detect the recording key globally and insert the text. Enable the switch in System Settings.",
+      "fr": "Pour que Spitr détecte la touche d'enregistrement globalement et insère le texte. Active l'interrupteur dans Réglages Système.",
+      "es": "Para que Spitr detecte la tecla de grabación globalmente e inserte el texto. Activa el interruptor en Ajustes del Sistema.",
+      "it": "Così Spitr rileva il tasto di registrazione a livello globale e inserisce il testo. Attiva l'interruttore in Impostazioni di Sistema.",
+      "pl": "Aby Spitr wykrywał klawisz nagrywania globalnie i wstawiał tekst. Włącz przełącznik w Ustawieniach systemowych."}),
+    ("Alles bereit", {"en": "All set", "fr": "Tout est prêt", "es": "Todo listo", "it": "Tutto pronto", "pl": "Wszystko gotowe"}),
+    ("Fehlende Rechte kannst du später im Menü ergänzen.",
+     {"en": "You can grant missing permissions later from the menu.",
+      "fr": "Tu peux accorder les autorisations manquantes plus tard depuis le menu.",
+      "es": "Puedes conceder los permisos que falten más tarde desde el menú.",
+      "it": "Puoi concedere le autorizzazioni mancanti più tardi dal menu.",
+      "pl": "Brakujące uprawnienia możesz nadać później z menu."}),
+    ("Los geht's", {"en": "Get started", "fr": "C'est parti", "es": "Empezar", "it": "Iniziamo", "pl": "Zaczynamy"}),
+    ("Später", {"en": "Later", "fr": "Plus tard", "es": "Más tarde", "it": "Più tardi", "pl": "Później"}),
+    ("Allgemein", {"en": "General", "fr": "Général", "es": "General", "it": "Generale", "pl": "Ogólne"}),
+    ("Vokabular", {"en": "Vocabulary", "fr": "Vocabulaire", "es": "Vocabulario", "it": "Vocabolario", "pl": "Słownictwo"}),
+    ("Wörterbuch", {"en": "Dictionary", "fr": "Dictionnaire", "es": "Diccionario", "it": "Dizionario", "pl": "Słownik"}),
+    ("Befehle", {"en": "Commands", "fr": "Commandes", "es": "Comandos", "it": "Comandi", "pl": "Polecenia"}),
+    ("Verlauf", {"en": "History", "fr": "Historique", "es": "Historial", "it": "Cronologia", "pl": "Historia"}),
+    ("Engine", {"en": "Engine", "fr": "Moteur", "es": "Motor", "it": "Motore", "pl": "Silnik"}),
+    ("Modell", {"en": "Model", "fr": "Modèle", "es": "Modelo", "it": "Modello", "pl": "Model"}),
+    ("WhisperKit lädt das Modell beim ersten Mal einmalig herunter; danach läuft alles offline.",
+     {"en": "WhisperKit downloads the model once on first use; after that everything runs offline.",
+      "fr": "WhisperKit télécharge le modèle une seule fois lors de la première utilisation ; ensuite tout fonctionne hors ligne.",
+      "es": "WhisperKit descarga el modelo una sola vez en el primer uso; después todo funciona sin conexión.",
+      "it": "WhisperKit scarica il modello una sola volta al primo utilizzo; dopodiché tutto funziona offline.",
+      "pl": "WhisperKit pobiera model jednorazowo przy pierwszym użyciu; potem wszystko działa offline."}),
+    ("Systemstandard", {"en": "System default", "fr": "Réglage système", "es": "Predeterminado del sistema", "it": "Predefinito di sistema", "pl": "Domyślne systemowe"}),
+    ("Nicht verfügbar", {"en": "Unavailable", "fr": "Indisponible", "es": "No disponible", "it": "Non disponibile", "pl": "Niedostępne"}),
+    ("Aufgenommen wird nur, solange du die Taste hältst.",
+     {"en": "Recording happens only while you hold the key.",
+      "fr": "L'enregistrement n'a lieu que tant que tu maintiens la touche.",
+      "es": "La grabación solo ocurre mientras mantienes la tecla.",
+      "it": "La registrazione avviene solo mentre tieni premuto il tasto.",
+      "pl": "Nagrywanie odbywa się tylko, gdy trzymasz klawisz."}),
+    ("Sprache", {"en": "Language", "fr": "Langue", "es": "Idioma", "it": "Lingua", "pl": "Język"}),
+    ("Aufnahme-Taste", {"en": "Recording key", "fr": "Touche d'enregistrement", "es": "Tecla de grabación", "it": "Tasto di registrazione", "pl": "Klawisz nagrywania"}),
+    ("Die fn-Taste wird nur von der MacBook-Tastatur erkannt, nicht von externen Tastaturen.",
+     {"en": "The fn key is only detected on the MacBook keyboard, not on external keyboards.",
+      "fr": "La touche fn n'est détectée que sur le clavier du MacBook, pas sur les claviers externes.",
+      "es": "La tecla fn solo se detecta en el teclado del MacBook, no en teclados externos.",
+      "it": "Il tasto fn viene rilevato solo sulla tastiera del MacBook, non su tastiere esterne.",
+      "pl": "Klawisz fn jest wykrywany tylko na klawiaturze MacBooka, nie na zewnętrznych."}),
+    ("Wellenform", {"en": "Waveform", "fr": "Forme d'onde", "es": "Forma de onda", "it": "Forma d'onda", "pl": "Kształt fali"}),
+    ("Ton bei Aufnahmebereitschaft", {"en": "Sound when ready to record", "fr": "Son quand prêt à enregistrer", "es": "Sonido al estar listo para grabar", "it": "Suono quando pronto a registrare", "pl": "Dźwięk przy gotowości do nagrywania"}),
+    ("Kurzer Ton, sobald das Mikro wirklich aufnimmt — so verlierst du das erste Wort nicht.",
+     {"en": "A short tone as soon as the mic actually records — so you don't lose the first word.",
+      "fr": "Un bref son dès que le micro enregistre vraiment — pour ne pas perdre le premier mot.",
+      "es": "Un tono breve en cuanto el micrófono empieza a grabar — así no pierdes la primera palabra.",
+      "it": "Un breve segnale acustico appena il microfono registra davvero — così non perdi la prima parola.",
+      "pl": "Krótki dźwięk, gdy mikrofon faktycznie nagrywa — dzięki temu nie tracisz pierwszego słowa."}),
+    ("Intelligente Leerzeichen", {"en": "Smart spacing", "fr": "Espacement intelligent", "es": "Espaciado inteligente", "it": "Spaziatura intelligente", "pl": "Inteligentne odstępy"}),
+    ("Fasst doppelte Leerzeichen zusammen und setzt automatisch ein Leerzeichen vor den Text, wenn er sonst am vorigen Wort klebt. Das Leerzeichen davor klappt nur in Apps, die ihren Textkontext freigeben (native Apps; in Electron wie VS Code/Browser entfällt es).",
+     {"en": "Collapses double spaces and automatically adds a space before the text if it would otherwise stick to the previous word. The leading space only works in apps that expose their text context (native apps; it's skipped in Electron like VS Code/browsers).",
+      "fr": "Fusionne les doubles espaces et ajoute automatiquement une espace avant le texte s'il collerait sinon au mot précédent. L'espace en tête ne fonctionne que dans les apps qui exposent leur contexte de texte (apps natives ; ignoré dans Electron comme VS Code/navigateurs).",
+      "es": "Combina los espacios dobles y añade automáticamente un espacio antes del texto si de lo contrario se pegaría a la palabra anterior. El espacio inicial solo funciona en apps que exponen su contexto de texto (apps nativas; se omite en Electron como VS Code/navegadores).",
+      "it": "Unisce gli spazi doppi e aggiunge automaticamente uno spazio prima del testo se altrimenti si attaccherebbe alla parola precedente. Lo spazio iniziale funziona solo nelle app che espongono il loro contesto di testo (app native; viene saltato in Electron come VS Code/browser).",
+      "pl": "Łączy podwójne spacje i automatycznie dodaje spację przed tekstem, jeśli inaczej przylgnąłby do poprzedniego słowa. Wiodąca spacja działa tylko w aplikacjach udostępniających kontekst tekstu (aplikacje natywne; pomijana w Electronie jak VS Code/przeglądarki)."}),
+    ("Erneut einfügen", {"en": "Insert again", "fr": "Réinsérer", "es": "Insertar de nuevo", "it": "Reinserisci", "pl": "Wstaw ponownie"}),
+    ("Globaler Kurzbefehl, der das letzte Diktat erneut ins fokussierte Feld einfügt. Mindestens ein ⌘/⌃/⌥ nötig.",
+     {"en": "Global shortcut that inserts the last dictation into the focused field again. At least one ⌘/⌃/⌥ required.",
+      "fr": "Raccourci global qui réinsère la dernière dictée dans le champ actif. Au moins un ⌘/⌃/⌥ requis.",
+      "es": "Atajo global que inserta de nuevo el último dictado en el campo enfocado. Se requiere al menos un ⌘/⌃/⌥.",
+      "it": "Scorciatoia globale che reinserisce l'ultima dettatura nel campo attivo. Richiesto almeno un ⌘/⌃/⌥.",
+      "pl": "Globalny skrót, który ponownie wstawia ostatnie dyktowanie do aktywnego pola. Wymagany co najmniej jeden ⌘/⌃/⌥."}),
+    ("Beim Anmelden öffnen", {"en": "Open at login", "fr": "Ouvrir à la connexion", "es": "Abrir al iniciar sesión", "it": "Apri all'accesso", "pl": "Otwórz przy logowaniu"}),
+    ("Begriff hinzufügen", {"en": "Add term", "fr": "Ajouter un terme", "es": "Añadir término", "it": "Aggiungi termine", "pl": "Dodaj termin"}),
+    ("Eigennamen und Fachbegriffe als **Hinweis** an die Erkennung — tippe einen Begriff und drücke Enter. Hilft oft, aber nicht garantiert. Trifft die Erkennung ein Wort nie, trag es im **Wörterbuch** als feste Ersetzung ein.",
+     {"en": "Proper names and technical terms as a **hint** to recognition — type a term and press Enter. Often helps, but not guaranteed. If recognition never gets a word right, add it in the **Dictionary** as a fixed replacement.",
+      "fr": "Noms propres et termes techniques comme **indice** pour la reconnaissance — saisis un terme et appuie sur Entrée. Aide souvent, mais sans garantie. Si la reconnaissance ne reconnaît jamais un mot, ajoute-le au **Dictionnaire** comme remplacement fixe.",
+      "es": "Nombres propios y términos técnicos como **pista** para el reconocimiento — escribe un término y pulsa Intro. Suele ayudar, pero no está garantizado. Si el reconocimiento nunca acierta una palabra, añádela en el **Diccionario** como reemplazo fijo.",
+      "it": "Nomi propri e termini tecnici come **suggerimento** per il riconoscimento — digita un termine e premi Invio. Spesso aiuta, ma non è garantito. Se il riconoscimento non azzecca mai una parola, aggiungila nel **Dizionario** come sostituzione fissa.",
+      "pl": "Nazwy własne i terminy techniczne jako **wskazówka** dla rozpoznawania — wpisz termin i naciśnij Enter. Często pomaga, ale bez gwarancji. Jeśli rozpoznawanie nigdy nie trafia słowa, dodaj je w **Słowniku** jako stałe zastąpienie."}),
+    ("Beispiel: Claude, Xcode, SwiftUI, Parnas", {"en": "Example: Claude, Xcode, SwiftUI, Parnas", "fr": "Exemple : Claude, Xcode, SwiftUI, Parnas", "es": "Ejemplo: Claude, Xcode, SwiftUI, Parnas", "it": "Esempio: Claude, Xcode, SwiftUI, Parnas", "pl": "Przykład: Claude, Xcode, SwiftUI, Parnas"}),
+    ("Begriffe", {"en": "Terms", "fr": "Termes", "es": "Términos", "it": "Termini", "pl": "Terminy"}),
+    ("Entfernen", {"en": "Remove", "fr": "Supprimer", "es": "Eliminar", "it": "Rimuovi", "pl": "Usuń"}),
+    ("Wörterbuch anwenden", {"en": "Apply dictionary", "fr": "Appliquer le dictionnaire", "es": "Aplicar diccionario", "it": "Applica dizionario", "pl": "Zastosuj słownik"}),
+    ("Feste Ersetzung **nach** der Erkennung — der harte Weg, wenn ein Wort über das **Vokabular** nicht zuverlässig ankommt. Ganzes Wort, Groß-/Kleinschreibung egal.",
+     {"en": "Fixed replacement **after** recognition — the hard way when a word doesn't reliably come through via **Vocabulary**. Whole word, case-insensitive.",
+      "fr": "Remplacement fixe **après** la reconnaissance — la méthode forte quand un mot ne passe pas de façon fiable via le **Vocabulaire**. Mot entier, insensible à la casse.",
+      "es": "Reemplazo fijo **después** del reconocimiento — la vía dura cuando una palabra no llega de forma fiable mediante el **Vocabulario**. Palabra completa, sin distinguir mayúsculas.",
+      "it": "Sostituzione fissa **dopo** il riconoscimento — la via dura quando una parola non arriva in modo affidabile tramite il **Vocabolario**. Parola intera, senza distinzione tra maiuscole e minuscole.",
+      "pl": "Stałe zastąpienie **po** rozpoznaniu — twardy sposób, gdy słowo nie przechodzi niezawodnie przez **Słownictwo**. Całe słowo, bez rozróżniania wielkości liter."}),
+    ("Noch keine Regeln. „Erkannt“ wird durch „Ersetzung“ getauscht.",
+     {"en": "No rules yet. “Recognized” is swapped for “Replacement”.",
+      "fr": "Aucune règle pour l'instant. « Reconnu » est remplacé par « Remplacement ».",
+      "es": "Aún no hay reglas. «Reconocido» se cambia por «Reemplazo».",
+      "it": "Ancora nessuna regola. «Riconosciuto» viene sostituito con «Sostituzione».",
+      "pl": "Brak reguł. „Rozpoznane” jest zamieniane na „Zamiennik”."}),
+    ("Regel hinzufügen", {"en": "Add rule", "fr": "Ajouter une règle", "es": "Añadir regla", "it": "Aggiungi regola", "pl": "Dodaj regułę"}),
+    ("Erkannt", {"en": "Recognized", "fr": "Reconnu", "es": "Reconocido", "it": "Riconosciuto", "pl": "Rozpoznane"}),
+    ("Ersetzung", {"en": "Replacement", "fr": "Remplacement", "es": "Reemplazo", "it": "Sostituzione", "pl": "Zamiennik"}),
+    ("Klode", {"en": "Cloud", "fr": "Cloud", "es": "Cloud", "it": "Cloud", "pl": "Cloud"}),
+    ("Claude", {"en": "Claude", "fr": "Claude", "es": "Claude", "it": "Claude", "pl": "Claude"}),
+    ("Regel löschen", {"en": "Delete rule", "fr": "Supprimer la règle", "es": "Eliminar regla", "it": "Elimina regola", "pl": "Usuń regułę"}),
+    ("Verlauf aufzeichnen", {"en": "Record history", "fr": "Enregistrer l'historique", "es": "Registrar historial", "it": "Registra cronologia", "pl": "Zapisuj historię"}),
+    ("Noch keine Diktate.", {"en": "No dictations yet.", "fr": "Aucune dictée pour l'instant.", "es": "Aún no hay dictados.", "it": "Ancora nessuna dettatura.", "pl": "Brak dyktowań."}),
+    ("Letzte Diktate", {"en": "Recent dictations", "fr": "Dictées récentes", "es": "Dictados recientes", "it": "Dettature recenti", "pl": "Ostatnie dyktowania"}),
+    ("Verlauf löschen", {"en": "Clear history", "fr": "Effacer l'historique", "es": "Borrar historial", "it": "Cancella cronologia", "pl": "Wyczyść historię"}),
+    ("Kopieren", {"en": "Copy", "fr": "Copier", "es": "Copiar", "it": "Copia", "pl": "Kopiuj"}),
+    ("Löschen", {"en": "Delete", "fr": "Supprimer", "es": "Eliminar", "it": "Elimina", "pl": "Usuń"}),
+    ("Tastenkombination drücken…", {"en": "Press shortcut…", "fr": "Appuie sur le raccourci…", "es": "Pulsa el atajo…", "it": "Premi la scorciatoia…", "pl": "Naciśnij skrót…"}),
+    ("Drücke die gewünschte Kombination, Esc bricht ab.",
+     {"en": "Press the desired combination, Esc cancels.",
+      "fr": "Appuie sur la combinaison souhaitée, Échap annule.",
+      "es": "Pulsa la combinación deseada, Esc cancela.",
+      "it": "Premi la combinazione desiderata, Esc annulla.",
+      "pl": "Naciśnij żądaną kombinację, Esc anuluje."}),
+    ("Klicken, dann Kombination drücken.",
+     {"en": "Click, then press the combination.",
+      "fr": "Clique, puis appuie sur la combinaison.",
+      "es": "Haz clic y luego pulsa la combinación.",
+      "it": "Fai clic, poi premi la combinazione.",
+      "pl": "Kliknij, a następnie naciśnij kombinację."}),
+    ("Taste halten, sprechen, loslassen — der Text landet im aktiven Fenster.",
+     {"en": "Hold a key, speak, release — the text lands in the active window.",
+      "fr": "Maintiens une touche, parle, relâche — le texte arrive dans la fenêtre active.",
+      "es": "Mantén una tecla, habla, suelta — el texto aparece en la ventana activa.",
+      "it": "Tieni premuto un tasto, parla, rilascia — il testo arriva nella finestra attiva.",
+      "pl": "Przytrzymaj klawisz, mów, puść — tekst trafia do aktywnego okna."}),
+    ("Diktieren", {"en": "Dictating", "fr": "Dicter", "es": "Dictar", "it": "Dettare", "pl": "Dyktowanie"}),
+    ("Halte die Aufnahme-Taste, sprich, lass los — der erkannte Text landet im gerade fokussierten Feld. Aufgenommen wird nur, solange du die Taste hältst.",
+     {"en": "Hold the recording key, speak, release — the recognized text lands in the currently focused field. Recording happens only while you hold the key.",
+      "fr": "Maintiens la touche d'enregistrement, parle, relâche — le texte reconnu arrive dans le champ actif. L'enregistrement n'a lieu que tant que tu maintiens la touche.",
+      "es": "Mantén la tecla de grabación, habla, suelta — el texto reconocido aparece en el campo enfocado. La grabación solo ocurre mientras mantienes la tecla.",
+      "it": "Tieni premuto il tasto di registrazione, parla, rilascia — il testo riconosciuto arriva nel campo attivo. La registrazione avviene solo mentre tieni premuto il tasto.",
+      "pl": "Przytrzymaj klawisz nagrywania, mów, puść — rozpoznany tekst trafia do aktywnego pola. Nagrywanie odbywa się tylko, gdy trzymasz klawisz."}),
+    ("Befehlsmodus", {"en": "Command mode", "fr": "Mode commande", "es": "Modo de comandos", "it": "Modalità comandi", "pl": "Tryb poleceń"}),
+    ("Halte die Aufnahme-Taste zusätzlich mit ⇧ und sprich einen Befehl (z. B. »pause«, »weiter«, »WhisperKit«). Der Text wird dann ausgeführt statt eingefügt. Alle Befehle stehen in den Einstellungen unter „Befehle“.",
+     {"en": "Hold the recording key together with ⇧ and speak a command (e.g. »pause«, »resume«, »WhisperKit«). The text is executed instead of inserted. All commands are listed in Settings under “Commands”.",
+      "fr": "Maintiens la touche d'enregistrement avec ⇧ et prononce une commande (p. ex. »pause«, »reprendre«, »WhisperKit«). Le texte est exécuté au lieu d'être inséré. Toutes les commandes sont dans les Réglages sous « Commandes ».",
+      "es": "Mantén la tecla de grabación junto con ⇧ y di un comando (p. ej. »pausa«, »continuar«, »WhisperKit«). El texto se ejecuta en lugar de insertarse. Todos los comandos están en Ajustes en «Comandos».",
+      "it": "Tieni premuto il tasto di registrazione insieme a ⇧ e pronuncia un comando (es. »pausa«, »riprendi«, »WhisperKit«). Il testo viene eseguito invece di essere inserito. Tutti i comandi sono in Impostazioni alla voce «Comandi».",
+      "pl": "Przytrzymaj klawisz nagrywania razem z ⇧ i wypowiedz polecenie (np. »pauza«, »dalej«, »WhisperKit«). Tekst zostanie wykonany zamiast wstawiony. Wszystkie polecenia znajdziesz w Ustawieniach w sekcji „Polecenia”."}),
+    ("Aufnahme abbrechen", {"en": "Cancel recording", "fr": "Annuler l'enregistrement", "es": "Cancelar grabación", "it": "Annulla registrazione", "pl": "Anuluj nagrywanie"}),
+    ("Drücke Esc, während du die Aufnahme-Taste hältst. Nichts wird transkribiert oder eingefügt — praktisch bei einem Versprecher.",
+     {"en": "Press Esc while holding the recording key. Nothing is transcribed or inserted — handy after a slip of the tongue.",
+      "fr": "Appuie sur Échap tout en maintenant la touche d'enregistrement. Rien n'est transcrit ni inséré — pratique après un lapsus.",
+      "es": "Pulsa Esc mientras mantienes la tecla de grabación. No se transcribe ni se inserta nada — útil tras un desliz.",
+      "it": "Premi Esc mentre tieni premuto il tasto di registrazione. Niente viene trascritto o inserito — utile dopo un errore di pronuncia.",
+      "pl": "Naciśnij Esc, trzymając klawisz nagrywania. Nic nie zostanie zapisane ani wstawione — przydatne po przejęzyczeniu."}),
+    ("War der Fokus beim Loslassen falsch, fügt der globale Kurzbefehl (Standard ⌃⌥⌘V, frei belegbar) das letzte Diktat erneut ins aktive Feld ein.",
+     {"en": "If the focus was wrong on release, the global shortcut (default ⌃⌥⌘V, customizable) inserts the last dictation into the active field again.",
+      "fr": "Si le focus était erroné au relâchement, le raccourci global (par défaut ⌃⌥⌘V, personnalisable) réinsère la dernière dictée dans le champ actif.",
+      "es": "Si el foco era incorrecto al soltar, el atajo global (por defecto ⌃⌥⌘V, personalizable) inserta de nuevo el último dictado en el campo activo.",
+      "it": "Se il focus era sbagliato al rilascio, la scorciatoia globale (predefinita ⌃⌥⌘V, personalizzabile) reinserisce l'ultima dettatura nel campo attivo.",
+      "pl": "Jeśli fokus był błędny przy puszczeniu, globalny skrót (domyślnie ⌃⌥⌘V, konfigurowalny) ponownie wstawia ostatnie dyktowanie do aktywnego pola."}),
+    ("Vokabular & Wörterbuch", {"en": "Vocabulary & Dictionary", "fr": "Vocabulaire et dictionnaire", "es": "Vocabulario y diccionario", "it": "Vocabolario e dizionario", "pl": "Słownictwo i słownik"}),
+    ("„Vokabular“ gibt der Erkennung Eigennamen/Fachbegriffe als Hinweis mit (hilft oft, nicht garantiert). „Wörterbuch“ ersetzt ein Wort fest nach der Erkennung — der harte Weg, wenn ein Begriff nie korrekt ankommt.",
+     {"en": "“Vocabulary” gives recognition proper names/technical terms as a hint (often helps, not guaranteed). “Dictionary” replaces a word permanently after recognition — the hard way when a term never comes through correctly.",
+      "fr": "« Vocabulaire » donne à la reconnaissance des noms propres/termes techniques comme indice (aide souvent, sans garantie). « Dictionnaire » remplace définitivement un mot après la reconnaissance — la méthode forte quand un terme ne passe jamais correctement.",
+      "es": "«Vocabulario» da al reconocimiento nombres propios/términos técnicos como pista (suele ayudar, sin garantía). «Diccionario» reemplaza una palabra de forma permanente tras el reconocimiento — la vía dura cuando un término nunca llega correctamente.",
+      "it": "«Vocabolario» fornisce al riconoscimento nomi propri/termini tecnici come suggerimento (spesso aiuta, non garantito). «Dizionario» sostituisce una parola in modo permanente dopo il riconoscimento — la via dura quando un termine non arriva mai correttamente.",
+      "pl": "„Słownictwo” podpowiada rozpoznawaniu nazwy własne/terminy techniczne (często pomaga, bez gwarancji). „Słownik” trwale zastępuje słowo po rozpoznaniu — twardy sposób, gdy termin nigdy nie pojawia się poprawnie."}),
+    ("Engines", {"en": "Engines", "fr": "Moteurs", "es": "Motores", "it": "Motori", "pl": "Silniki"}),
+    ("Apple Speech ist der schnelle Standard ohne Download. WhisperKit ist die Qualitätsoption; das Modell wird beim ersten Aktivieren einmalig geladen, danach läuft alles offline.",
+     {"en": "Apple Speech is the fast default with no download. WhisperKit is the quality option; the model is loaded once on first activation, after that everything runs offline.",
+      "fr": "Apple Speech est le choix rapide par défaut sans téléchargement. WhisperKit est l'option qualité ; le modèle est chargé une fois à la première activation, ensuite tout fonctionne hors ligne.",
+      "es": "Apple Speech es la opción rápida por defecto sin descarga. WhisperKit es la opción de calidad; el modelo se carga una vez en la primera activación y después todo funciona sin conexión.",
+      "it": "Apple Speech è l'impostazione predefinita veloce senza download. WhisperKit è l'opzione di qualità; il modello viene caricato una volta alla prima attivazione, poi tutto funziona offline.",
+      "pl": "Apple Speech to szybki domyślny wybór bez pobierania. WhisperKit to opcja jakościowa; model jest ładowany raz przy pierwszej aktywacji, potem wszystko działa offline."}),
+    ("Privatsphäre", {"en": "Privacy", "fr": "Confidentialité", "es": "Privacidad", "it": "Privacy", "pl": "Prywatność"}),
+    ("Alles läuft on-device. Keine Cloud, keine Telemetrie. Einzige Ausnahme: der einmalige WhisperKit-Modell-Download.",
+     {"en": "Everything runs on-device. No cloud, no telemetry. The only exception: the one-time WhisperKit model download.",
+      "fr": "Tout fonctionne sur l'appareil. Aucun cloud, aucune télémétrie. Seule exception : le téléchargement unique du modèle WhisperKit.",
+      "es": "Todo funciona en el dispositivo. Sin nube, sin telemetría. La única excepción: la descarga única del modelo de WhisperKit.",
+      "it": "Tutto funziona on-device. Nessun cloud, nessuna telemetria. Unica eccezione: il download una tantum del modello WhisperKit.",
+      "pl": "Wszystko działa na urządzeniu. Bez chmury, bez telemetrii. Jedyny wyjątek: jednorazowe pobranie modelu WhisperKit."}),
+    ("Befehl nicht erkannt", {"en": "Command not recognized", "fr": "Commande non reconnue", "es": "Comando no reconocido", "it": "Comando non riconosciuto", "pl": "Nie rozpoznano polecenia"}),
+    ("Pausiert", {"en": "Paused", "fr": "En pause", "es": "En pausa", "it": "In pausa", "pl": "Wstrzymano"}),
+    ("Bereit", {"en": "Ready", "fr": "Prêt", "es": "Listo", "it": "Pronto", "pl": "Gotowe"}),
+    ("Befehl…", {"en": "Command…", "fr": "Commande…", "es": "Comando…", "it": "Comando…", "pl": "Polecenie…"}),
+    ("Aufnahme läuft…", {"en": "Recording…", "fr": "Enregistrement…", "es": "Grabando…", "it": "Registrazione…", "pl": "Nagrywanie…"}),
+    ("Wird umgewandelt…", {"en": "Transcribing…", "fr": "Transcription…", "es": "Transcribiendo…", "it": "Trascrizione…", "pl": "Przetwarzanie…"}),
+    ("Fehler: %@", {"en": "Error: %@", "fr": "Erreur : %@", "es": "Error: %@", "it": "Errore: %@", "pl": "Błąd: %@"}),
+    ("Offline-Modus (Apple Speech)", {"en": "Offline mode (Apple Speech)", "fr": "Mode hors ligne (Apple Speech)", "es": "Modo sin conexión (Apple Speech)", "it": "Modalità offline (Apple Speech)", "pl": "Tryb offline (Apple Speech)"}),
+    ("Engine: Apple Speech", {"en": "Engine: Apple Speech", "fr": "Moteur : Apple Speech", "es": "Motor: Apple Speech", "it": "Motore: Apple Speech", "pl": "Silnik: Apple Speech"}),
+    ("Engine: WhisperKit", {"en": "Engine: WhisperKit", "fr": "Moteur : WhisperKit", "es": "Motor: WhisperKit", "it": "Motore: WhisperKit", "pl": "Silnik: WhisperKit"}),
+    ("Sprache: Deutsch", {"en": "Language: German", "fr": "Langue : allemand", "es": "Idioma: alemán", "it": "Lingua: tedesco", "pl": "Język: niemiecki"}),
+    ("Sprache: Englisch", {"en": "Language: English", "fr": "Langue : anglais", "es": "Idioma: inglés", "it": "Lingua: inglese", "pl": "Język: angielski"}),
+    ("Wörterbuch an", {"en": "Dictionary on", "fr": "Dictionnaire activé", "es": "Diccionario activado", "it": "Dizionario attivo", "pl": "Słownik wł."}),
+    ("Wörterbuch aus", {"en": "Dictionary off", "fr": "Dictionnaire désactivé", "es": "Diccionario desactivado", "it": "Dizionario disattivato", "pl": "Słownik wył."}),
+    ("Verlauf an", {"en": "History on", "fr": "Historique activé", "es": "Historial activado", "it": "Cronologia attiva", "pl": "Historia wł."}),
+    ("Verlauf aus", {"en": "History off", "fr": "Historique désactivé", "es": "Historial desactivado", "it": "Cronologia disattivata", "pl": "Historia wył."}),
+    ("Balken", {"en": "Bars", "fr": "Barres", "es": "Barras", "it": "Barre", "pl": "Słupki"}),
+    ("Strähnen (Metal)", {"en": "Strands (Metal)", "fr": "Filaments (Metal)", "es": "Hebras (Metal)", "it": "Fili (Metal)", "pl": "Pasma (Metal)"}),
+    ("KITT (rot)", {"en": "KITT (red)", "fr": "KITT (rouge)", "es": "KITT (rojo)", "it": "KITT (rosso)", "pl": "KITT (czerwony)"}),
+    ("Halte die Aufnahme-Taste **mit ⇧** und sprich einen Befehl, statt zu diktieren. Der Text wird dann nicht eingefügt.",
+     {"en": "Hold the recording key **with ⇧** and speak a command instead of dictating. The text is not inserted.",
+      "fr": "Maintiens la touche d'enregistrement **avec ⇧** et prononce une commande au lieu de dicter. Le texte n'est pas inséré.",
+      "es": "Mantén la tecla de grabación **con ⇧** y di un comando en lugar de dictar. El texto no se inserta.",
+      "it": "Tieni premuto il tasto di registrazione **con ⇧** e pronuncia un comando invece di dettare. Il testo non viene inserito.",
+      "pl": "Przytrzymaj klawisz nagrywania **z ⇧** i wypowiedz polecenie zamiast dyktować. Tekst nie zostanie wstawiony."}),
+    ("Halte diese Taste zum Aufnehmen — eine Modifier-Taste, damit nichts getippt wird.",
+     {"en": "Hold this key to record — a modifier key, so nothing gets typed.",
+      "fr": "Maintiens cette touche pour enregistrer — une touche de modification, pour que rien ne soit tapé.",
+      "es": "Mantén esta tecla para grabar — una tecla modificadora, para que no se escriba nada.",
+      "it": "Tieni premuto questo tasto per registrare — un tasto modificatore, così non viene digitato nulla.",
+      "pl": "Przytrzymaj ten klawisz, aby nagrywać — klawisz modyfikujący, aby nic nie zostało wpisane."}),
+    ("»%@«", {"en": "“%@”", "fr": "« %@ »", "es": "«%@»", "it": "«%@»", "pl": "„%@”"}),
+])
+
+# Info.plist permission strings: key is the Info.plist key, so German is an
+# explicit translation here too (unlike Localizable, where the German *is* the key).
+INFO = collections.OrderedDict([
+    ("NSMicrophoneUsageDescription",
+     {"de": "Spitr nimmt nur auf, solange du die Aufnahmetaste hältst.",
+      "en": "Spitr records only while you hold the recording key.",
+      "fr": "Spitr n'enregistre que tant que tu maintiens la touche d'enregistrement.",
+      "es": "Spitr solo graba mientras mantienes la tecla de grabación.",
+      "it": "Spitr registra solo mentre tieni premuto il tasto di registrazione.",
+      "pl": "Spitr nagrywa tylko, gdy trzymasz klawisz nagrywania."}),
+    ("NSSpeechRecognitionUsageDescription",
+     {"de": "Spitr wandelt deine Aufnahme on-device in Text um.",
+      "en": "Spitr converts your recording to text on-device.",
+      "fr": "Spitr convertit ton enregistrement en texte sur l'appareil.",
+      "es": "Spitr convierte tu grabación en texto en el dispositivo.",
+      "it": "Spitr converte la tua registrazione in testo on-device.",
+      "pl": "Spitr zamienia nagranie na tekst na urządzeniu."}),
+])
+
+
+def unit(value):
+    return {"stringUnit": {"state": "translated", "value": value}}
+
+
+def build(entries, include_source_de):
+    strings = collections.OrderedDict()
+    for key, trans in entries.items():
+        langs = (["de"] if include_source_de else []) + LANGS
+        locs = collections.OrderedDict()
+        for lang in langs:
+            if lang not in trans:
+                raise SystemExit(f"missing {lang} for: {key!r}")
+            locs[lang] = unit(trans[lang])
+        entry = collections.OrderedDict()
+        if include_source_de:
+            entry["extractionState"] = "manual"
+        entry["localizations"] = locs
+        strings[key] = entry
+    return collections.OrderedDict([
+        ("sourceLanguage", "de"),
+        ("strings", strings),
+        ("version", "1.0"),
+    ])
+
+
+def write(path, catalog):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(catalog, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+
+write(os.path.join(REPO, "Spitr", "Localizable.xcstrings"), build(UI, include_source_de=False))
+write(os.path.join(REPO, "Spitr", "InfoPlist.xcstrings"), build(INFO, include_source_de=True))
+print(f"wrote {len(UI)} UI strings + {len(INFO)} Info.plist strings × {len(LANGS)} languages")

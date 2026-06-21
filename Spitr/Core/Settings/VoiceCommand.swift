@@ -36,47 +36,47 @@ struct VoiceCommandInterpreter {
                   history: HistoryStore,
                   dictionary: DictionaryStore) -> [VoiceCommand] {
         [
-            VoiceCommand(id: "pause", title: "Pausieren",
+            VoiceCommand(id: "pause", title: String(localized: "Pausieren"),
                          phrases: ["pause", "pausier", "anhalten", "stopp"]) {
                 settings.isPaused = true
             },
-            VoiceCommand(id: "resume", title: "Fortsetzen",
+            VoiceCommand(id: "resume", title: String(localized: "Fortsetzen"),
                          phrases: ["weiter", "fortsetzen", "aktivier", "los gehts", "los geht's"]) {
                 settings.isPaused = false
             },
-            VoiceCommand(id: "offline", title: "Offline-Modus (Apple Speech)",
+            VoiceCommand(id: "offline", title: String(localized: "Offline-Modus (Apple Speech)"),
                          phrases: ["offline"]) {
                 settings.engineKind = .apple
             },
-            VoiceCommand(id: "engineApple", title: "Engine: Apple Speech",
+            VoiceCommand(id: "engineApple", title: String(localized: "Engine: Apple Speech"),
                          phrases: ["apple speech", "apple"]) {
                 settings.engineKind = .apple
             },
-            VoiceCommand(id: "engineWhisper", title: "Engine: WhisperKit",
+            VoiceCommand(id: "engineWhisper", title: String(localized: "Engine: WhisperKit"),
                          phrases: ["whisperkit", "whisper kit", "whisper"]) {
                 settings.engineKind = .whisperKit
             },
-            VoiceCommand(id: "langDE", title: "Sprache: Deutsch",
+            VoiceCommand(id: "langDE", title: String(localized: "Sprache: Deutsch"),
                          phrases: ["deutsch", "german"]) {
                 settings.localeIdentifier = "de-DE"
             },
-            VoiceCommand(id: "langEN", title: "Sprache: Englisch",
+            VoiceCommand(id: "langEN", title: String(localized: "Sprache: Englisch"),
                          phrases: ["englisch", "english"]) {
                 settings.localeIdentifier = "en-US"
             },
-            VoiceCommand(id: "dictOn", title: "Wörterbuch an",
+            VoiceCommand(id: "dictOn", title: String(localized: "Wörterbuch an"),
                          phrases: ["wörterbuch an", "wörterbuch ein", "dictionary on"]) {
                 dictionary.isEnabled = true
             },
-            VoiceCommand(id: "dictOff", title: "Wörterbuch aus",
+            VoiceCommand(id: "dictOff", title: String(localized: "Wörterbuch aus"),
                          phrases: ["wörterbuch aus", "dictionary off"]) {
                 dictionary.isEnabled = false
             },
-            VoiceCommand(id: "histOn", title: "Verlauf an",
+            VoiceCommand(id: "histOn", title: String(localized: "Verlauf an"),
                          phrases: ["verlauf an", "verlauf ein", "history on"]) {
                 history.isEnabled = true
             },
-            VoiceCommand(id: "histOff", title: "Verlauf aus",
+            VoiceCommand(id: "histOff", title: String(localized: "Verlauf aus"),
                          phrases: ["verlauf aus", "history off"]) {
                 history.isEnabled = false
             },

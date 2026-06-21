@@ -201,12 +201,16 @@
 				};
 			};
 			buildConfigurationList = EF7E4D972FE478AA007E5101 /* Build configuration list for PBXProject "Spitr" */;
-			developmentRegion = en;
+			developmentRegion = de;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 				de,
+				fr,
+				es,
+				it,
+				pl,
 			);
 			mainGroup = EF7E4D932FE478AA007E5101;
 			minimizedProjectReferenceProxies = 1;
@@ -418,7 +422,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jarek. Alle Rechte vorbehalten.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Spitr nimmt nur auf, solange du die Aufnahmetaste haeltst.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Spitr nimmt nur auf, solange du die Aufnahmetaste hältst.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Spitr wandelt deine Aufnahme on-device in Text um.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -466,7 +470,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jarek. Alle Rechte vorbehalten.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Spitr nimmt nur auf, solange du die Aufnahmetaste haeltst.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Spitr nimmt nur auf, solange du die Aufnahmetaste hältst.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Spitr wandelt deine Aufnahme on-device in Text um.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
