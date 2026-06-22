@@ -51,13 +51,34 @@ trap 'rm -rf "$STAGE"' EXIT
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
 
+# Give the DMG and its mounted volume the app's own icon instead of the generic
+# disk-image icon. This needs a read-write image first: stage .VolumeIcon.icns,
+# flag the volume root as "has custom icon", then compress to the final UDZO.
+VOLICON="$APP/Contents/Resources/AppIcon.icns"
+if [[ -f "$VOLICON" ]]; then
+    cp "$VOLICON" "$STAGE/.VolumeIcon.icns"
+fi
+
 echo "==> Creating ${DMG}…"
 rm -f "$DMG"
+RW_DMG="$BUILD_DIR/Spitr-rw.dmg"
+rm -f "$RW_DMG"
 hdiutil create \
     -volname "Spitr $VERSION" \
     -srcfolder "$STAGE" \
-    -ov -format UDZO \
-    "$DMG" >/dev/null
+    -ov -format UDRW \
+    "$RW_DMG" >/dev/null
+
+if [[ -f "$VOLICON" ]]; then
+    MOUNT_DIR="$(mktemp -d)"
+    hdiutil attach "$RW_DMG" -mountpoint "$MOUNT_DIR" -nobrowse -quiet
+    SetFile -a C "$MOUNT_DIR"
+    hdiutil detach "$MOUNT_DIR" -quiet
+    rmdir "$MOUNT_DIR" 2>/dev/null || true
+fi
+
+hdiutil convert "$RW_DMG" -format UDZO -ov -o "$DMG" >/dev/null
+rm -f "$RW_DMG"
 
 # Publish the checksum alongside the DMG for release verification.
 ( cd "$DIST_DIR" && shasum -a 256 "$(basename "$DMG")" | tee "$(basename "$DMG").sha256" )
