@@ -96,8 +96,8 @@ final class AudioCaptureService: @unchecked Sendable {
         lock.lock()
         samples.removeAll(keepingCapacity: true)
         didSignalStart = false
-        lock.unlock()
         levelEnvelope = 0
+        lock.unlock()
 
         let input = engine.inputNode
         // Enable voice processing before pinning the device: toggling it rebuilds
@@ -261,6 +261,10 @@ final class AudioCaptureService: @unchecked Sendable {
         let rms = sqrt(sumSquares / Float(count))
         let db = 20 * log10(max(Double(rms), 1e-7))
 
+        // The meter state (adaptive gain + envelope) is also reset from start()
+        // on another thread, so guard the read-modify-write under the same lock.
+        // The dB math above touches no shared state and stays outside.
+        lock.lock()
         // Adaptive gain: the noise floor falls quickly to new quiet and creeps
         // back up slowly; the peak jumps to new loud and decays slowly. The
         // current level is then placed within that self-calibrating range, so
@@ -275,6 +279,9 @@ final class AudioCaptureService: @unchecked Sendable {
         // block-sized dip doesn't collapse the meter to a dot.
         let coeff: Float = level > levelEnvelope ? 0.92 : 0.85
         levelEnvelope += (level - levelEnvelope) * coeff
-        levelContinuation.yield(levelEnvelope)
+        let envelope = levelEnvelope
+        lock.unlock()
+
+        levelContinuation.yield(envelope)
     }
 }
