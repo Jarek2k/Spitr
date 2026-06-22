@@ -69,36 +69,36 @@
         }
       }
     },
-    "On-device Voice-to-Text für macOS.\nTaste halten, sprechen, einfügen — privat, kostenlos, ohne Cloud.": {
+    "Beta — On-device Voice-to-Text für macOS.\nTaste halten, sprechen, einfügen — privat, kostenlos, ohne Cloud.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "On-device voice-to-text for macOS.\nHold a key, speak, paste — private, free, no cloud."
+            "value": "Beta — on-device voice-to-text for macOS.\nHold a key, speak, paste — private, free, no cloud."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnaissance vocale sur l'appareil pour macOS.\nMaintiens une touche, parle, colle — privé, gratuit, sans cloud."
+            "value": "Bêta — reconnaissance vocale sur l'appareil pour macOS.\nMaintiens une touche, parle, colle — privé, gratuit, sans cloud."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voz a texto en el dispositivo para macOS.\nMantén una tecla, habla, pega — privado, gratis, sin nube."
+            "value": "Beta — voz a texto en el dispositivo para macOS.\nMantén una tecla, habla, pega — privado, gratis, sin nube."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Da voce a testo on-device per macOS.\nTieni premuto un tasto, parla, incolla — privato, gratuito, senza cloud."
+            "value": "Beta — da voce a testo on-device per macOS.\nTieni premuto un tasto, parla, incolla — privato, gratuito, senza cloud."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zamiana mowy na tekst na urządzeniu dla macOS.\nPrzytrzymaj klawisz, mów, wklej — prywatnie, za darmo, bez chmury."
+            "value": "Beta — zamiana mowy na tekst na urządzeniu dla macOS.\nPrzytrzymaj klawisz, mów, wklej — prywatnie, za darmo, bez chmury."
           }
         }
       }

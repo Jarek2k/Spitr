@@ -84,7 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let icon = bundleIcon() {
             options[.applicationIcon] = icon
         }
-        let blurb = String(localized: "On-device Voice-to-Text für macOS.\nTaste halten, sprechen, einfügen — privat, kostenlos, ohne Cloud.")
+        let blurb = String(localized: "Beta — On-device Voice-to-Text für macOS.\nTaste halten, sprechen, einfügen — privat, kostenlos, ohne Cloud.")
         options[.credits] = NSAttributedString(
             string: blurb,
             attributes: [
