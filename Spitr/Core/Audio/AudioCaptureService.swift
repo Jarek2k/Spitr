@@ -15,11 +15,13 @@ private let log = Logger(subsystem: "com.jarek.Spitr", category: "audio")
 enum AudioCaptureError: Error, LocalizedError {
     case formatUnavailable
     case engineFailed(Error)
+    case inputUnavailable
 
     var errorDescription: String? {
         switch self {
         case .formatUnavailable:    return "Could not create the target audio format."
         case .engineFailed(let e):  return "AVAudioEngine failed: \(e.localizedDescription)"
+        case .inputUnavailable:     return "The microphone input is unavailable (0 channels)."
         }
     }
 }
@@ -47,7 +49,15 @@ final class AudioCaptureService: @unchecked Sendable {
     /// Route mic input through Apple's voice-processing I/O unit (noise
     /// suppression, echo cancellation, automatic gain). Helps against mumbling
     /// and background noise (e.g. a TV). Set from Settings; applied on next start().
-    var voiceProcessingEnabled: Bool = true
+    /// Toggling re-arms a previously failed voice-processing attempt.
+    var voiceProcessingEnabled: Bool = true {
+        didSet { if oldValue != voiceProcessingEnabled { voiceProcessingUnavailable = false } }
+    }
+
+    /// Set once voice processing has failed to initialize this session, so we stop
+    /// paying its multi-second timeout on every subsequent recording and go
+    /// straight to the raw mic path.
+    private var voiceProcessingUnavailable = false
 
     /// Fires on the main thread the moment the first buffer is delivered after a
     /// start(), i.e. when the mic is *genuinely* capturing (engine.start()
@@ -86,6 +96,22 @@ final class AudioCaptureService: @unchecked Sendable {
     func start() throws {
         guard !engine.isRunning else { return }
 
+        let wantsVoiceProcessing = voiceProcessingEnabled && !voiceProcessingUnavailable
+        do {
+            try startEngine(voiceProcessing: wantsVoiceProcessing)
+        } catch {
+            // Voice processing builds an aggregate device that fails to initialize
+            // on some Macs (err -10875/-10851), leaving a dead 0-channel input and
+            // silently capturing nothing. Fall back to the raw mic so dictation
+            // still works, and remember it to skip the slow retry next time.
+            guard wantsVoiceProcessing else { throw error }
+            log.warning("voice processing failed (\(error.localizedDescription, privacy: .public)); falling back to raw mic")
+            voiceProcessingUnavailable = true
+            try startEngine(voiceProcessing: false)
+        }
+    }
+
+    private func startEngine(voiceProcessing: Bool) throws {
         // Start from a clean engine every time. A reused engine accumulates state
         // across device switches — most damagingly a tap that survives the engine
         // stopping itself after a HAL error (Bluetooth/USB mic), which then makes
@@ -102,7 +128,7 @@ final class AudioCaptureService: @unchecked Sendable {
         let input = engine.inputNode
         // Enable voice processing before pinning the device: toggling it rebuilds
         // the input audio unit, which would otherwise discard a device set first.
-        applyVoiceProcessing(to: input)
+        applyVoiceProcessing(to: input, enabled: voiceProcessing)
         applyPreferredDevice(to: input)
         // Force the engine to (re)build its input graph against the just-pinned
         // device before reading formats / installing the tap, so the node adopts
@@ -128,14 +154,18 @@ final class AudioCaptureService: @unchecked Sendable {
         self.converter = nil
         self.converterInputFormat = nil
 
-        // Tap with the node's *input* (hardware) format, not nil. nil uses the
-        // node's output format, which after pinning a device can stay stale at the
-        // default rate (e.g. 48 kHz) while the real hardware is 24 kHz (Bluetooth
-        // HFP). The engine then can't reconcile the graph ("formats don't match")
-        // and captures nothing. inputFormat(forBus:) reports the true hardware
-        // format, so the tap always matches what the device delivers.
+        // Tap with the node's *input* (hardware) format. A 0-channel / 0 Hz input
+        // means the graph (most often the voice-processing aggregate device)
+        // failed to build, so capturing would yield nothing — surface it as an
+        // error instead, letting start() fall back to the raw mic path.
+        // inputFormat(forBus:) reports the true hardware format, so the tap always
+        // matches what the device delivers (e.g. 24 kHz Bluetooth HFP, not a stale
+        // 48 kHz default).
         let hwFormat = input.inputFormat(forBus: 0)
-        let tapFormat = (hwFormat.sampleRate > 0 && hwFormat.channelCount > 0) ? hwFormat : nil
+        guard hwFormat.sampleRate > 0, hwFormat.channelCount > 0 else {
+            throw AudioCaptureError.inputUnavailable
+        }
+        let tapFormat = hwFormat
 
         // Defensive: never install over an existing tap (that throws an
         // uncatchable ObjC exception). A fresh engine has none, but this also
@@ -175,11 +205,11 @@ final class AudioCaptureService: @unchecked Sendable {
     /// Turns Apple's voice-processing I/O (noise suppression, echo cancellation,
     /// AGC) on or off for this recording. A fresh engine starts with it disabled,
     /// so the guard skips the (rebuild-triggering) call when nothing changes.
-    private func applyVoiceProcessing(to input: AVAudioInputNode) {
-        guard input.isVoiceProcessingEnabled != voiceProcessingEnabled else { return }
+    private func applyVoiceProcessing(to input: AVAudioInputNode, enabled: Bool) {
+        guard input.isVoiceProcessingEnabled != enabled else { return }
         do {
-            try input.setVoiceProcessingEnabled(voiceProcessingEnabled)
-            log.info("voice processing enabled=\(self.voiceProcessingEnabled, privacy: .public)")
+            try input.setVoiceProcessingEnabled(enabled)
+            log.info("voice processing enabled=\(enabled, privacy: .public)")
         } catch {
             log.error("failed to set voice processing: \(error.localizedDescription, privacy: .public)")
         }
