@@ -13,6 +13,9 @@
 
 import Foundation
 import AVFoundation
+import os
+
+private let log = Logger(subsystem: "com.jarek.Spitr", category: "feedback")
 
 final class FeedbackSoundService {
     private let readyPlayer: AVAudioPlayer?
@@ -28,14 +31,19 @@ final class FeedbackSoundService {
         donePlayer = Self.makeDone().flatMap { try? AVAudioPlayer(data: $0) }
         donePlayer?.volume = 0.4
         donePlayer?.prepareToPlay()
+
+        if readyPlayer == nil || donePlayer == nil {
+            log.error("feedback players failed to init (ready=\(self.readyPlayer != nil) done=\(self.donePlayer != nil))")
+        }
     }
 
     /// Plays the ready chime from the start. Safe to call repeatedly and from the
     /// main thread; a no-op if synthesis failed.
     func playReady() {
-        guard let readyPlayer else { return }
+        guard let readyPlayer else { log.error("ready chime: no player"); return }
         readyPlayer.currentTime = 0
-        readyPlayer.play()
+        let ok = readyPlayer.play()
+        log.info("ready chime play() -> \(ok, privacy: .public)")
     }
 
     /// Plays the done chime — the audible end of a dictation, once text is in.

@@ -237,6 +237,7 @@ final class RecordingController: ObservableObject {
         engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
         enginePrepared = false
         prepareTask = nil
+        log.info("engine rebuilt: kind=\(self.settings.engineKind.rawValue, privacy: .public) id=\(self.engine.id, privacy: .public)")
         Task { try? await ensurePrepared() }
     }
 
@@ -392,6 +393,7 @@ final class RecordingController: ObservableObject {
         Task {
             do {
                 try await ensurePrepared()
+                log.info("transcribing with engine=\(self.engine.id, privacy: .public) (setting=\(self.settings.engineKind.rawValue, privacy: .public))")
                 let text = try await engine.transcribe(job.buffer, locale: settings.locale, vocabulary: settings.vocabulary)
                 if job.mode == .command {
                     handleCommand(text)
