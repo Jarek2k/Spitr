@@ -22,14 +22,14 @@ final class FeedbackSoundService {
     private let donePlayer: AVAudioPlayer?
 
     init() {
-        readyPlayer = Self.makeBlip(frequency: 830).flatMap { try? AVAudioPlayer(data: $0) }
-        readyPlayer?.volume = 0.45
+        readyPlayer = Self.makeBlip(frequency: 880).flatMap { try? AVAudioPlayer(data: $0) }
+        readyPlayer?.volume = 0.9
         readyPlayer?.prepareToPlay()
 
         // Done: a soft two-note descending blip, distinct from the single rising
         // "ready" cue so the two are never confused.
         donePlayer = Self.makeDone().flatMap { try? AVAudioPlayer(data: $0) }
-        donePlayer?.volume = 0.4
+        donePlayer?.volume = 0.85
         donePlayer?.prepareToPlay()
 
         if readyPlayer == nil || donePlayer == nil {
@@ -42,8 +42,7 @@ final class FeedbackSoundService {
     func playReady() {
         guard let readyPlayer else { log.error("ready chime: no player"); return }
         readyPlayer.currentTime = 0
-        let ok = readyPlayer.play()
-        log.info("ready chime play() -> \(ok, privacy: .public)")
+        if !readyPlayer.play() { log.error("ready chime play() returned false") }
     }
 
     /// Plays the done chime — the audible end of a dictation, once text is in.
@@ -59,7 +58,7 @@ final class FeedbackSoundService {
     /// in/out without clicks), rendered to a 16-bit mono WAV in memory.
     private static func makeBlip(frequency: Double) -> Data? {
         let sampleRate = 44_100.0
-        let duration = 0.11          // short — a cue, not a notification
+        let duration = 0.15          // short — a cue, not a notification
         let fade = 0.012             // 12 ms in/out
         let amplitude = 0.6
 
