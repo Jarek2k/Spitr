@@ -1,0 +1,54 @@
+# SwiftLint configuration — https://github.com/realm/SwiftLint
+# Conservative baseline: keep the rules that catch real problems, relax the
+# length/naming rules that fire on idiomatic SwiftUI/Apple code. Tighten over time.
+
+included:
+  - Spitr
+  - SpitrTests
+  - SpitrUITests
+
+excluded:
+  - build
+  - DerivedData
+  - .build
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - first_where
+  - contains_over_first_not_nil
+  - redundant_nil_coalescing
+  - toggle_bool
+  - sorted_first_last
+
+line_length:
+  warning: 120
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+
+identifier_name:
+  min_length: 2          # allow id, ux, uy, … common in graphics/AX code
+  max_length: 50
+
+type_name:
+  min_length: 3
+
+function_body_length:
+  warning: 80
+  error: 160
+
+type_body_length:
+  warning: 350
+  error: 600
+
+file_length:
+  warning: 500
+  error: 900
+  ignore_comment_only_lines: true
+
+cyclomatic_complexity:
+  warning: 12
+  error: 20
+
+reporter: "xcode"

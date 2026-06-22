@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build & unit test
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode version
+        run: xcodebuild -version
+      # Unit tests only: the UI launch test needs an interactive GUI session and
+      # the app's accessibility permissions, which a headless runner can't grant.
+      # Code signing is disabled — CI has no access to the personal signing team.
+      - name: Build & test
+        run: >
+          xcodebuild test
+          -scheme Spitr
+          -destination 'platform=macOS'
+          -only-testing:SpitrTests
+          CODE_SIGNING_ALLOWED=NO
+
+  lint:
+    name: SwiftLint
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: SwiftLint
+        run: |
+          swiftlint version || brew install swiftlint
+          swiftlint lint --reporter github-actions-logging

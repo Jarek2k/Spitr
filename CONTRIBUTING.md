@@ -5,6 +5,9 @@ welcome, but please keep in mind that the scope is deliberately small (see the
 non-goals in the [README](README.md)) and the design decisions in
 [CLAUDE.md](CLAUDE.md) are fixed unless there's a strong reason to revisit them.
 
+New to the codebase? Start with [ARCHITECTURE.md](ARCHITECTURE.md) for the module
+map and the protocol-driven design.
+
 ## Building
 
 Requires **macOS 26+** and **Xcode 26+**. Open `Spitr.xcodeproj`, set the
@@ -39,6 +42,8 @@ exists):
 - User-facing strings go through the String Catalog. Add new strings to
   `Scripts/gen_localization.py` and run it; `Scripts/check_localization.py` and
   the localization tests gate this.
+- A `.swiftlint.yml` defines the lint baseline. CI runs `xcodebuild test` plus
+  SwiftLint on every push and pull request — keep both green.
 
 ## Commits
 
