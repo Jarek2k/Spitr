@@ -2,8 +2,8 @@
 //  AppleSpeechEngine.swift
 //  Spitr
 //
-//  TranscriptionEngine backed by SFSpeechRecognizer (macOS 13+).
-//  On macOS 26 we may swap to SpeechAnalyzer / SpeechTranscriber later.
+//  TranscriptionEngine backed by SFSpeechRecognizer, on-device.
+//  Could move to SpeechAnalyzer / SpeechTranscriber later (macOS 26 baseline).
 //
 
 import Foundation

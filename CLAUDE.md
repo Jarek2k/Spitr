@@ -23,10 +23,13 @@ fokussierte Fenster eingefügt. On-device, kostenlos, privat, ohne Cloud, ohne A
 
 ## Technische Leitplanken
 - **Sprache/UI**: Swift + SwiftUI.
-- **Engine-Default**: Apple `SpeechAnalyzer` (macOS 26) / `SFSpeechRecognizer` (13–15)
-  auf Apple Silicon. **WhisperKit** als Fallback/Qualitätsoption (Intel/ältere Macs, beste
-  DE-Genauigkeit). Auswahl über `EngineSelector` + manueller Override in Settings.
-- **Hotkey**: `sindresorhus/KeyboardShortcuts` mit `onKeyDown`/`onKeyUp` (Hold-to-Talk).
+- **Zielplattform**: **macOS 26+** only (Apple Silicon). Bewusste Entscheidung — kein
+  Support für ältere macOS-Versionen.
+- **Engine-Default**: Apple Speech (`SFSpeechRecognizer`, on-device). **WhisperKit** als
+  reine **Qualitätsoption** (beste DE-Genauigkeit, ANE-beschleunigt) — *nicht* als
+  Kompatibilitäts-Fallback. Auswahl über `EngineSelector` + manueller Override in Settings.
+- **Hotkey**: dependency-free über `NSEvent`-Monitore (`HotkeyService`), Hold-to-Talk per
+  Modifier-Key (Default ⌥ rechts). Braucht Accessibility-Permission, keine Extra-Lib.
 - **Audio**: `AVAudioEngine`, 16 kHz mono.
 - **Text-Insertion**: Clipboard + Cmd+V (CGEvent) mit **Snapshot/Restore** des
   Clipboards; AppleScript-Fallback für Nicht-QWERTY-Layouts (Vorbild VoiceInk

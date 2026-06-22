@@ -22,8 +22,8 @@ volle Kontrolle über den Code, kein Geld, alles lokal.
 
 ## Zielplattform
 
-- **macOS only** (Apple Silicon + ältere Intel-Macs ab macOS 13). Windows ggf. später
-  als eigene App.
+- **macOS 26+ only** (Apple Silicon). Bewusst auf das aktuelle macOS festgelegt; ältere
+  Versionen werden nicht unterstützt. Windows ggf. später als eigene App.
 - Entwicklung & Nutzung **kostenlos**: kein bezahlter Apple-Developer-Account. Signieren
   via „Sign to Run Locally" (auf macOS dauerhaft gültig — der 7-Tage-Ablauf gilt nur für
   iOS). $99/Jahr erst nötig, wenn man die App breit an Fremde verteilen will
@@ -70,8 +70,9 @@ protocol TranscriptionEngine {
     func transcribe(_ audio: AudioBuffer, locale: Locale) async throws -> String
 }
 ```
-`EngineSelector`-Heuristik: Apple Silicon + macOS 26 → `AppleSpeechEngine` default;
-ältere/Intel → `WhisperKitEngine` (`small`/`base`). Manuelle Override in Settings.
+`EngineSelector`-Default: `AppleSpeechEngine` (zero Download). `WhisperKitEngine` als
+manuell wählbare **Qualitätsoption** (beste DE-Genauigkeit) — kein Kompatibilitäts-Fallback,
+da macOS-26-only. Manuelle Override in Settings.
 
 ---
 
@@ -80,9 +81,9 @@ protocol TranscriptionEngine {
 | Aspekt | Entscheidung | Grund |
 |---|---|---|
 | Sprache/UI | Swift + SwiftUI | nativ, performant |
-| Speech (default) | Apple `SpeechAnalyzer` (macOS 26) / `SFSpeechRecognizer` (13–15) | on-device, kein Download, minimaler Verbrauch |
-| Speech (Fallback/Qualität) | **WhisperKit** (SPM) | läuft auf Intel/alt, beste DE-Genauigkeit, ANE-beschleunigt |
-| Hotkey | `sindresorhus/KeyboardShortcuts` | `onKeyDown`/`onKeyUp` für Hold-to-Talk, keine Extra-Permission |
+| Speech (default) | Apple `SFSpeechRecognizer` (on-device) | kein Download, minimaler Verbrauch |
+| Speech (Qualitätsoption) | **WhisperKit** (SPM) | beste DE-Genauigkeit, ANE-beschleunigt; manuell wählbar, kein Fallback |
+| Hotkey | dependency-free `NSEvent`-Monitore (`HotkeyService`) | Hold-to-Talk per Modifier; braucht Accessibility |
 | Audio | `AVAudioEngine`, 16 kHz mono | Standard-Input für Whisper/Apple |
 | Text-Insertion | Clipboard + Cmd+V (CGEvent), Snapshot/Restore; AppleScript-Fallback | robustester Weg, auch in Terminal/Electron (Vorbild VoiceInk) |
 | Sandbox | **AUS** (non-sandboxed) | Accessibility/Keystroke-Injection unvereinbar mit Sandbox |

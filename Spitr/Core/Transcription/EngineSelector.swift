@@ -2,9 +2,9 @@
 //  EngineSelector.swift
 //  Spitr
 //
-//  Chooses which TranscriptionEngine to use. Today only Apple Speech exists;
-//  WhisperKit will slot in here as a fallback for older Macs / better accuracy,
-//  with a manual override from Settings. Callers depend on the protocol only.
+//  Chooses which TranscriptionEngine to use. Apple Speech is the default;
+//  WhisperKit is a manually selectable quality option (better accuracy), not a
+//  compatibility fallback. Callers depend on the protocol only.
 //
 
 import Foundation
