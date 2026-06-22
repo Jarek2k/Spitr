@@ -51,7 +51,7 @@ trap 'rm -rf "$STAGE"' EXIT
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
 
-echo "==> Creating $DMG…"
+echo "==> Creating ${DMG}…"
 rm -f "$DMG"
 hdiutil create \
     -volname "Spitr $VERSION" \
