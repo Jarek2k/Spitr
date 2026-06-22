@@ -179,6 +179,16 @@ final class RecordingController: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// Defensive cleanup. The controller lives for the whole app session, so this
+    /// rarely runs — but it keeps the long-lived level loop and the workspace
+    /// observer from outliving the controller if it ever is torn down/recreated.
+    deinit {
+        levelTask?.cancel()
+        if let activationObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
+        }
+    }
+
     /// Toggles pause; while paused, plain dictation is ignored but command mode
     /// still works so the user can resume by voice.
     func togglePause() { settings.isPaused.toggle() }
