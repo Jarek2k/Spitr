@@ -36,3 +36,6 @@ Carthage/Build/
 *.mlmodelc
 Models/*.bin
 Models/*.gguf
+
+# DMG output
+dist/
