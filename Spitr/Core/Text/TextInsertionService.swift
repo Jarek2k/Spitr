@@ -88,7 +88,7 @@ final class TextInsertionService {
         let system = AXUIElementCreateSystemWide()
         var focused: AnyObject?
         guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-              let focused else { return nil }
+              let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return nil }
         let element = focused as! AXUIElement
 
         var rangeValue: AnyObject?
