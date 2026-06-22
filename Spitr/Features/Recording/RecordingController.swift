@@ -141,11 +141,11 @@ final class RecordingController: ObservableObject {
         // defer prepare() to the next recording so switching is cheap.
         settings.$engineKind
             .dropFirst()
-            .sink { [weak self] _ in self?.rebuildEngine() }
+            .sink { [weak self] kind in self?.rebuildEngine(engineKind: kind) }
             .store(in: &cancellables)
         settings.$whisperModel
             .dropFirst()
-            .sink { [weak self] _ in self?.rebuildEngine() }
+            .sink { [weak self] model in self?.rebuildEngine(whisperModel: model) }
             .store(in: &cancellables)
 
         // Swap the Hold-to-Talk key live when changed in Settings.
@@ -230,14 +230,19 @@ final class RecordingController: ObservableObject {
     /// Rebuilds the transcription engine from current settings and proactively
     /// prewarms it, so the model load happens while the user is still in Settings
     /// rather than stalling the first recording after a switch.
-    private func rebuildEngine() {
+    private func rebuildEngine(engineKind: EngineKind? = nil, whisperModel: String? = nil) {
+        // $engineKind / $whisperModel publish in willSet, so inside the sink the
+        // stored settings value is still the OLD one. Use the published value and
+        // fall back to settings only for whichever property didn't just change.
+        let kind = engineKind ?? settings.engineKind
+        let model = whisperModel ?? settings.whisperModel
         // Abandon any in-flight load for the engine we're replacing, so a heavy
         // model (e.g. large-v3) doesn't keep churning after the user switches away.
         prepareTask?.cancel()
-        engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
+        engine = selector.makeEngine(kind, whisperModel: model)
         enginePrepared = false
         prepareTask = nil
-        log.info("engine rebuilt: kind=\(self.settings.engineKind.rawValue, privacy: .public) id=\(self.engine.id, privacy: .public)")
+        log.info("engine rebuilt: kind=\(kind.rawValue, privacy: .public) id=\(self.engine.id, privacy: .public)")
         Task { try? await ensurePrepared() }
     }
 
