@@ -71,6 +71,10 @@ final class OverlayController {
 
     private func hide() {
         panel?.orderOut(nil)
+        // Release the panel (and with it the NSHostingView) so the waveform's
+        // ~60 fps animation timeline tears down instead of ticking all day while
+        // the overlay is off screen. show() rebuilds it on the next recording.
+        panel = nil
     }
 
     private func makePanel() -> NSPanel {
