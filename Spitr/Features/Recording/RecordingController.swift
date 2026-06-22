@@ -121,6 +121,7 @@ final class RecordingController: ObservableObject {
         self.engine = selector.makeEngine(settings.engineKind, whisperModel: settings.whisperModel)
 
         audio.preferredDeviceUID = settings.inputDeviceUID
+        audio.voiceProcessingEnabled = settings.voiceIsolation
 
         hotkey.onPress = { [weak self] command in self?.startRecording(command: command) }
         hotkey.onRelease = { [weak self] in self?.finishRecording() }
@@ -171,6 +172,12 @@ final class RecordingController: ObservableObject {
         settings.$inputDeviceUID
             .dropFirst()
             .sink { [weak self] uid in self?.audio.preferredDeviceUID = uid }
+            .store(in: &cancellables)
+
+        // Apply voice-isolation toggle on the next recording.
+        settings.$voiceIsolation
+            .dropFirst()
+            .sink { [weak self] on in self?.audio.voiceProcessingEnabled = on }
             .store(in: &cancellables)
 
         // Mirror pause state (toggled from menu or by voice command).

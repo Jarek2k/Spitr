@@ -50,6 +50,13 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(waveformStyle.rawValue, forKey: Keys.waveform) }
     }
 
+    /// Route mic input through Apple's voice-processing I/O (noise suppression,
+    /// echo cancellation, automatic gain). On by default — helps with mumbling
+    /// and background noise; can be turned off if it hurts in a quiet room.
+    @Published var voiceIsolation: Bool {
+        didSet { defaults.set(voiceIsolation, forKey: Keys.voiceIsolation) }
+    }
+
     /// Global chord that re-inserts the last dictation. Persisted as JSON.
     @Published var reinsertShortcut: KeyCombo {
         didSet {
@@ -133,6 +140,7 @@ final class SettingsStore: ObservableObject {
         static let reinsert = "reinsertShortcut"
         static let smartSpacing = "smartSpacing"
         static let verboseLogging = "verboseLogging"
+        static let voiceIsolation = "voiceIsolation"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -152,6 +160,7 @@ final class SettingsStore: ObservableObject {
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
         self.playDoneChime = defaults.object(forKey: Keys.doneChime) as? Bool ?? true
         self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true
+        self.voiceIsolation = defaults.object(forKey: Keys.voiceIsolation) as? Bool ?? true
         let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.signalReactive.rawValue
         self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .signalReactive
         self.vocabularyText = defaults.string(forKey: Keys.vocabulary) ?? ""

@@ -44,6 +44,11 @@ final class AudioCaptureService: @unchecked Sendable {
     /// Set by RecordingController from Settings; applied on the next start().
     var preferredDeviceUID: String?
 
+    /// Route mic input through Apple's voice-processing I/O unit (noise
+    /// suppression, echo cancellation, automatic gain). Helps against mumbling
+    /// and background noise (e.g. a TV). Set from Settings; applied on next start().
+    var voiceProcessingEnabled: Bool = true
+
     /// Fires on the main thread the moment the first buffer is delivered after a
     /// start(), i.e. when the mic is *genuinely* capturing (engine.start()
     /// returns earlier, before hardware warm-up completes). Used to cue the user.
@@ -95,6 +100,9 @@ final class AudioCaptureService: @unchecked Sendable {
         levelEnvelope = 0
 
         let input = engine.inputNode
+        // Enable voice processing before pinning the device: toggling it rebuilds
+        // the input audio unit, which would otherwise discard a device set first.
+        applyVoiceProcessing(to: input)
         applyPreferredDevice(to: input)
         // Force the engine to (re)build its input graph against the just-pinned
         // device before reading formats / installing the tap, so the node adopts
@@ -162,6 +170,19 @@ final class AudioCaptureService: @unchecked Sendable {
         lock.unlock()
 
         return AudioBuffer(samples: copy, sampleRate: Self.targetSampleRate)
+    }
+
+    /// Turns Apple's voice-processing I/O (noise suppression, echo cancellation,
+    /// AGC) on or off for this recording. A fresh engine starts with it disabled,
+    /// so the guard skips the (rebuild-triggering) call when nothing changes.
+    private func applyVoiceProcessing(to input: AVAudioInputNode) {
+        guard input.isVoiceProcessingEnabled != voiceProcessingEnabled else { return }
+        do {
+            try input.setVoiceProcessingEnabled(voiceProcessingEnabled)
+            log.info("voice processing enabled=\(self.voiceProcessingEnabled, privacy: .public)")
+        } catch {
+            log.error("failed to set voice processing: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     /// Pins the engine's input node to the chosen Core Audio device. A nil/empty

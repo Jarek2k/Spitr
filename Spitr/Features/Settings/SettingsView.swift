@@ -110,8 +110,10 @@ private struct GeneralSettingsView: View {
                         Text("Nicht verfügbar").tag(settings.inputDeviceUID)
                     }
                 }
+
+                Toggle("Sprachisolierung", isOn: $settings.voiceIsolation)
             } footer: {
-                Text("Aufgenommen wird nur, solange du die Taste hältst.")
+                Text("Aufgenommen wird nur, solange du die Taste hältst. Sprachisolierung filtert Hintergrundgeräusche (z. B. Fernseher) und gleicht die Lautstärke an — bei sehr ruhiger Umgebung kannst du sie ausschalten.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -1055,6 +1055,176 @@
         }
       }
     },
+    "Diagnose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnóstico"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostica"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostyka"
+          }
+        }
+      }
+    },
+    "Ausführliches Protokoll": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbose log"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journal détaillé"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registro detallado"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log dettagliato"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szczegółowy dziennik"
+          }
+        }
+      }
+    },
+    "Protokoll-Ordner öffnen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open log folder"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir le dossier des journaux"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir carpeta de registros"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri cartella dei log"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz folder dziennika"
+          }
+        }
+      }
+    },
+    "Schreibt zusätzlich regelmäßig Speicher- und Thread-Werte ins Protokoll — nützlich, um über mehrere Tage Lecks aufzuspüren. Aus reicht das normale Protokoll mit Fehlern und Zeiten.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Additionally records memory and thread values to the log at intervals — useful for tracking down leaks over several days. When off, the normal log with errors and timings is enough."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistre en plus régulièrement la mémoire et les threads dans le journal — utile pour traquer des fuites sur plusieurs jours. Désactivé, le journal normal avec erreurs et temps suffit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Además registra periódicamente valores de memoria e hilos en el registro — útil para rastrear fugas durante varios días. Desactivado, basta el registro normal con errores y tiempos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra inoltre a intervalli i valori di memoria e thread nel log — utile per individuare perdite nell'arco di più giorni. Disattivato, basta il log normale con errori e tempi."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodatkowo regularnie zapisuje wartości pamięci i wątków do dziennika — przydatne do wykrywania wycieków w ciągu kilku dni. Wyłączony — wystarcza zwykły dziennik z błędami i czasami."
+          }
+        }
+      }
+    },
+    "Das Protokoll liegt unter ~/Library/Logs/Spitr und enthält nie deinen diktierten Text — nur Ereignisse, Zeiten und Fehler. Es bleibt komplett auf deinem Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The log lives in ~/Library/Logs/Spitr and never contains your dictated text — only events, timings and errors. It stays entirely on your Mac."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le journal se trouve dans ~/Library/Logs/Spitr et ne contient jamais ton texte dicté — uniquement des événements, des temps et des erreurs. Il reste entièrement sur ton Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El registro se encuentra en ~/Library/Logs/Spitr y nunca contiene tu texto dictado — solo eventos, tiempos y errores. Permanece por completo en tu Mac."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il log si trova in ~/Library/Logs/Spitr e non contiene mai il testo dettato — solo eventi, tempi ed errori. Resta interamente sul tuo Mac."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dziennik znajduje się w ~/Library/Logs/Spitr i nigdy nie zawiera dyktowanego tekstu — tylko zdarzenia, czasy i błędy. Pozostaje w całości na Twoim Macu."
+          }
+        }
+      }
+    },
     "Engine": {
       "localizations": {
         "en": {
@@ -1225,36 +1395,70 @@
         }
       }
     },
-    "Aufgenommen wird nur, solange du die Taste hältst.": {
+    "Sprachisolierung": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording happens only while you hold the key."
+            "value": "Voice isolation"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'enregistrement n'a lieu que tant que tu maintiens la touche."
+            "value": "Isolation de la voix"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La grabación solo ocurre mientras mantienes la tecla."
+            "value": "Aislamiento de voz"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La registrazione avviene solo mentre tieni premuto il tasto."
+            "value": "Isolamento vocale"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nagrywanie odbywa się tylko, gdy trzymasz klawisz."
+            "value": "Izolacja głosu"
+          }
+        }
+      }
+    },
+    "Aufgenommen wird nur, solange du die Taste hältst. Sprachisolierung filtert Hintergrundgeräusche (z. B. Fernseher) und gleicht die Lautstärke an — bei sehr ruhiger Umgebung kannst du sie ausschalten.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording happens only while you hold the key. Voice isolation filters background noise (e.g. a TV) and levels the volume — you can turn it off in a very quiet room."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'enregistrement n'a lieu que tant que tu maintiens la touche. L'isolation de la voix filtre les bruits de fond (p. ex. une télé) et égalise le volume — tu peux la désactiver dans un environnement très calme."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La grabación solo ocurre mientras mantienes la tecla. El aislamiento de voz filtra el ruido de fondo (p. ej. un televisor) y nivela el volumen — puedes desactivarlo en un entorno muy silencioso."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La registrazione avviene solo mentre tieni premuto il tasto. L'isolamento vocale filtra i rumori di fondo (es. una TV) e livella il volume — puoi disattivarlo in un ambiente molto silenzioso."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nagrywanie odbywa się tylko, gdy trzymasz klawisz. Izolacja głosu filtruje szumy tła (np. telewizor) i wyrównuje głośność — w bardzo cichym otoczeniu możesz ją wyłączyć."
           }
         }
       }
