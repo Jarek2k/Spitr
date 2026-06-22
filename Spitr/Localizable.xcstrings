@@ -4183,40 +4183,6 @@
         }
       }
     },
-    "Strähnen (Metal)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Strands (Metal)"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filaments (Metal)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hebras (Metal)"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fili (Metal)"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pasma (Metal)"
-          }
-        }
-      }
-    },
     "KITT (rot)": {
       "localizations": {
         "en": {

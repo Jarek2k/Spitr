@@ -306,7 +306,6 @@ UI = collections.OrderedDict([
     ("Signal (randlos)", {"en": "Signal (borderless)", "fr": "Signal (sans cadre)", "es": "Signal (sin borde)", "it": "Signal (senza bordo)", "pl": "Signal (bez ramki)"}),
     ("Signal (Kapsel)", {"en": "Signal (capsule)", "fr": "Signal (capsule)", "es": "Signal (cápsula)", "it": "Signal (capsula)", "pl": "Signal (kapsuła)"}),
     ("Balken", {"en": "Bars", "fr": "Barres", "es": "Barras", "it": "Barre", "pl": "Słupki"}),
-    ("Strähnen (Metal)", {"en": "Strands (Metal)", "fr": "Filaments (Metal)", "es": "Hebras (Metal)", "it": "Fili (Metal)", "pl": "Pasma (Metal)"}),
     ("KITT (rot)", {"en": "KITT (red)", "fr": "KITT (rouge)", "es": "KITT (rojo)", "it": "KITT (rosso)", "pl": "KITT (czerwony)"}),
     ("Halte die Aufnahme-Taste **mit ⇧** und sprich einen Befehl, statt zu diktieren. Der Text wird dann nicht eingefügt.",
      {"en": "Hold the recording key **with ⇧** and speak a command instead of dictating. The text is not inserted.",

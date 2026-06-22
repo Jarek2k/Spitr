@@ -149,8 +149,8 @@ fixed design decisions live in [CLAUDE.md](CLAUDE.md).
 
 ## Third-party code
 
-See [THIRD_PARTY.md](THIRD_PARTY.md) — WhisperKit (MIT), swift-argument-parser
-(Apache-2.0), and a Metal port of a React Bits shader (MIT).
+See [THIRD_PARTY.md](THIRD_PARTY.md) — WhisperKit (MIT) and swift-argument-parser
+(Apache-2.0).
 
 ## License
 

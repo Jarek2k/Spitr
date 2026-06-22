@@ -41,7 +41,6 @@ final class OverlayController {
 
     /// Capsule presentation vs. the larger, chrome-free animations.
     private static let capsuleSize = NSSize(width: 240, height: 64)
-    private static let strandsSize = NSSize(width: 300, height: 100)
     private static let kittSize = NSSize(width: 150, height: 116)
     /// Bare signal bars: narrower and a touch taller than the capsule, close to
     /// the site animation (12 thin bars, tall scale).
@@ -54,9 +53,8 @@ final class OverlayController {
         let size: NSSize
         if chromeless {
             switch controller.settings.waveformStyle {
-            case .signalReactive, .signalBare: size = Self.signalBareSize
-            case .kitt:                        size = Self.kittSize
-            default:                           size = Self.strandsSize
+            case .kitt:  size = Self.kittSize
+            default:     size = Self.signalBareSize
             }
         } else {
             size = Self.capsuleSize

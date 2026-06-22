@@ -32,7 +32,7 @@ struct SettingsStoreTests {
         first.whisperModel = "small"
         first.inputDeviceUID = "mic-123"
         first.hasCompletedOnboarding = true
-        first.waveformStyle = .strands
+        first.waveformStyle = .kitt
         first.vocabularyText = "Claude"
 
         let second = SettingsStore(defaults: defaults)
@@ -42,7 +42,7 @@ struct SettingsStoreTests {
         #expect(second.whisperModel == "small")
         #expect(second.inputDeviceUID == "mic-123")
         #expect(second.hasCompletedOnboarding == true)
-        #expect(second.waveformStyle == .strands)
+        #expect(second.waveformStyle == .kitt)
         #expect(second.vocabularyText == "Claude")
     }
 

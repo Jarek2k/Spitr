@@ -27,7 +27,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | Menüleisten-App | ✅ | Lebt in der Menüleiste, kein Dock-Icon; Icon zeigt idle/recording/processing | — |
 | Natives Menüleisten-Popover | ✅ | Klick aufs Symbol öffnet ein Popover, dessen Einträge wie native macOS-Menüpunkte beim Überfahren highlighten (Accent-Fill, weiße Schrift); „Beenden" → „Spitr beenden" | — |
 | Aufnahme-Overlay | ✅ | Schwebende Kapsel mit Mikro + Wellenform, nur während Aufnahme | — |
-| Wellenform-Stil wählbar | ✅ | „Balken" (Canvas), „Strähnen" (Metal-Shader) oder „KITT" (rote LED-Voice-Box); erweiterbar | Wellenform (Allgemein) |
+| Wellenform-Stil wählbar | ✅ | „Signal" (reaktiv/randlos/Kapsel), „Balken" (Canvas) oder „KITT" (rote LED-Voice-Box); erweiterbar | Wellenform (Allgemein) |
 | App-Icon | ✅ | Eigenes Icon in About/Dock (systemseitige Anzeige korrekt erst in Release-Build) | — |
 | Über-Spitr-Panel | ✅ | Icon, Version + Build, Copyright und kurze Beschreibung (statt nur Icon/Version) | Menü „Über Spitr" |
 | Hilfe-Menü | ✅ | „Spitr-Hilfe" (⌘?) öffnet on-device Kurzanleitung (Diktieren, Befehle, Vokabular/Wörterbuch, Engines, Datenschutz); ersetzt den toten Standard-Help-Eintrag. ⌘? öffnet direkt (macOS-Hilfe-Suchfeld wird abgefangen) | Menü „Hilfe" |

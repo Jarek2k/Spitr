@@ -34,15 +34,14 @@ struct RecordingOverlay: View {
     @ViewBuilder
     private var chromelessAnimation: some View {
         switch settings.waveformStyle {
-        case .signalReactive: SignalReactiveWaveformView(level: controller.inputLevel)
-        case .signalBare:     SignalWaveformView(level: controller.inputLevel)
-        case .kitt:           KittWaveformView(level: controller.inputLevel)
-        default:              MetalWaveformView(level: controller.inputLevel)
+        case .signalBare: SignalWaveformView(level: controller.inputLevel)
+        case .kitt:       KittWaveformView(level: controller.inputLevel)
+        default:          SignalReactiveWaveformView(level: controller.inputLevel)
         }
     }
 
     /// The capsule presentation: used for the bars waveform, command mode and
-    /// the command result. The strands style opts out of this entirely.
+    /// the command result. The chrome-free styles opt out of this entirely.
     private var chromed: some View {
         Group {
             if let feedback = controller.commandFeedback, controller.state != .recording {

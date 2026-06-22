@@ -51,7 +51,7 @@ Spitr/
 │  └─ ModelManager         ── Whisper-Modelle laden/cachen/auswählen
 ├─ Features/
 │  ├─ Recording          ── State-Machine: idle→recording→transcribing→inserting
-│  ├─ Overlay            ── schwebendes Fenster mit Wellenform (Canvas/Metal)
+│  ├─ Overlay            ── schwebendes Fenster mit Wellenform (SwiftUI Canvas)
 │  ├─ MenuBar            ── Status-Icon + Schnellmenü
 │  └─ Settings           ── Hotkey, Engine, Modell, Sprache, Mic-Auswahl
 └─ Resources/           ── Icon, Assets
@@ -120,7 +120,7 @@ Cloud-Engines, Streaming-Live-Preview, Auto-Updates.
 - Medien-Pause während Aufnahme ✅
 - Personal Dictionary / Wort-Ersetzungen ✅ (default aus)
 - Launch-at-Login ✅
-- „strands"-artige Wellenform als Metal-Shader ✅ (Stil wählbar)
+- Wählbare Wellenform-Stile (Signal reaktiv/randlos/Kapsel, Balken, KITT) ✅
 - Audio-Feedback (Start/Stop-Sound) → auf v3 verschoben
 - Auto-Spracherkennung → offen
 

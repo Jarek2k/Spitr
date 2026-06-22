@@ -19,8 +19,6 @@ enum WaveformStyle: String, CaseIterable, Identifiable {
     case signal
     /// Lightweight SwiftUI Canvas: mirrored scrolling bars (the original).
     case bars
-    /// GPU "strands": flowing sine threads rendered by a Metal shader.
-    case strands
     /// KITT-style red segmented voice box (Knight Rider).
     case kitt
 
@@ -32,7 +30,6 @@ enum WaveformStyle: String, CaseIterable, Identifiable {
         case .signalBare:     return String(localized: "Signal (randlos)")
         case .signal:         return String(localized: "Signal (Kapsel)")
         case .bars:           return String(localized: "Balken")
-        case .strands:        return String(localized: "Strähnen (Metal)")
         case .kitt:           return String(localized: "KITT (rot)")
         }
     }

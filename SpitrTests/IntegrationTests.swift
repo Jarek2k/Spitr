@@ -3,7 +3,7 @@
 //  SpitrTests
 //
 //  Cross-module behaviour: the dictionary → replacement post-processing pipeline,
-//  and the RecordingController wiring (pause mirror, strands-only overlay) without
+//  and the RecordingController wiring (pause mirror, chrome-free overlay) without
 //  touching audio hardware.
 //
 
@@ -61,8 +61,6 @@ struct RecordingControllerWiringTests {
         #expect(controller.overlayIsChromeless == true)    // bare signal → chrome-free
         settings.waveformStyle = .signal
         #expect(controller.overlayIsChromeless == false)   // capsule → mic + border
-        settings.waveformStyle = .strands
-        #expect(controller.overlayIsChromeless == true)    // strands → chrome-free
         settings.waveformStyle = .kitt
         #expect(controller.overlayIsChromeless == true)    // KITT → chrome-free
         settings.waveformStyle = .bars

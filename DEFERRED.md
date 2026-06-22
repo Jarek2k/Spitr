@@ -91,10 +91,11 @@ machen, sondern in einer dedizierten Polish-Runde.
   Platzhalter liefert. Fix in `SpitrApp.swift`: „Über"-Panel via `CommandGroup(replacing:
   .appInfo)` + `orderFrontStandardAboutPanel` mit explizit übergebenem Icon; Dock-Icon
   via erneutes `applicationIconImage`-Setzen nach dem `.regular`-Wechsel.)
-- **Wellenform-Stile feinschleifen oder reduzieren.** Alle drei (Balken, Strähnen,
-  KITT) laufen technisch sauber (auch der Metal-Shader, kein Stitching-Crash), aber
-  keiner überzeugt Jarek ästhetisch ganz. In der Polish-Runde entscheiden: welcher wird
-  Default, welche werden nachpoliert, welche evtl. entfernt. (Favorit noch offen.)
+- **Wellenform-Stile feinschleifen.** Die verbleibenden Stile (Signal reaktiv/randlos/
+  Kapsel, Balken, KITT) laufen technisch sauber. Der bunte Metal-Shader „Strähnen"
+  (reactbits-Port) wurde 2026-06-22 entfernt — passte farblich nicht zum Brand und war
+  die einzige Drittcode-Abhängigkeit der Overlays. In der Polish-Runde entscheiden:
+  welche werden nachpoliert, welche evtl. entfernt. (Default: Signal reaktiv.)
 - ~~**App-Menü eindeutschen + Volllokalisierung.**~~ *(2026-06-21 erledigt.)* Erst nur die
   Standard-AppKit-Menüs an die Systemsprache gekoppelt (Bundle-Sprache deklariert), dann
   direkt **vollständig lokalisiert**: alle UI-Strings über `Localizable.xcstrings` /
