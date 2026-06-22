@@ -1,7 +1,7 @@
 # CLAUDE.md — Spitr
 
 Fixierte Entscheidungen für dieses Projekt. Nicht erneut in Frage stellen, ohne dass
-Jarek es explizit anstößt. Vollständiges Konzept: siehe [KONZEPT.md](KONZEPT.md).
+Jarek es explizit anstößt. Architektur-Überblick: siehe [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Was Spitr ist
 Native macOS Voice-to-Text App: Taste halten → sprechen → loslassen → Text wird ins
@@ -18,7 +18,7 @@ fokussierte Fenster eingefügt. On-device, kostenlos, privat, ohne Cloud, ohne A
 - Speech-Engine liegt hinter `protocol TranscriptionEngine`. Implementierungen:
   `AppleSpeechEngine` und `WhisperKitEngine`. **Nie** direkt gegen eine konkrete Engine
   programmieren — immer gegen das Protokoll.
-- Modulgrenzen wie in KONZEPT.md (Core/ Services, Features/ UI). Services sind
+- Modulgrenzen wie in ARCHITECTURE.md (Core/ Services, Features/ UI). Services sind
   protokoll-getrieben und unit-testbar.
 
 ## Technische Leitplanken

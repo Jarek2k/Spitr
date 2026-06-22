@@ -39,3 +39,8 @@ Models/*.gguf
 
 # DMG output
 dist/
+
+# Local working notes — kept out of the public repo. FEATURES.md feeds the
+# README/website copy; DEFERRED.md is parked work that belongs in GitHub Issues.
+FEATURES.md
+DEFERRED.md
