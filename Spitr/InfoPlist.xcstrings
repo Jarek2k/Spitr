@@ -82,6 +82,47 @@
           }
         }
       }
+    },
+    "NSAppleEventsUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spitr fügt deinen Text per Tastendruck ein (Fallback für Nicht-QWERTZ-Layouts)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spitr inserts your text via a keystroke (fallback for non-QWERTY layouts)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spitr insère ton texte via une frappe (solution de repli pour les claviers non QWERTY)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spitr inserta tu texto mediante una pulsación (alternativa para teclados no QWERTY)."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spitr inserisce il testo tramite un tasto (fallback per layout non QWERTY)."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spitr wstawia tekst za pomocą skrótu klawiszowego (zapasowo dla układów innych niż QWERTY)."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

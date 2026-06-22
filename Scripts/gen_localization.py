@@ -339,6 +339,13 @@ INFO = collections.OrderedDict([
       "es": "Spitr convierte tu grabación en texto en el dispositivo.",
       "it": "Spitr converte la tua registrazione in testo on-device.",
       "pl": "Spitr zamienia nagranie na tekst na urządzeniu."}),
+    ("NSAppleEventsUsageDescription",
+     {"de": "Spitr fügt deinen Text per Tastendruck ein (Fallback für Nicht-QWERTZ-Layouts).",
+      "en": "Spitr inserts your text via a keystroke (fallback for non-QWERTY layouts).",
+      "fr": "Spitr insère ton texte via une frappe (solution de repli pour les claviers non QWERTY).",
+      "es": "Spitr inserta tu texto mediante una pulsación (alternativa para teclados no QWERTY).",
+      "it": "Spitr inserisce il testo tramite un tasto (fallback per layout non QWERTY).",
+      "pl": "Spitr wstawia tekst za pomocą skrótu klawiszowego (zapasowo dla układów innych niż QWERTY)."}),
 ])
 
 

@@ -416,7 +416,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 96J63CJL2N;
 				ENABLE_APP_SANDBOX = NO;
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -424,6 +424,8 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jarek";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Spitr nimmt nur auf, solange du die Aufnahmetaste hältst.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Spitr wandelt deine Aufnahme on-device in Text um.";
+				CODE_SIGN_ENTITLEMENTS = Spitr/Spitr.entitlements;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Spitr fügt deinen Text per Tastendruck ein (Fallback für Nicht-QWERTZ-Layouts).";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -451,7 +453,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 96J63CJL2N;
 				ENABLE_APP_SANDBOX = NO;
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -459,6 +461,8 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jarek";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Spitr nimmt nur auf, solange du die Aufnahmetaste hältst.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Spitr wandelt deine Aufnahme on-device in Text um.";
+				CODE_SIGN_ENTITLEMENTS = Spitr/Spitr.entitlements;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Spitr fügt deinen Text per Tastendruck ein (Fallback für Nicht-QWERTZ-Layouts).";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
