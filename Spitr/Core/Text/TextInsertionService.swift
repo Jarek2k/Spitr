@@ -29,9 +29,34 @@ final class TextInsertionService {
     /// time to read the paste.
     private let restoreDelay: TimeInterval = 0.15
 
+    /// Marks our temporary clipboard payload so clipboard-history managers
+    /// (Raycast, Maccy, …) skip it — the dictated text may be a secret and we
+    /// only park it for the duration of one paste.
+    private let concealedType = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
+
+    /// The clipboard we still owe a restore. Held so a quit/terminate inside the
+    /// restore window doesn't leave the dictated text on the pasteboard.
+    private var pendingRestore: [[NSPasteboard.PasteboardType: Data]]?
+
     /// When on, normalize spacing and add a leading space if the text would
     /// otherwise butt up against the preceding word. Set from Settings.
     var smartSpacing = true
+
+    private var terminateObserver: NSObjectProtocol?
+
+    init() {
+        terminateObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.restoreBeforeTerminate()
+        }
+    }
+
+    deinit {
+        if let terminateObserver {
+            NotificationCenter.default.removeObserver(terminateObserver)
+        }
+    }
 
     func insert(_ text: String) {
         guard !text.isEmpty else { return }
@@ -42,9 +67,12 @@ final class TextInsertionService {
 
         let pasteboard = NSPasteboard.general
         let saved = snapshot(pasteboard)
+        pendingRestore = saved
 
         pasteboard.clearContents()
         pasteboard.setString(prepared, forType: .string)
+        // Empty marker: presence of the type is the signal, not its contents.
+        pasteboard.setData(Data(), forType: concealedType)
 
         if cgEventPasteIsLayoutSafe() {
             pasteViaCGEvent()
@@ -54,8 +82,18 @@ final class TextInsertionService {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + restoreDelay) { [weak self] in
-            self?.restore(saved, to: pasteboard)
+            guard let self, let saved = self.pendingRestore else { return }
+            self.restore(saved, to: pasteboard)
+            self.pendingRestore = nil
         }
+    }
+
+    /// Last-chance synchronous restore if the app is quitting while a paste's
+    /// clipboard restore is still pending.
+    private func restoreBeforeTerminate() {
+        guard let saved = pendingRestore else { return }
+        restore(saved, to: .general)
+        pendingRestore = nil
     }
 
     // MARK: - Smart spacing
@@ -87,6 +125,9 @@ final class TextInsertionService {
     private func precedingCharacter() -> Character? {
         let system = AXUIElementCreateSystemWide()
         var focused: AnyObject?
+        // CFGetTypeID guard + force cast is the correct idiom: `as?` to a CF type
+        // doesn't actually type-check ("always succeeds"), so the type check has
+        // to be explicit and the cast is then provably safe.
         guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
               let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return nil }
         let element = focused as! AXUIElement
