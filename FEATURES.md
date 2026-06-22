@@ -41,12 +41,13 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 
 | Feature | Status | Nutzer-Sicht | Einstellung |
 |---|---|---|---|
-| Vereinheitlichte Einstellungen | ✅ | Alle Tabs (Allgemein, Befehle, Vokabular, Wörterbuch, Verlauf) im konsistenten nativen „grouped"-Form-Stil mit Abschnitten + Fußnoten statt heterogener Layouts | — |
+| Vereinheitlichte Einstellungen | ✅ | Alle Tabs (Allgemein, Vokabular, Wörterbuch, Befehle, Verlauf, Diagnose) im konsistenten nativen „grouped"-Form-Stil mit Abschnitten + Fußnoten statt heterogener Layouts | — |
 | Engine-Auswahl + Override | ✅ | Engine manuell wählbar; aktive Engine/Modell im Menü sichtbar | Engine (Allgemein) |
 | WhisperKit-Modellwahl | ✅ | base / small / large-v3; Modell wird beim Umschalten vorgewärmt (alle drei verifiziert; große Modelle brachten für DE keinen Vorteil). large-v3-turbo entfernt: löste in WhisperKits Repo nicht auf → jede Transkription schlug fehl | Modell (Allgemein) |
 | Sprachauswahl | ✅ | Erkennungssprache (DE/EN/…) | Sprache (Allgemein) |
 | Konfigurierbare Aufnahme-Taste | ✅ | Hold-to-Talk-Taste umschaltbar (⌥/⌃; fn nur MacBook-Tastatur), persistiert | Aufnahme-Taste (Allgemein) |
 | Mikrofon-Auswahl | ✅ | Eingabegerät wählbar; Systemstandard + Fallback. Eingebautes + USB-Mikros (z. B. Yeti) verifiziert; **Bluetooth-Mikros (AirPods) als Eingang nicht unterstützt** (macOS-HFP/SCO startet nicht zuverlässig — siehe DEFERRED) | Mikrofon (Allgemein) |
+| Sprachisolierung | 🧪 | Apples Voice-Processing-I/O (Rauschunterdrückung, Echo-Cancellation, automatische Pegelanpassung) auf dem Mikrofon-Eingang — gegen Nuscheln + Hintergrundgeräusche (z. B. TV); default an, in sehr ruhiger Umgebung abschaltbar | Sprachisolierung (Allgemein) |
 | Beim Anmelden starten | ✅ | Autostart bei Login | Toggle (Allgemein) |
 | Custom Vocabulary | ✅ | Eigennamen/Fachbegriffe als Bias (hilft oft, nicht garantiert — Engine-Grenze) | Vokabular-Tab |
 | Personal Dictionary | ✅ | Wort-Ersetzungen nach der Erkennung (Erkannt → Ersetzung); abschaltbar, default aus | Wörterbuch-Tab |
@@ -63,6 +64,7 @@ Status: ✅ umgesetzt · 🧪 umgesetzt, real noch ungetestet · ➖ nicht relev
 | Permission-Onboarding | ✅ | Erststart erklärt Mikro / Spracherkennung / Accessibility einzeln | aus Menü „Einrichtung…" erneut öffenbar |
 | Mikro nur bei gehaltener Taste | ✅ | Kein Dauer-Listening, keine Auto-Aufnahme | — |
 | Keine Netzwerk-Calls | ✅ | Alles on-device (Ausnahme: WhisperKit-Modell einmalig) | — |
+| Diagnose-Protokoll | 🧪 | Persistentes, rotierendes Log unter `~/Library/Logs/Spitr` (Ereignisse, Zeiten, Fehler — **nie** diktierter Text); per Schalter „Ausführliches Protokoll" zusätzlich Speicher-/Thread-Samples zum Leck-Aufspüren über Tage. Bleibt komplett lokal | Diagnose-Tab |
 
 ## Geplant (Auswahl)
 
