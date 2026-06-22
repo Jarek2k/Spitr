@@ -13,7 +13,7 @@ import Combine
 /// The Settings window's tabs. Lives here so non-UI code (the controller) can
 /// request a specific tab when opening Settings.
 enum SettingsTab: String, CaseIterable {
-    case general, vocabulary, dictionary, commands, history
+    case general, vocabulary, dictionary, commands, history, diagnostics
 }
 
 @MainActor
@@ -97,6 +97,12 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(hasCompletedOnboarding, forKey: Keys.onboarding) }
     }
 
+    /// Write a richer diagnostic log (adds periodic memory/thread samples).
+    /// Off by default — the plain log already captures errors and timings.
+    @Published var verboseLogging: Bool {
+        didSet { defaults.set(verboseLogging, forKey: Keys.verboseLogging) }
+    }
+
     /// Transient (not persisted): when paused, dictation is ignored until
     /// resumed. Command mode still works, so it can be toggled by voice.
     @Published var isPaused: Bool = false
@@ -126,6 +132,7 @@ final class SettingsStore: ObservableObject {
         static let doneChime = "playDoneChime"
         static let reinsert = "reinsertShortcut"
         static let smartSpacing = "smartSpacing"
+        static let verboseLogging = "verboseLogging"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -141,6 +148,7 @@ final class SettingsStore: ObservableObject {
         self.whisperModel = WhisperKitEngine.isSelectable(storedModel) ? storedModel : WhisperKitEngine.defaultModel
         self.inputDeviceUID = defaults.string(forKey: Keys.inputDevice) ?? ""
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
+        self.verboseLogging = defaults.bool(forKey: Keys.verboseLogging)
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
         self.playDoneChime = defaults.object(forKey: Keys.doneChime) as? Bool ?? true
         self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true

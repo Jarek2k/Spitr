@@ -96,6 +96,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Start persisting our own log to ~/Library/Logs/Spitr so a multi-day
+        // session can be reviewed afterwards (errors, timings, optional resource
+        // samples). Stopped with a final flush in applicationWillTerminate.
+        LogStore.shared.start(verbose: settings.verboseLogging)
+
         // Drives the Dock icon while the app is briefly .regular (settings open).
         if let icon = Self.bundleIcon() {
             NSApp.applicationIconImage = icon
@@ -129,6 +134,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !settings.hasCompletedOnboarding {
             showOnboarding()
         }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        LogStore.shared.stop()
     }
 
     private var helpShortcutMonitor: Any?
