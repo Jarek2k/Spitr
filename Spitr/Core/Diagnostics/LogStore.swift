@@ -50,7 +50,11 @@ final class LogStore: @unchecked Sendable {
             ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library")
         directoryURL = base.appendingPathComponent("Logs/Spitr", isDirectory: true)
         currentURL = directoryURL.appendingPathComponent("spitr.log")
-        try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        // Owner-only: logs carry timings/device ids (never transcripts), but on a
+        // shared Mac other local users have no business reading them.
+        try? FileManager.default.createDirectory(
+            at: directoryURL, withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700])
     }
 
     /// The folder that holds the log files (for "open in Finder").
@@ -156,7 +160,8 @@ final class LogStore: @unchecked Sendable {
 
         let fm = FileManager.default
         if !fm.fileExists(atPath: currentURL.path) {
-            fm.createFile(atPath: currentURL.path, contents: nil)
+            fm.createFile(atPath: currentURL.path, contents: nil,
+                          attributes: [.posixPermissions: 0o600])
         }
         if let handle = try? FileHandle(forWritingTo: currentURL) {
             handle.seekToEndOfFile()
