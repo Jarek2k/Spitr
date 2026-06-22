@@ -346,6 +346,12 @@ INFO = collections.OrderedDict([
       "es": "Spitr inserta tu texto mediante una pulsación (alternativa para teclados no QWERTY).",
       "it": "Spitr inserisce il testo tramite un tasto (fallback per layout non QWERTY).",
       "pl": "Spitr wstawia tekst za pomocą skrótu klawiszowego (zapasowo dla układów innych niż QWERTY)."}),
+    # Xcode auto-extracts these localizable Info.plist keys; the app name and the
+    # copyright are identical in every language, so list them verbatim to keep the
+    # catalog complete (otherwise every build re-adds them as untranslated).
+    ("CFBundleName", {lang: "Spitr" for lang in ("de", "en", "fr", "es", "it", "pl")}),
+    ("NSHumanReadableCopyright",
+     {lang: "Copyright © 2026 Jarek" for lang in ("de", "en", "fr", "es", "it", "pl")}),
 ])
 
 

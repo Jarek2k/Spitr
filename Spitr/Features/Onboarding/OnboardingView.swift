@@ -88,7 +88,7 @@ struct OnboardingView: View {
                         .font(.caption.bold())
                         .foregroundStyle(.white)
                 } else {
-                    Text("\(number)").font(.caption.bold())
+                    Text(verbatim: "\(number)").font(.caption.bold())
                 }
             }
 
