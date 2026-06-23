@@ -26,7 +26,8 @@ DerivedData/
 # Swift Package Manager
 .build/
 .swiftpm/
-Package.resolved
+# Package.resolved IS tracked: this is an app, so pin exact dependency versions
+# for reproducible CI/builds (libraries would omit it).
 
 # CocoaPods / Carthage (falls je genutzt)
 Pods/
