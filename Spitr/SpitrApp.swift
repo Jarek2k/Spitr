@@ -129,7 +129,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         installHelpShortcutMonitor()
-        installEscCloseMonitor()
+        installWindowCloseMonitor()
 
         if !settings.hasCompletedOnboarding {
             showOnboarding()
@@ -159,17 +159,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Lets Esc close any of our own windows (onboarding, help, settings), which
-    /// AppKit doesn't do for plain titled windows. Scoped to our windows so Esc
-    /// keeps its normal meaning everywhere else.
-    private func installEscCloseMonitor() {
+    /// Lets Esc and Cmd-W close any of our own windows (onboarding, help,
+    /// settings), which AppKit doesn't wire up for plain titled windows that have
+    /// no File/Close menu. Scoped to our windows so both keys keep their normal
+    /// meaning everywhere else.
+    private func installWindowCloseMonitor() {
         escCloseMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self else { return event }
-            guard event.keyCode == 53, // Esc
-                  event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty,
+            guard let self,
                   let window = NSApp.keyWindow,
                   window == self.onboardingWindow || window == self.helpWindow || Self.isSettingsWindow(window)
             else { return event }
+            let mods = event.modifierFlags.intersection([.command, .option, .control, .shift])
+            let isEsc = event.keyCode == 53 && mods.isEmpty
+            let isCmdW = event.keyCode == 13 && mods == .command // 13 = "w"
+            guard isEsc || isCmdW else { return event }
             window.performClose(nil)
             return nil
         }
@@ -240,17 +243,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if window == onboardingWindow {
             settings.hasCompletedOnboarding = true
             onboardingWindow = nil
-            NSApp.setActivationPolicy(.accessory)
-            return
-        }
-
-        if window == helpWindow {
+        } else if window == helpWindow {
             helpWindow = nil
-            NSApp.setActivationPolicy(.accessory)
+        } else if !isSettingsWindow(window) {
             return
         }
 
-        if isSettingsWindow(window) {
+        // Drop back to a menu-bar accessory only once the last of our managed
+        // windows is gone. With Settings and Help open at the same time, closing
+        // one must not strip the other of its Dock icon / Cmd-Tab entry / menu.
+        let othersOpen = NSApp.windows.contains { other in
+            other != window && other.isVisible &&
+            (other == onboardingWindow || other == helpWindow || Self.isSettingsWindow(other))
+        }
+        if !othersOpen {
             NSApp.setActivationPolicy(.accessory)
         }
     }

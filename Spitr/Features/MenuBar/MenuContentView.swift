@@ -37,12 +37,12 @@ struct MenuContentView: View {
             Divider().padding(.horizontal, 10)
 
             VStack(alignment: .leading, spacing: 1) {
-                MenuButton { controller.togglePause() } label: { hl in
+                MenuButton { controller.togglePause(); dismiss() } label: { hl in
                     Text(controller.paused ? "Fortsetzen" : "Pausieren")
                         .foregroundStyle(hl ? SpitrTheme.onBrand : Color.primary)
                 }
 
-                MenuButton { controller.reinsertLast() } label: { hl in
+                MenuButton { controller.reinsertLast(); dismiss() } label: { hl in
                     HStack {
                         Text("Letzte Spracheingabe erneut einfügen")
                         Spacer()
@@ -73,6 +73,7 @@ struct MenuContentView: View {
 
                 MenuButton {
                     NotificationCenter.default.post(name: .showOnboarding, object: nil)
+                    dismiss()
                 } label: { hl in
                     Text("Einrichtung…")
                         .foregroundStyle(hl ? SpitrTheme.onBrand : Color.primary)
