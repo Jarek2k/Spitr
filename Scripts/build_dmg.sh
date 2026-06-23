@@ -11,6 +11,13 @@
 # Usage:
 #   Scripts/build_dmg.sh                 # build + package into ./dist
 #   TEAM_ID=XXXXXXXXXX Scripts/build_dmg.sh   # override the signing team
+#   ADHOC_SIGN=1 Scripts/build_dmg.sh    # ad-hoc sign, no team (CI / no certs)
+#
+# ADHOC_SIGN=1 builds without the Personal-Team certificate: it signs the app
+# ad-hoc ("-") and disables the hardened runtime, so the archive succeeds on a
+# runner that has no signing identity (e.g. GitHub Actions). The resulting DMG is
+# even less trusted than the locally-signed one — still not notarized — but it
+# launches after the same one-time quarantine clear.
 #
 set -euo pipefail
 
@@ -25,12 +32,22 @@ cd "$REPO"
 rm -rf "$ARCHIVE"
 mkdir -p "$BUILD_DIR" "$DIST_DIR"
 
+# Ad-hoc mode overrides the project's Automatic/Personal-Team signing so the
+# archive needs no certificate. Values without spaces, so unquoted word-splitting
+# into separate xcodebuild build-setting args is intentional.
+SIGN_FLAGS=""
+if [[ "${ADHOC_SIGN:-0}" == "1" ]]; then
+    SIGN_FLAGS="CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=YES DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER= ENABLE_HARDENED_RUNTIME=NO"
+fi
+
 echo "==> Archiving $SCHEME ($CONFIG)…"
+# shellcheck disable=SC2086  # SIGN_FLAGS must word-split into separate args
 xcodebuild archive \
     -scheme "$SCHEME" \
     -configuration "$CONFIG" \
     -archivePath "$ARCHIVE" \
     ${TEAM_ID:+DEVELOPMENT_TEAM="$TEAM_ID"} \
+    $SIGN_FLAGS \
     | tail -5
 
 APP="$ARCHIVE/Products/Applications/Spitr.app"

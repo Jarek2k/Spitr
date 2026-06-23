@@ -1,0 +1,81 @@
+name: Release DMG
+
+# Manual only for now: build a packaged DMG on demand from the Actions tab.
+# The runner has no signing certificate, so the app is ad-hoc signed (see
+# Scripts/build_dmg.sh ADHOC_SIGN) and NOT notarized — users clear quarantine
+# once on first launch. A later, smarter trigger (tag push) is deliberately TODO.
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Create/refresh a GitHub Release with the DMG (off = artifact only)"
+        type: boolean
+        default: true
+      prerelease:
+        description: "Mark the release as a pre-release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    name: Build & package DMG
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      # Ad-hoc signing: no Personal-Team certificate exists on the runner. The
+      # Finder window layout in the script is skipped automatically when the
+      # Automation permission is absent, so the DMG still builds (plain layout).
+      - name: Build DMG
+        run: ADHOC_SIGN=1 Scripts/build_dmg.sh
+
+      - name: Resolve artifact paths
+        id: dmg
+        run: |
+          dmg="$(ls dist/Spitr-*.dmg)"
+          version="$(basename "$dmg" .dmg | sed 's/^Spitr-//')"
+          echo "path=$dmg" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Spitr-${{ steps.dmg.outputs.version }}-dmg
+          path: |
+            dist/Spitr-*.dmg
+            dist/Spitr-*.dmg.sha256
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: ${{ inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="v${{ steps.dmg.outputs.version }}"
+          sha="$(cut -d' ' -f1 dist/Spitr-*.dmg.sha256)"
+          notes="$(cat <<EOF
+          Self-built Spitr ${{ steps.dmg.outputs.version }}.
+
+          **Not notarized — ad-hoc signed.** On first launch macOS Gatekeeper
+          quarantines the app. Clear it once:
+
+          - right-click \`Spitr.app\` → **Open** → **Open**, or
+          - \`xattr -dr com.apple.quarantine /Applications/Spitr.app\`
+
+          SHA-256: \`$sha\`
+          EOF
+          )"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" \
+              --title "Spitr ${{ steps.dmg.outputs.version }}" \
+              --notes "$notes" \
+              ${{ inputs.prerelease && '--prerelease' || '' }}
+          fi
+          gh release upload "$tag" dist/Spitr-*.dmg dist/Spitr-*.dmg.sha256 --clobber
