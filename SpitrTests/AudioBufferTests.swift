@@ -54,4 +54,31 @@ struct AudioBufferTests {
         let buffer = AudioBuffer(samples: samples, sampleRate: 16_000)
         #expect(!buffer.isLikelySilent)
     }
+
+    @Test func trimmingLeadingDropsTheChimeWindow() {
+        // 1 s buffer at 16 kHz; drop the first 0.2 s → 0.8 s / 12 800 samples left.
+        let buffer = tone(peak: 0.5, count: 16_000)
+        let trimmed = buffer.trimmingLeading(0.2)
+        #expect(trimmed.samples.count == 12_800)
+        #expect(trimmed.sampleRate == 16_000)
+    }
+
+    @Test func trimmingLeadingClampsAnOverShortBuffer() {
+        // Trimming more than the buffer holds yields empty, not a crash.
+        let buffer = tone(peak: 0.5, count: 1_000)
+        let trimmed = buffer.trimmingLeading(1.0)
+        #expect(trimmed.samples.isEmpty)
+        #expect(trimmed.isLikelySilent)
+    }
+
+    @Test func chimeBleedIsGatedAfterTrimming() {
+        // A capture that is just the chime bleed (loud start) followed by silence
+        // reads as speech on the full buffer, but as silence once the chime window
+        // is trimmed — which is the order finishRecording uses.
+        var samples = Array<Float>(repeating: 0, count: 16_000)
+        for i in 0..<2_400 { samples[i] = 0.3 }   // ~0.15 s of chime at the start
+        let buffer = AudioBuffer(samples: samples, sampleRate: 16_000)
+        #expect(!buffer.isLikelySilent)                       // chime makes it look loud
+        #expect(buffer.trimmingLeading(0.21).isLikelySilent)  // gone after trim
+    }
 }

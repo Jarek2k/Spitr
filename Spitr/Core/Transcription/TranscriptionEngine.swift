@@ -34,6 +34,15 @@ struct AudioBuffer: Sendable {
     var isLikelySilent: Bool {
         peakDBFS < -40
     }
+
+    /// Returns a copy with the first `seconds` of audio dropped. Used to cut the
+    /// ready-chime that bleeds in through the speakers at the very start of a
+    /// capture. Clamped so an over-short buffer just becomes empty rather than
+    /// crashing.
+    func trimmingLeading(_ seconds: TimeInterval) -> AudioBuffer {
+        let drop = min(samples.count, max(0, Int(seconds * sampleRate)))
+        return AudioBuffer(samples: Array(samples[drop...]), sampleRate: sampleRate)
+    }
 }
 
 enum TranscriptionError: Error, LocalizedError {

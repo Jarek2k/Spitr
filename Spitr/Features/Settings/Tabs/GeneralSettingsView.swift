@@ -18,6 +18,10 @@ struct GeneralSettingsView: View {
     /// source of truth, this just drives the Toggle.
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
 
+    /// Its own little player so the ready-cue picker can audition styles live,
+    /// independent of the recording controller's instance.
+    @State private var chimePreview = FeedbackSoundService()
+
     /// Curated set of recognition languages. Kept short on purpose — the full
     /// system list is overwhelming and most are irrelevant for this app.
     private static let languages: [(id: String, name: String)] = [
@@ -106,9 +110,19 @@ struct GeneralSettingsView: View {
 
             Section {
                 Toggle("Ton bei Aufnahmebereitschaft", isOn: $settings.playReadyChime)
+                if settings.playReadyChime {
+                    Picker("Ton-Stil", selection: $settings.readyChimeStyle) {
+                        ForEach(ReadyChimeStyle.allCases) { style in
+                            Text(style.displayName).tag(style)
+                        }
+                    }
+                    .onChange(of: settings.readyChimeStyle) { _, newStyle in
+                        chimePreview.playReady(newStyle)
+                    }
+                }
                 Toggle("Ton bei Aufnahme-Ende", isOn: $settings.playDoneChime)
             } footer: {
-                Text("Kurze Töne, wenn das Mikro wirklich aufnimmt (Beginn) und wenn der Text eingefügt wurde (Ende) — so verlierst du das erste Wort nicht und weißt, wann die Umwandlung fertig ist.")
+                Text("Kurze Töne, wenn das Mikro wirklich aufnimmt (Beginn) und wenn der Text eingefügt wurde (Ende) — so verlierst du das erste Wort nicht und weißt, wann die Umwandlung fertig ist. Den Stil hörst du beim Umschalten gleich probe.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

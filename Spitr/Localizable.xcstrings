@@ -1633,6 +1633,142 @@
         }
       }
     },
+    "Ton-Stil": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tone style"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style de son"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo de tono"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stile del suono"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Styl dźwięku"
+          }
+        }
+      }
+    },
+    "Einzelton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Single tone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton unique"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tono único"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tono singolo"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pojedynczy ton"
+          }
+        }
+      }
+    },
+    "Doppelton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double beep"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double bip"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doble pitido"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppio bip"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podwójny sygnał"
+          }
+        }
+      }
+    },
+    "Aufsteigend (Funk)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rising (radio)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ascendant (radio)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ascendente (radio)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ascendente (radio)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rosnący (radio)"
+          }
+        }
+      }
+    },
     "Ton bei Aufnahme-Ende": {
       "localizations": {
         "en": {
@@ -1667,36 +1803,36 @@
         }
       }
     },
-    "Kurze Töne, wenn das Mikro wirklich aufnimmt (Beginn) und wenn der Text eingefügt wurde (Ende) — so verlierst du das erste Wort nicht und weißt, wann die Umwandlung fertig ist.": {
+    "Kurze Töne, wenn das Mikro wirklich aufnimmt (Beginn) und wenn der Text eingefügt wurde (Ende) — so verlierst du das erste Wort nicht und weißt, wann die Umwandlung fertig ist. Den Stil hörst du beim Umschalten gleich probe.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Short tones when the mic actually starts recording (beginning) and when the text has been inserted (end) — so you don't lose the first word and know when the conversion is done."
+            "value": "Short tones when the mic actually starts recording (beginning) and when the text has been inserted (end) — so you don't lose the first word and know when the conversion is done. You hear the style as you switch it."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "De brefs sons quand le micro commence vraiment à enregistrer (début) et quand le texte a été inséré (fin) — pour ne pas perdre le premier mot et savoir quand la conversion est terminée."
+            "value": "De brefs sons quand le micro commence vraiment à enregistrer (début) et quand le texte a été inséré (fin) — pour ne pas perdre le premier mot et savoir quand la conversion est terminée. Vous entendez le style en le changeant."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tonos breves cuando el micrófono empieza a grabar (inicio) y cuando el texto se ha insertado (fin) — así no pierdes la primera palabra y sabes cuándo termina la conversión."
+            "value": "Tonos breves cuando el micrófono empieza a grabar (inicio) y cuando el texto se ha insertado (fin) — así no pierdes la primera palabra y sabes cuándo termina la conversión. Oyes el estilo al cambiarlo."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Brevi segnali acustici quando il microfono inizia davvero a registrare (inizio) e quando il testo è stato inserito (fine) — così non perdi la prima parola e sai quando la conversione è finita."
+            "value": "Brevi segnali acustici quando il microfono inizia davvero a registrare (inizio) e quando il testo è stato inserito (fine) — così non perdi la prima parola e sai quando la conversione è finita. Senti lo stile mentre lo cambi."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Krótkie dźwięki, gdy mikrofon faktycznie zaczyna nagrywać (początek) i gdy tekst został wstawiony (koniec) — dzięki temu nie tracisz pierwszego słowa i wiesz, kiedy konwersja się kończy."
+            "value": "Krótkie dźwięki, gdy mikrofon faktycznie zaczyna nagrywać (początek) i gdy tekst został wstawiony (koniec) — dzięki temu nie tracisz pierwszego słowa i wiesz, kiedy konwersja się kończy. Styl słyszysz przy jego przełączaniu."
           }
         }
       }

@@ -86,6 +86,11 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(playReadyChime, forKey: Keys.readyChime) }
     }
 
+    /// Which ready cue to play (single blip, double beep, rising PTT tone).
+    @Published var readyChimeStyle: ReadyChimeStyle {
+        didSet { defaults.set(readyChimeStyle.rawValue, forKey: Keys.readyChimeStyle) }
+    }
+
     /// Play a short chime once the transcript has been inserted, so the wait
     /// during transcription has an audible end.
     @Published var playDoneChime: Bool {
@@ -136,6 +141,7 @@ final class SettingsStore: ObservableObject {
         static let waveform = "waveformStyle"
         static let vocabulary = "vocabularyText"
         static let readyChime = "playReadyChime"
+        static let readyChimeStyle = "readyChimeStyle"
         static let doneChime = "playDoneChime"
         static let reinsert = "reinsertShortcut"
         static let smartSpacing = "smartSpacing"
@@ -158,6 +164,8 @@ final class SettingsStore: ObservableObject {
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
         self.verboseLogging = defaults.bool(forKey: Keys.verboseLogging)
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
+        let chimeStyleRaw = defaults.string(forKey: Keys.readyChimeStyle) ?? ReadyChimeStyle.single.rawValue
+        self.readyChimeStyle = ReadyChimeStyle(rawValue: chimeStyleRaw) ?? .single
         self.playDoneChime = defaults.object(forKey: Keys.doneChime) as? Bool ?? true
         self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true
         // Off by default: voice processing is VoIP echo-cancellation tech that

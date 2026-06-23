@@ -95,6 +95,12 @@ final class RecordingController: ObservableObject {
     /// new press can record while the previous clip is still being transcribed.
     private var isCapturing = false
 
+    /// The ready cue that played for the in-flight capture, or nil if none. Its
+    /// speaker-bleed sits at the very start of the buffer and gets trimmed (by the
+    /// cue's own length) before transcription — otherwise Whisper tags it as a
+    /// spurious "[Musik]".
+    private var lastCaptureChimeStyle: ReadyChimeStyle?
+
     /// One finished recording waiting to be (or being) transcribed.
     private struct TranscriptionJob {
         let buffer: AudioBuffer
@@ -133,8 +139,11 @@ final class RecordingController: ObservableObject {
         // Chime the moment the mic is genuinely capturing, so the user knows when
         // to speak and doesn't clip the first word.
         audio.onCaptureStarted = { [weak self] in
-            guard let self, self.settings.playReadyChime else { return }
-            self.feedback.playReady()
+            guard let self else { return }
+            guard self.settings.playReadyChime else { self.lastCaptureChimeStyle = nil; return }
+            let style = self.settings.readyChimeStyle
+            self.lastCaptureChimeStyle = style
+            self.feedback.playReady(style)
         }
 
         // Rebuild the engine when the override or WhisperKit model changes;
@@ -370,10 +379,21 @@ final class RecordingController: ObservableObject {
             // Keep capturing briefly so trailing audio (input latency) isn't
             // clipped when the key is released right after the last word.
             try? await Task.sleep(for: .milliseconds(180))
-            let buffer = audio.stop()
+            var buffer = audio.stop()
             // Audio engine is free again — a new press can start recording now,
             // even while this clip transcribes.
             isCapturing = false
+
+            // The ready chime plays through the speakers the instant the mic goes
+            // live, so without headphones it bleeds into the very start of the
+            // capture — Whisper then transcribes it as a spurious "[Musik]", and
+            // the chime's own loudness can defeat the silence gate below. Drop that
+            // leading window (chime length + a little slack). The user is still
+            // reacting to the cue there and hasn't begun speaking, so unlike a blind
+            // trim this can't clip the first word.
+            if let style = lastCaptureChimeStyle {
+                buffer = buffer.trimmingLeading(FeedbackSoundService.readyChimeDuration(for: style) + 0.06)
+            }
             log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz (peak \(String(format: "%.1f", buffer.peakDBFS), privacy: .public) dBFS)")
 
             // Skip near-silent clips outright: Whisper invents a sentence from
