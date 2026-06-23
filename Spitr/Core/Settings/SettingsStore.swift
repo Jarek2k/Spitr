@@ -160,7 +160,12 @@ final class SettingsStore: ObservableObject {
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
         self.playDoneChime = defaults.object(forKey: Keys.doneChime) as? Bool ?? true
         self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true
-        self.voiceIsolation = defaults.object(forKey: Keys.voiceIsolation) as? Bool ?? true
+        // Off by default: voice processing is VoIP echo-cancellation tech that
+        // builds an internal mic+output aggregate device, which is fragile and
+        // currently regressed on macOS 26 (errs -10876/-10877). One-way dictation
+        // doesn't need echo cancellation; its only real upside here is noise
+        // suppression, so it stays an opt-in experiment.
+        self.voiceIsolation = defaults.object(forKey: Keys.voiceIsolation) as? Bool ?? false
         let waveformRaw = defaults.string(forKey: Keys.waveform) ?? WaveformStyle.signalReactive.rawValue
         self.waveformStyle = WaveformStyle(rawValue: waveformRaw) ?? .signalReactive
         self.vocabularyText = defaults.string(forKey: Keys.vocabulary) ?? ""

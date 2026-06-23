@@ -1395,70 +1395,70 @@
         }
       }
     },
-    "Sprachisolierung": {
+    "Sprachisolierung (experimentell)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voice isolation"
+            "value": "Voice isolation (experimental)"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isolation de la voix"
+            "value": "Isolation de la voix (expérimental)"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aislamiento de voz"
+            "value": "Aislamiento de voz (experimental)"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isolamento vocale"
+            "value": "Isolamento vocale (sperimentale)"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Izolacja głosu"
+            "value": "Izolacja głosu (eksperymentalna)"
           }
         }
       }
     },
-    "Aufgenommen wird nur, solange du die Taste hältst. Sprachisolierung filtert Hintergrundgeräusche (z. B. Fernseher) und gleicht die Lautstärke an — bei sehr ruhiger Umgebung kannst du sie ausschalten.": {
+    "Aufgenommen wird nur, solange du die Taste hältst. Die Sprachisolierung kann stetige Hintergrundgeräusche (z. B. Fernseher, Lüfter) filtern. Sie nutzt Apples Telefonie-Tonverarbeitung, die nicht auf jedem Mac startet — klappt sie nicht, schaltet Spitr automatisch auf das normale Mikrofon zurück. Standardmäßig aus; bei viel Umgebungslärm einen Versuch wert.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording happens only while you hold the key. Voice isolation filters background noise (e.g. a TV) and levels the volume — you can turn it off in a very quiet room."
+            "value": "Recording happens only while you hold the key. Voice isolation can filter steady background noise (e.g. a TV or fan). It uses Apple's VoIP audio processing, which doesn't start on every Mac — if it fails, Spitr automatically falls back to the plain microphone. Off by default; worth a try with a lot of ambient noise."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'enregistrement n'a lieu que tant que tu maintiens la touche. L'isolation de la voix filtre les bruits de fond (p. ex. une télé) et égalise le volume — tu peux la désactiver dans un environnement très calme."
+            "value": "L'enregistrement n'a lieu que tant que tu maintiens la touche. L'isolation de la voix peut filtrer les bruits de fond constants (p. ex. une télé ou un ventilateur). Elle utilise le traitement audio VoIP d'Apple, qui ne démarre pas sur tous les Mac — si elle échoue, Spitr revient automatiquement au microphone normal. Désactivée par défaut ; à essayer en cas de bruit ambiant important."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La grabación solo ocurre mientras mantienes la tecla. El aislamiento de voz filtra el ruido de fondo (p. ej. un televisor) y nivela el volumen — puedes desactivarlo en un entorno muy silencioso."
+            "value": "La grabación solo ocurre mientras mantienes la tecla. El aislamiento de voz puede filtrar el ruido de fondo constante (p. ej. un televisor o un ventilador). Usa el procesamiento de audio VoIP de Apple, que no se inicia en todos los Mac — si falla, Spitr vuelve automáticamente al micrófono normal. Desactivado por defecto; vale la pena probarlo con mucho ruido ambiental."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La registrazione avviene solo mentre tieni premuto il tasto. L'isolamento vocale filtra i rumori di fondo (es. una TV) e livella il volume — puoi disattivarlo in un ambiente molto silenzioso."
+            "value": "La registrazione avviene solo mentre tieni premuto il tasto. L'isolamento vocale può filtrare i rumori di fondo costanti (es. una TV o una ventola). Usa l'elaborazione audio VoIP di Apple, che non si avvia su tutti i Mac — se non funziona, Spitr torna automaticamente al microfono normale. Disattivato per impostazione predefinita; vale un tentativo con molto rumore ambientale."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nagrywanie odbywa się tylko, gdy trzymasz klawisz. Izolacja głosu filtruje szumy tła (np. telewizor) i wyrównuje głośność — w bardzo cichym otoczeniu możesz ją wyłączyć."
+            "value": "Nagrywanie odbywa się tylko, gdy trzymasz klawisz. Izolacja głosu może filtrować stały szum tła (np. telewizor lub wentylator). Wykorzystuje przetwarzanie dźwięku VoIP firmy Apple, które nie uruchamia się na każdym Macu — jeśli zawiedzie, Spitr automatycznie wraca do zwykłego mikrofonu. Domyślnie wyłączona; warto spróbować przy dużym hałasie otoczenia."
           }
         }
       }
