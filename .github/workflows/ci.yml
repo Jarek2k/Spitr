@@ -14,7 +14,7 @@ jobs:
     name: Build & unit test
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Xcode version
         run: xcodebuild -version
       # Unit tests only: the UI launch test needs an interactive GUI session and
@@ -32,7 +32,7 @@ jobs:
     name: SwiftLint
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: SwiftLint
         run: |
           swiftlint version || brew install swiftlint
