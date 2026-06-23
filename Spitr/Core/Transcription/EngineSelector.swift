@@ -8,6 +8,9 @@
 //
 
 import Foundation
+import os
+
+private let log = Logger(subsystem: "com.jarek.Spitr", category: "engine")
 
 enum EngineKind: String, CaseIterable, Identifiable {
     case apple
@@ -29,8 +32,10 @@ final class EngineSelector {
     func makeEngine(_ kind: EngineKind, whisperModel: String = WhisperKitEngine.defaultModel) -> TranscriptionEngine {
         switch kind {
         case .apple:
+            log.info("building engine: Apple Speech")
             return AppleSpeechEngine()
         case .whisperKit:
+            log.info("building engine: WhisperKit (model: \(whisperModel, privacy: .public))")
             return WhisperKitEngine(model: whisperModel)
         }
     }

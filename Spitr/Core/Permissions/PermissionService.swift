@@ -11,6 +11,9 @@
 import AppKit
 import AVFoundation
 import Speech
+import os
+
+private let log = Logger(subsystem: "com.jarek.Spitr", category: "permissions")
 
 enum PermissionState: Equatable {
     case granted
@@ -49,20 +52,25 @@ final class PermissionService {
 
     @discardableResult
     func requestMicrophone() async -> Bool {
-        await AVCaptureDevice.requestAccess(for: .audio)
+        let granted = await AVCaptureDevice.requestAccess(for: .audio)
+        log.info("microphone request → \(granted ? "granted" : "denied", privacy: .public)")
+        return granted
     }
 
     @discardableResult
     func requestSpeech() async -> Bool {
-        await withCheckedContinuation { continuation in
+        let granted = await withCheckedContinuation { continuation in
             SFSpeechRecognizer.requestAuthorization { status in
                 continuation.resume(returning: status == .authorized)
             }
         }
+        log.info("speech request → \(granted ? "granted" : "denied", privacy: .public)")
+        return granted
     }
 
     /// Shows the system Accessibility prompt (only effective while not yet trusted).
     func promptAccessibility() {
+        log.info("accessibility prompt shown (trusted: \(self.accessibilityTrusted, privacy: .public))")
         let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
         _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
