@@ -66,6 +66,7 @@ struct MenuContentView: View {
                     .simultaneousGesture(TapGesture().onEnded {
                         controller.beginCorrectLastDictation()
                         surfaceSettingsWindow()
+                        dismiss()
                     })
                     .help("Letzte Spracheingabe ausbessern und die Korrektur optional als feste Wörterbuch-Regel sichern.")
                 }
@@ -85,7 +86,10 @@ struct MenuContentView: View {
                 .buttonStyle(.plain)
                 .keyboardShortcut(",")
                 .modifier(MenuRowStyle())
-                .simultaneousGesture(TapGesture().onEnded { surfaceSettingsWindow() })
+                .simultaneousGesture(TapGesture().onEnded {
+                    surfaceSettingsWindow()
+                    dismiss()
+                })
 
                 MenuButton { NSApp.terminate(nil) } label: { hl in
                     Text("Spitr beenden")
