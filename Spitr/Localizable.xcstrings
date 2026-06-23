@@ -1565,36 +1565,36 @@
         }
       }
     },
-    "Wellenform": {
+    "Visualisierung": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waveform"
+            "value": "Visualization"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forme d'onde"
+            "value": "Visualisation"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forma de onda"
+            "value": "Visualización"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forma d'onda"
+            "value": "Visualizzazione"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kształt fali"
+            "value": "Wizualizacja"
           }
         }
       }

@@ -139,7 +139,7 @@ UI = collections.OrderedDict([
       "es": "La tecla fn solo se detecta en el teclado del MacBook, no en teclados externos.",
       "it": "Il tasto fn viene rilevato solo sulla tastiera del MacBook, non su tastiere esterne.",
       "pl": "Klawisz fn jest wykrywany tylko na klawiaturze MacBooka, nie na zewnętrznych."}),
-    ("Wellenform", {"en": "Waveform", "fr": "Forme d'onde", "es": "Forma de onda", "it": "Forma d'onda", "pl": "Kształt fali"}),
+    ("Visualisierung", {"en": "Visualization", "fr": "Visualisation", "es": "Visualización", "it": "Visualizzazione", "pl": "Wizualizacja"}),
     ("Ton bei Aufnahmebereitschaft", {"en": "Sound when ready to record", "fr": "Son quand prêt à enregistrer", "es": "Sonido al estar listo para grabar", "it": "Suono quando pronto a registrare", "pl": "Dźwięk przy gotowości do nagrywania"}),
     ("Ton-Stil", {"en": "Tone style", "fr": "Style de son", "es": "Estilo de tono", "it": "Stile del suono", "pl": "Styl dźwięku"}),
     ("Einzelton", {"en": "Single tone", "fr": "Ton unique", "es": "Tono único", "it": "Tono singolo", "pl": "Pojedynczy ton"}),

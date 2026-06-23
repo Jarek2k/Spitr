@@ -97,7 +97,7 @@ struct GeneralSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Picker("Wellenform", selection: $settings.waveformStyle) {
+                Picker("Visualisierung", selection: $settings.waveformStyle) {
                     ForEach(WaveformStyle.allCases) { style in
                         Text(style.displayName).tag(style)
                     }
