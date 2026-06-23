@@ -28,10 +28,10 @@ private struct Note {
 /// The exchangeable decision "what the ready cue sounds like". Adding a style is
 /// one case here plus its note sequence — nothing else needs to change.
 enum ReadyChimeStyle: String, CaseIterable, Identifiable {
-    /// A single warm blip (880 Hz). Minimal, the default.
+    /// A single warm blip (880 Hz). Minimal.
     case single
     /// Two equal blips — the familiar "beep-beep" of a voice-message / recorder
-    /// start cue.
+    /// start cue. The default.
     case double
     /// Two ascending notes — the push-to-talk "talk-permit" cue that reads as
     /// "go ahead, speak".
@@ -60,8 +60,10 @@ enum ReadyChimeStyle: String, CaseIterable, Identifiable {
 }
 
 final class FeedbackSoundService {
-    /// Silent gap inserted between consecutive notes of a multi-note cue.
-    private static let interNoteGap: TimeInterval = 0.05
+    /// Silent gap inserted between consecutive notes of a multi-note cue. Short,
+    /// so the two beeps read as one snappy "beep-beep" rather than two separate
+    /// tones.
+    private static let interNoteGap: TimeInterval = 0.03
 
     /// Total length of a ready cue (all notes + the gaps between them). The
     /// recorder trims exactly this window (plus slack) of speaker-bleed off the

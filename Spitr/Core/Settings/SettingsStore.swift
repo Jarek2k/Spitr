@@ -164,8 +164,8 @@ final class SettingsStore: ObservableObject {
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
         self.verboseLogging = defaults.bool(forKey: Keys.verboseLogging)
         self.playReadyChime = defaults.object(forKey: Keys.readyChime) as? Bool ?? true
-        let chimeStyleRaw = defaults.string(forKey: Keys.readyChimeStyle) ?? ReadyChimeStyle.single.rawValue
-        self.readyChimeStyle = ReadyChimeStyle(rawValue: chimeStyleRaw) ?? .single
+        let chimeStyleRaw = defaults.string(forKey: Keys.readyChimeStyle) ?? ReadyChimeStyle.double.rawValue
+        self.readyChimeStyle = ReadyChimeStyle(rawValue: chimeStyleRaw) ?? .double
         self.playDoneChime = defaults.object(forKey: Keys.doneChime) as? Bool ?? true
         self.smartSpacing = defaults.object(forKey: Keys.smartSpacing) as? Bool ?? true
         // Off by default: voice processing is VoIP echo-cancellation tech that
