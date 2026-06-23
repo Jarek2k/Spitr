@@ -128,14 +128,21 @@ struct MenuContentView: View {
                 NSApp.applicationIconImage = icon
             }
 
-            // A single run-loop hop isn't enough: macOS needs real delays to let
-            // SwiftUI create the settings window before we can surface it.
-            try? await Task.sleep(for: .milliseconds(100))
+            // SettingsLink creates the window asynchronously, and in an accessory
+            // app the very first activation can take several run-loop turns before
+            // it exists. A single fixed delay missed it on the first click (and
+            // only worked on the second, once the window already existed) — so poll
+            // briefly until the window appears instead of guessing a delay.
             NSApp.activate(ignoringOtherApps: true)
-            try? await Task.sleep(for: .milliseconds(200))
-            let window = NSApp.windows.first(where: AppDelegate.isSettingsWindow)
-            window?.makeKeyAndOrderFront(nil)
-            window?.orderFrontRegardless()
+            var window: NSWindow?
+            for _ in 0..<40 { // up to ~2s in 50ms steps
+                window = NSApp.windows.first(where: AppDelegate.isSettingsWindow)
+                if window != nil { break }
+                try? await Task.sleep(for: .milliseconds(50))
+            }
+            guard let window else { return }
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
 
             // Known macOS bug: after switching an accessory app to .regular, the
             // app menu stays unclickable/missing until focus leaves the app and
@@ -146,7 +153,7 @@ struct MenuContentView: View {
                 dock.activate(options: [])
                 try? await Task.sleep(for: .milliseconds(200))
                 NSApp.activate(ignoringOtherApps: true)
-                window?.makeKeyAndOrderFront(nil)
+                window.makeKeyAndOrderFront(nil)
             }
         }
     }
