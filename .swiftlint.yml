@@ -23,9 +23,13 @@ opt_in_rules:
 
 line_length:
   warning: 120
-  error: 200
+  error: 300          # still warn at 120; long localized content strings (Help) shouldn't fail CI
   ignores_comments: true
   ignores_urls: true
+
+large_tuple:
+  warning: 4          # test helpers bundling a few related stores aren't a real smell
+  error: 5
 
 identifier_name:
   min_length: 2          # allow id, ux, uy, … common in graphics/AX code
