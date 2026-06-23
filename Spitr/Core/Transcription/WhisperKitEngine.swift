@@ -79,10 +79,19 @@ final class WhisperKitEngine: TranscriptionEngine {
         // WhisperKit expects 16 kHz mono Float — exactly what AudioCaptureService
         // produces. Pass the language hint when known, else let it auto-detect.
         // Custom terms become a conditioning prompt the decoder is biased toward.
+        //
+        // suppressBlank matches OpenAI's reference default (WhisperKit ships it
+        // off): it forbids the blank/end token at the first sampling step, which
+        // trims leading whitespace and the most trivial empty-start hallucinations.
+        // Note: noSpeechThreshold is deliberately not relied upon — WhisperKit
+        // hardcodes noSpeechProb to 0 (unimplemented), so silence is gated upstream
+        // in RecordingController via AudioBuffer.isLikelySilent instead.
         let options = DecodingOptions(
             task: .transcribe,
             language: locale.language.languageCode?.identifier,
-            promptTokens: promptTokens(for: vocabulary)
+            usePrefillPrompt: true,
+            promptTokens: promptTokens(for: vocabulary),
+            suppressBlank: true
         )
 
         do {

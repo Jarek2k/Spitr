@@ -16,6 +16,24 @@ struct AudioBuffer: Sendable {
     var duration: TimeInterval {
         Double(samples.count) / sampleRate
     }
+
+    /// Loudest absolute sample, in dBFS (0 dB = full scale, −∞ for pure silence).
+    /// Peak rather than RMS so a single spoken word in an otherwise quiet clip
+    /// still registers — only genuinely silent captures sit near the noise floor.
+    var peakDBFS: Double {
+        var peak: Float = 0
+        for s in samples { peak = max(peak, abs(s)) }
+        return peak > 0 ? 20 * log10(Double(peak)) : -.infinity
+    }
+
+    /// Whether the capture is essentially silence — nobody spoke. Used to skip
+    /// transcription entirely, because Whisper happily hallucinates a sentence out
+    /// of near-silence (and WhisperKit's own no-speech detection is unimplemented,
+    /// `noSpeechProb` is hardcoded to 0). Real speech, even a quiet word, peaks
+    /// well above −40 dBFS; mic self-noise and a quiet room stay below it.
+    var isLikelySilent: Bool {
+        peakDBFS < -40
+    }
 }
 
 enum TranscriptionError: Error, LocalizedError {

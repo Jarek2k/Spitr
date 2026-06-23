@@ -374,7 +374,23 @@ final class RecordingController: ObservableObject {
             // Audio engine is free again — a new press can start recording now,
             // even while this clip transcribes.
             isCapturing = false
-            log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz")
+            log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz (peak \(String(format: "%.1f", buffer.peakDBFS), privacy: .public) dBFS)")
+
+            // Skip near-silent clips outright: Whisper invents a sentence from
+            // silence (its no-speech detector is a no-op in WhisperKit), so a press
+            // with nothing spoken would otherwise paste a hallucination. This is a
+            // post-capture loudness check on a finished buffer — not VAD: the mic
+            // still records strictly while the key is held.
+            if buffer.isLikelySilent {
+                log.info("clip below speech threshold, skipping transcription (mode=\(jobMode == .command ? "command" : "dictation", privacy: .public))")
+                if jobMode == .command {
+                    lastCommandRecognized = false
+                    showCommandFeedback(String(localized: "Befehl nicht erkannt"))
+                }
+                if transcriptionJobs.isEmpty, !draining, state == .transcribing { state = .idle }
+                return
+            }
+
             enqueueTranscription(TranscriptionJob(buffer: buffer, mode: jobMode, session: session))
         }
     }
