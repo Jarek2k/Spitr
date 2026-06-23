@@ -73,6 +73,7 @@ struct GeneralSettingsView: View {
 
                 Toggle("Sprachisolierung (experimentell)", isOn: $settings.voiceIsolation)
             } footer: {
+                // swiftlint:disable:next line_length — single localized content string (one catalog key)
                 Text("Aufgenommen wird nur, solange du die Taste hältst. Die Sprachisolierung kann stetige Hintergrundgeräusche (z. B. Fernseher, Lüfter) filtern. Sie nutzt Apples Telefonie-Tonverarbeitung, die nicht auf jedem Mac startet — klappt sie nicht, schaltet Spitr automatisch auf das normale Mikrofon zurück. Standardmäßig aus; bei viel Umgebungslärm einen Versuch wert.")
                     .font(.caption)
                     .foregroundStyle(.secondary)

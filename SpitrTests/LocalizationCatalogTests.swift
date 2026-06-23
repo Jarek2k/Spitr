@@ -52,6 +52,7 @@ struct LocalizationCatalogTests {
     /// All format specifiers (e.g. %@, %lld) in order, so translations must keep
     /// the same placeholders or the runtime substitution crashes / corrupts text.
     private func specifiers(_ s: String) -> [String] {
+        // swiftlint:disable:next force_try — constant, provably-valid literal pattern (test code)
         let regex = try! NSRegularExpression(pattern: "%([0-9$]*)(@|lld|ld|d|f|lf)")
         let range = NSRange(s.startIndex..., in: s)
         return regex.matches(in: s, range: range).map { (s as NSString).substring(with: $0.range) }

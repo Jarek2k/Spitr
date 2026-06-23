@@ -130,12 +130,14 @@ final class TextInsertionService {
         // to be explicit and the cast is then provably safe.
         guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
               let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return nil }
+        // swiftlint:disable:next force_cast — provably safe: guarded by the CFGetTypeID check above
         let element = focused as! AXUIElement
 
         var rangeValue: AnyObject?
         guard AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &rangeValue) == .success,
               let rangeValue, CFGetTypeID(rangeValue) == AXValueGetTypeID() else { return nil }
         var selected = CFRange()
+        // swiftlint:disable:next force_cast — provably safe: guarded by the CFGetTypeID check above
         guard AXValueGetValue(rangeValue as! AXValue, .cfRange, &selected), selected.location > 0 else { return nil }
 
         var before = CFRange(location: selected.location - 1, length: 1)
