@@ -10,7 +10,6 @@
 //
 
 import AppKit
-import os
 
 /// Which physical key triggers recording. Defaults to the right Option key,
 /// a modifier so holding it never types a character.
@@ -69,7 +68,7 @@ final class HotkeyService {
     private var reinsertMonitor: Any?
     private var reinsertLocalMonitor: Any?
     private var isHeld = false
-    private let log = Logger(subsystem: "com.jarek.Spitr", category: "hotkey")
+    private let log = DiagLog(category: "hotkey")
 
     init(config: HotkeyConfig = .rightOption) {
         self.config = config
@@ -152,28 +151,33 @@ final class HotkeyService {
 
     private func handle(_ event: NSEvent) {
         let flags = event.modifierFlags
-        // Recovery: global NSEvent monitors are best-effort and can drop events
-        // under load (e.g. video playback). If we think the key is held but its
-        // modifier is absent from *any* flagsChanged event, the release was lost
-        // — close the stale session so the next press isn't swallowed.
-        if isHeld, !flags.contains(config.flag) {
-            log.notice("recovered dropped release (stale isHeld)")
-            isHeld = false
-            onRelease?()
-        }
-        // flagsChanged fires for every modifier transition; we only care about ours.
-        guard event.keyCode == config.keyCode else { return }
-        if flags.contains(config.flag) {
-            // A fresh key-down for our key. Modifiers don't auto-repeat, so seeing
-            // this while still "held" means the prior release was lost: end the
-            // stale session, then start fresh.
-            if isHeld {
-                log.notice("recovered dropped release (re-press while held)")
+        // flagsChanged fires for every modifier transition. Our own key takes the
+        // normal press/release path; any *other* key's event is only used to detect
+        // a release of ours that got dropped (see the recovery branch below).
+        if event.keyCode == config.keyCode {
+            if flags.contains(config.flag) {
+                // A fresh key-down for our key. Modifiers don't auto-repeat, so
+                // seeing this while still "held" means the prior release was lost:
+                // end the stale session, then start fresh.
+                if isHeld {
+                    log.notice("recovered dropped release (re-press while held)")
+                    onRelease?()
+                }
+                isHeld = true
+                onPress?(flags.contains(.shift))
+            } else if isHeld {
+                isHeld = false
                 onRelease?()
             }
-            isHeld = true
-            onPress?(flags.contains(.shift))
-        } else if isHeld {
+            return
+        }
+        // A different key's transition. Global NSEvent monitors are best-effort and
+        // can drop events under load (e.g. video playback): if we still think our
+        // key is held but its modifier is absent here, our release was lost — close
+        // the stale session so the next press isn't swallowed. This fires only on
+        // genuine drops now, not on every normal release.
+        if isHeld, !flags.contains(config.flag) {
+            log.notice("recovered dropped release (stale isHeld)")
             isHeld = false
             onRelease?()
         }
