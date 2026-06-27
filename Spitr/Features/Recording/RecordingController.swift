@@ -10,9 +10,8 @@
 import Foundation
 import AppKit
 import Combine
-import os
 
-private let log = Logger(subsystem: "com.jarek.Spitr", category: "recording")
+private let log = DiagLog(category: "recording")
 
 @MainActor
 final class RecordingController: ObservableObject {
@@ -251,7 +250,7 @@ final class RecordingController: ObservableObject {
         engine = selector.makeEngine(kind, whisperModel: model)
         enginePrepared = false
         prepareTask = nil
-        log.info("engine rebuilt: kind=\(kind.rawValue, privacy: .public) id=\(self.engine.id, privacy: .public)")
+        log.info("engine rebuilt: kind=\(kind.rawValue) id=\(self.engine.id)")
         Task { try? await ensurePrepared() }
     }
 
@@ -394,7 +393,7 @@ final class RecordingController: ObservableObject {
             if let style = lastCaptureChimeStyle {
                 buffer = buffer.trimmingLeading(FeedbackSoundService.readyChimeDuration(for: style) + 0.06)
             }
-            log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz (peak \(String(format: "%.1f", buffer.peakDBFS), privacy: .public) dBFS)")
+            log.info("captured \(buffer.samples.count) samples @ \(buffer.sampleRate) Hz (peak \(String(format: "%.1f", buffer.peakDBFS)) dBFS)")
 
             // Skip near-silent clips outright: Whisper invents a sentence from
             // silence (its no-speech detector is a no-op in WhisperKit), so a press
@@ -402,7 +401,7 @@ final class RecordingController: ObservableObject {
             // post-capture loudness check on a finished buffer — not VAD: the mic
             // still records strictly while the key is held.
             if buffer.isLikelySilent {
-                log.info("clip below speech threshold, skipping transcription (mode=\(jobMode == .command ? "command" : "dictation", privacy: .public))")
+                log.info("clip below speech threshold, skipping transcription (mode=\(jobMode == .command ? "command" : "dictation"))")
                 if jobMode == .command {
                     lastCommandRecognized = false
                     showCommandFeedback(String(localized: "Befehl nicht erkannt"))
@@ -434,7 +433,7 @@ final class RecordingController: ObservableObject {
         Task {
             do {
                 try await ensurePrepared()
-                log.info("transcribing with engine=\(self.engine.id, privacy: .public) (setting=\(self.settings.engineKind.rawValue, privacy: .public))")
+                log.info("transcribing with engine=\(self.engine.id) (setting=\(self.settings.engineKind.rawValue))")
                 let text = try await engine.transcribe(job.buffer, locale: settings.locale, vocabulary: settings.vocabulary)
                 if job.mode == .command {
                     handleCommand(text)
@@ -452,7 +451,7 @@ final class RecordingController: ObservableObject {
                     }
                 }
             } catch {
-                log.error("transcription failed: \(error.localizedDescription, privacy: .public)")
+                log.error("transcription failed: \(error.localizedDescription)")
                 // Only surface the error if nothing else is going on, so it can't
                 // stomp on a fresh recording or pending clips.
                 if state != .recording, transcriptionJobs.isEmpty {
@@ -479,7 +478,7 @@ final class RecordingController: ObservableObject {
                                            history: history,
                                            dictionary: dictionary) {
             command.perform()
-            log.info("voice command: \(command.id, privacy: .public)")
+            log.info("voice command: \(command.id)")
             lastCommandRecognized = true
             showCommandFeedback(command.title)
         } else {

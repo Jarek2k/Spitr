@@ -8,11 +8,10 @@
 //
 
 import ServiceManagement
-import os
 
 enum LaunchAtLogin {
 
-    private static let log = Logger(subsystem: "com.spitr.app", category: "LaunchAtLogin")
+    private static let log = DiagLog(category: "LaunchAtLogin", subsystem: "com.spitr.app")
 
     /// True when the app is registered to start at login.
     static var isEnabled: Bool {

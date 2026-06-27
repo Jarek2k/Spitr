@@ -9,9 +9,8 @@
 import Foundation
 import Speech
 import AVFoundation
-import os
 
-private let log = Logger(subsystem: "com.jarek.Spitr", category: "applespeech")
+private let log = DiagLog(category: "applespeech")
 
 final class AppleSpeechEngine: TranscriptionEngine {
     let id = "apple"
@@ -31,10 +30,10 @@ final class AppleSpeechEngine: TranscriptionEngine {
         case .authorized:
             log.info("ready (speech authorization granted)")
         case .denied, .restricted, .notDetermined:
-            log.error("speech authorization not granted (status: \(status.rawValue, privacy: .public))")
+            log.error("speech authorization not granted (status: \(status.rawValue))")
             throw TranscriptionError.permissionDenied
         @unknown default:
-            log.error("speech authorization unknown (status: \(status.rawValue, privacy: .public))")
+            log.error("speech authorization unknown (status: \(status.rawValue))")
             throw TranscriptionError.permissionDenied
         }
     }
@@ -44,7 +43,7 @@ final class AppleSpeechEngine: TranscriptionEngine {
 
         let recognizer = try resolveRecognizer(for: locale)
         guard recognizer.isAvailable else {
-            log.error("recognizer unavailable for locale \(locale.identifier, privacy: .public)")
+            log.error("recognizer unavailable for locale \(locale.identifier)")
             throw TranscriptionError.engineUnavailable
         }
 
@@ -70,13 +69,13 @@ final class AppleSpeechEngine: TranscriptionEngine {
             let resumer = ResumeOnce(continuation: continuation)
             let task = recognizer.recognitionTask(with: request) { result, error in
                 if let error {
-                    log.error("transcribe failed after \(Int(Date().timeIntervalSince(t0) * 1000), privacy: .public) ms: \(error.localizedDescription, privacy: .public)")
+                    log.error("transcribe failed after \(Int(Date().timeIntervalSince(t0) * 1000)) ms: \(error.localizedDescription)")
                     resumer.fail(TranscriptionError.underlying(error))
                     return
                 }
                 guard let result, result.isFinal else { return }
                 let ms = Int(Date().timeIntervalSince(t0) * 1000)
-                log.info("transcribe \(String(format: "%.1f", audioSec), privacy: .public)s audio in \(ms, privacy: .public) ms (onDevice: \(onDevice, privacy: .public), chars: \(result.bestTranscription.formattedString.count, privacy: .public))")
+                log.info("transcribe \(String(format: "%.1f", audioSec))s audio in \(ms) ms (onDevice: \(onDevice), chars: \(result.bestTranscription.formattedString.count))")
                 resumer.succeed(result.bestTranscription.formattedString)
             }
             _ = task // retained by Speech framework while the task runs
@@ -88,10 +87,10 @@ final class AppleSpeechEngine: TranscriptionEngine {
     private func resolveRecognizer(for locale: Locale) throws -> SFSpeechRecognizer {
         if let recognizer, preparedLocale == locale { return recognizer }
         guard let r = SFSpeechRecognizer(locale: locale) else {
-            log.error("locale unsupported: \(locale.identifier, privacy: .public)")
+            log.error("locale unsupported: \(locale.identifier)")
             throw TranscriptionError.localeUnsupported(locale)
         }
-        log.info("recognizer resolved for locale \(locale.identifier, privacy: .public)")
+        log.info("recognizer resolved for locale \(locale.identifier)")
         self.recognizer = r
         self.preparedLocale = locale
         return r

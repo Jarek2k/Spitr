@@ -8,9 +8,8 @@
 import Foundation
 import AVFoundation
 import CoreAudio
-import os
 
-private let log = Logger(subsystem: "com.jarek.Spitr", category: "audio")
+private let log = DiagLog(category: "audio")
 
 enum AudioCaptureError: Error, LocalizedError {
     case formatUnavailable
@@ -105,7 +104,7 @@ final class AudioCaptureService: @unchecked Sendable {
             // silently capturing nothing. Fall back to the raw mic so dictation
             // still works, and remember it to skip the slow retry next time.
             guard wantsVoiceProcessing else { throw error }
-            log.warning("voice processing failed (\(error.localizedDescription, privacy: .public)); falling back to raw mic")
+            log.warning("voice processing failed (\(error.localizedDescription)); falling back to raw mic")
             voiceProcessingUnavailable = true
             try startEngine(voiceProcessing: false)
         }
@@ -135,11 +134,11 @@ final class AudioCaptureService: @unchecked Sendable {
         // that device instead of staying on the default.
         engine.prepare()
         log.info("""
-            capture start: device=\(self.preferredDeviceUID ?? "default", privacy: .public) \
-            inHW=\(input.inputFormat(forBus: 0).sampleRate, privacy: .public)Hz/\
-            \(input.inputFormat(forBus: 0).channelCount, privacy: .public)ch \
-            out=\(input.outputFormat(forBus: 0).sampleRate, privacy: .public)Hz/\
-            \(input.outputFormat(forBus: 0).channelCount, privacy: .public)ch
+            capture start: device=\(self.preferredDeviceUID ?? "default") \
+            inHW=\(input.inputFormat(forBus: 0).sampleRate)Hz/\
+            \(input.inputFormat(forBus: 0).channelCount)ch \
+            out=\(input.outputFormat(forBus: 0).sampleRate)Hz/\
+            \(input.outputFormat(forBus: 0).channelCount)ch
             """)
 
         guard let target = AVAudioFormat(commonFormat: .pcmFormatFloat32,
@@ -209,9 +208,9 @@ final class AudioCaptureService: @unchecked Sendable {
         guard input.isVoiceProcessingEnabled != enabled else { return }
         do {
             try input.setVoiceProcessingEnabled(enabled)
-            log.info("voice processing enabled=\(enabled, privacy: .public)")
+            log.info("voice processing enabled=\(enabled)")
         } catch {
-            log.error("failed to set voice processing: \(error.localizedDescription, privacy: .public)")
+            log.error("failed to set voice processing: \(error.localizedDescription)")
         }
     }
 
@@ -236,7 +235,7 @@ final class AudioCaptureService: @unchecked Sendable {
         if status != noErr {
             log.error("failed to set input device \(deviceID) (status \(status)), using default")
         } else {
-            log.info("pinned input device id=\(deviceID, privacy: .public)")
+            log.info("pinned input device id=\(deviceID)")
         }
     }
 

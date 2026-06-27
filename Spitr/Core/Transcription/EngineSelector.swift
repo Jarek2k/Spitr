@@ -8,9 +8,8 @@
 //
 
 import Foundation
-import os
 
-private let log = Logger(subsystem: "com.jarek.Spitr", category: "engine")
+private let log = DiagLog(category: "engine")
 
 enum EngineKind: String, CaseIterable, Identifiable {
     case apple
@@ -35,7 +34,7 @@ final class EngineSelector {
             log.info("building engine: Apple Speech")
             return AppleSpeechEngine()
         case .whisperKit:
-            log.info("building engine: WhisperKit (model: \(whisperModel, privacy: .public))")
+            log.info("building engine: WhisperKit (model: \(whisperModel))")
             return WhisperKitEngine(model: whisperModel)
         }
     }

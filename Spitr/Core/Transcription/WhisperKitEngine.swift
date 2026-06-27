@@ -12,9 +12,8 @@
 import Foundation
 import WhisperKit
 import CoreML
-import os
 
-private let log = Logger(subsystem: "com.jarek.Spitr", category: "whisperkit")
+private let log = DiagLog(category: "whisperkit")
 
 final class WhisperKitEngine: TranscriptionEngine {
     let id = "whisperkit"
@@ -66,7 +65,7 @@ final class WhisperKitEngine: TranscriptionEngine {
             let config = WhisperKitConfig(model: model, computeOptions: compute)
             pipe = try await WhisperKit(config)
             let ms = Int(Date().timeIntervalSince(t0) * 1000)
-            log.info("WhisperKit ready (model: \(self.model, privacy: .public)) in \(ms) ms")
+            log.info("WhisperKit ready (model: \(self.model)) in \(ms) ms")
         } catch {
             throw TranscriptionError.underlying(error)
         }
@@ -100,7 +99,7 @@ final class WhisperKitEngine: TranscriptionEngine {
                                                      decodeOptions: options)
             let ms = Int(Date().timeIntervalSince(t0) * 1000)
             let audioSec = Double(audio.samples.count) / audio.sampleRate
-            log.info("transcribe \(String(format: "%.1f", audioSec), privacy: .public)s audio in \(ms) ms (model: \(self.model, privacy: .public))")
+            log.info("transcribe \(String(format: "%.1f", audioSec))s audio in \(ms) ms (model: \(self.model))")
             let text = results.map(\.text).joined(separator: " ")
             return text.trimmingCharacters(in: .whitespacesAndNewlines)
         } catch {

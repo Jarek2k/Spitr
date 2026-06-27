@@ -17,9 +17,8 @@
 import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
-import os
 
-private let log = Logger(subsystem: "com.jarek.Spitr", category: "insertion")
+private let log = DiagLog(category: "insertion")
 
 final class TextInsertionService {
     /// Virtual key code for "V" on an ANSI/QWERTY layout (kVK_ANSI_V).
@@ -168,7 +167,7 @@ final class TextInsertionService {
         var error: NSDictionary?
         NSAppleScript(source: source)?.executeAndReturnError(&error)
         if let error {
-            log.error("AppleScript paste failed: \(error, privacy: .public)")
+            log.error("AppleScript paste failed: \(error)")
         }
     }
 

@@ -19,7 +19,7 @@ struct DiagnosticsSettingsView: View {
                         LogStore.shared.setVerbose(on)
                     }
             } footer: {
-                Text("Schreibt zusätzlich regelmäßig Speicher- und Thread-Werte ins Protokoll — nützlich, um über mehrere Tage Lecks aufzuspüren. Aus reicht das normale Protokoll mit Fehlern und Zeiten.")
+                Text("Schreibt nur zur Fehlersuche etwa alle 5 Minuten zusätzlich Speicher- und Thread-Werte ins Protokoll — nützlich, um über mehrere Tage Lecks aufzuspüren, kostet aber etwas Last. Aus reicht das normale Protokoll mit Ereignissen, Zeiten und Fehlern.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

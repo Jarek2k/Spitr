@@ -14,9 +14,8 @@
 
 import Foundation
 import AVFoundation
-import os
 
-private let log = Logger(subsystem: "com.jarek.Spitr", category: "feedback")
+private let log = DiagLog(category: "feedback")
 
 /// One tone in a cue: a frequency held for a duration. The synthesizer inserts a
 /// short silent gap between consecutive notes.
@@ -105,7 +104,7 @@ final class FeedbackSoundService {
     /// the main thread; a no-op if synthesis failed.
     func playReady(_ style: ReadyChimeStyle) {
         guard let player = readyPlayers[style] else {
-            log.error("ready chime: no player for \(style.rawValue, privacy: .public)")
+            log.error("ready chime: no player for \(style.rawValue)")
             return
         }
         player.currentTime = 0
