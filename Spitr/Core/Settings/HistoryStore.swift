@@ -41,9 +41,8 @@ final class HistoryStore: ObservableObject {
         didSet { defaults.set(isEnabled, forKey: Keys.enabled) }
     }
 
-    /// Keep the list bounded so UserDefaults stays small. Sized to hold a
-    /// multi-day dictation session for later quality review.
-    private let limit = 1000
+    /// Keep the list bounded so UserDefaults stays small.
+    private let limit = 100
 
     private let defaults: UserDefaults
 
