@@ -55,10 +55,10 @@ fi
 prev="$(gh run list --workflow "$WORKFLOW" --limit 1 --json databaseId \
         --jq '.[0].databaseId // 0')"
 
-echo "==> Dispatching $WORKFLOW for v$VERSION…"
+echo "==> Dispatching $WORKFLOW for v$VERSION..."
 gh workflow run "$WORKFLOW" -f publish_release=true -f prerelease=true
 
-echo "==> Waiting for the run to register…"
+echo "==> Waiting for the run to register..."
 run_id=""
 for _ in $(seq 1 30); do
     run_id="$(gh run list --workflow "$WORKFLOW" --limit 1 --json databaseId \
