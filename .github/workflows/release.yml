@@ -20,8 +20,27 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    name: Build & unit test
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Xcode version
+        run: xcodebuild -version
+      # Same gate as ci.yml: unit tests only (the UI launch test needs an
+      # interactive GUI session a headless runner can't grant). No release is
+      # built or published unless this passes.
+      - name: Build & test
+        run: >
+          xcodebuild test
+          -scheme Spitr
+          -destination 'platform=macOS'
+          -only-testing:SpitrTests
+          CODE_SIGNING_ALLOWED=NO
+
   dmg:
     name: Build & package DMG
+    needs: test
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v5

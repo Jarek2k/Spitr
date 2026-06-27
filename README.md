@@ -140,6 +140,9 @@ Locally" / Personal Team signing as `⌘R`, and the result runs indefinitely on
 the machine that built it. (A quick `xcodebuild -scheme Spitr -configuration
 Release build` also gives you an optimized binary without packaging a DMG.)
 
+> Publishing a new DMG to the Releases page is automated — see
+> [RELEASING.md](RELEASING.md).
+
 ## Choosing an engine
 
 - **Apple Speech** (default) — no download, low resource use, good for most
