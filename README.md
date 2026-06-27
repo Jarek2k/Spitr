@@ -120,6 +120,26 @@ xcodebuild -scheme Spitr build
 xcodebuild test
 ```
 
+`⌘R` produces an unoptimized **Debug** build under `DerivedData` — fine for
+hacking, but heavier (slower, chattier logging) than a release build. For daily
+use, build an optimized **Release** and install it like a real app:
+
+```sh
+Scripts/build_dmg.sh                 # Release build, locally signed, → dist/Spitr-<version>.dmg
+```
+
+Open the DMG, drag `Spitr.app` to `/Applications`, then clear the quarantine
+flag once (same as Option A):
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Spitr.app
+```
+
+This needs no paid Apple Developer account — it uses the same "Sign to Run
+Locally" / Personal Team signing as `⌘R`, and the result runs indefinitely on
+the machine that built it. (A quick `xcodebuild -scheme Spitr -configuration
+Release build` also gives you an optimized binary without packaging a DMG.)
+
 ## Choosing an engine
 
 - **Apple Speech** (default) — no download, low resource use, good for most
