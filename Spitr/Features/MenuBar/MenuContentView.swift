@@ -140,7 +140,7 @@ struct MenuContentView: View {
             // briefly until the window appears instead of guessing a delay.
             NSApp.activate(ignoringOtherApps: true)
             var window: NSWindow?
-            for _ in 0..<40 { // up to ~2s in 50ms steps
+            for _ in 0..<80 { // up to ~4s in 50ms steps
                 window = NSApp.windows.first(where: AppDelegate.isSettingsWindow)
                 if window != nil { break }
                 try? await Task.sleep(for: .milliseconds(50))
