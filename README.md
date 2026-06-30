@@ -90,20 +90,29 @@ reason "nothing leaves the device" is worth verifying in the code.
 Grab the latest DMG from the [Releases](../../releases) page and drag Spitr to
 Applications.
 
-Because this is a **self-signed beta without Apple notarization**, Gatekeeper
-will quarantine it on first launch. Clear it once:
+This is a **self-signed beta without Apple notarization**, so on first launch
+macOS Gatekeeper blocks it with *"Apple could not verify 'Spitr' is free of
+malware…"*. That's expected — allow it once:
 
-- **Right-click** `Spitr.app` → **Open** → **Open** in the dialog, **or**
-- run:
+1. In the warning, click **Done** (not *Move to Trash*).
+2. Open **System Settings → Privacy & Security** and scroll to the **Security**
+   section. Next to *"Spitr was blocked…"* click **Open Anyway**, confirm, and
+   enter your admin password.
 
-  ```sh
-  xattr -dr com.apple.quarantine /Applications/Spitr.app
-  ```
+After that Spitr launches normally. (On macOS 15+ the old right-click → **Open**
+shortcut no longer works for non-notarized apps — the route above is the
+supported one.)
+
+If you're comfortable in a terminal, this one-liner does the same in one step:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Spitr.app
+```
 
 Verify the download against the `SHA-256` published with the release:
 
 ```sh
-shasum -a 256 Spitr-0.9.0.dmg
+shasum -a 256 Spitr-<version>.dmg
 ```
 
 ### Option B — build from source
