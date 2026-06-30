@@ -66,10 +66,16 @@ private struct RuleRow: View {
 
     var body: some View {
         HStack {
+            // labelsHidden(): inside a Form, SwiftUI would otherwise promote the
+            // placeholder to a persistent leading label, repeating "Klode"/"Claude"
+            // on every row. Hidden, the strings stay as ghost hints in empty fields
+            // only — the column headers above carry the meaning.
             TextField("Klode", text: $pattern)
+                .labelsHidden()
                 .textFieldStyle(.roundedBorder)
                 .onChange(of: pattern) { _, _ in commit() }
             TextField("Claude", text: $replacement)
+                .labelsHidden()
                 .textFieldStyle(.roundedBorder)
                 .onChange(of: replacement) { _, _ in commit() }
             Button {
