@@ -103,9 +103,18 @@ After that Spitr launches normally. (On macOS 15+ the old right-click → **Open
 shortcut no longer works for non-notarized apps — the route above is the
 supported one.)
 
-**This repeats for every update.** Each downloaded DMG is a fresh, non-notarized
-copy, so replacing the app re-adds the quarantine flag — do the allow step (or
-the one-liner below) once per new version.
+**Updating to a newer version works the same way, every time:**
+
+1. **Quit** the running Spitr (menu-bar icon → **Quit**) — otherwise macOS won't
+   let you overwrite it (*"the item 'Spitr' is in use"*).
+2. Drag the new `Spitr.app` over the old one in Applications.
+3. A freshly downloaded DMG is **always** quarantined again, so the new copy is
+   blocked on next launch. **Repeat the allow step above** (or the one-liner
+   below).
+4. Now it launches.
+
+There's no self-update — until Spitr is notarized, each new version needs this
+allow step once.
 
 If you're comfortable in a terminal, this one-liner does the same in one step:
 
