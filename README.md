@@ -103,6 +103,10 @@ After that Spitr launches normally. (On macOS 15+ the old right-click → **Open
 shortcut no longer works for non-notarized apps — the route above is the
 supported one.)
 
+**This repeats for every update.** Each downloaded DMG is a fresh, non-notarized
+copy, so replacing the app re-adds the quarantine flag — do the allow step (or
+the one-liner below) once per new version.
+
 If you're comfortable in a terminal, this one-liner does the same in one step:
 
 ```sh
